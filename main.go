@@ -16,6 +16,7 @@ func main() {
 	logrus.Fatal(http.ListenAndServe(":8888", nil))
 }
 
+// Dummy function used for testing static analyses of the ci/cd pipeline -> can be removed
 func myTestableFunction(value int) int {
 	return value + 1
 }
