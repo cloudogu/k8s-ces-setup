@@ -13,7 +13,7 @@ func main() {
 		logrus.Printf("Hello, %q and %d", html.EscapeString(r.URL.Path), myTestableFunction(100))
 	})
 
-	logrus.Fatal(http.ListenAndServe(":8888", nil))
+	logrus.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // Dummy function used for testing static analyses of the ci/cd pipeline -> can be removed

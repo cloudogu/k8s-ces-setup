@@ -8,6 +8,8 @@ MAKEFILES_VERSION=4.8.0
 IMAGE ?= cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
+K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
+K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
 K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
 
 .DEFAULT_GOAL:=help
@@ -45,6 +47,11 @@ include build/make/digital-signature.mk
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+##@ EcoSystem
+
+.PHONY: build
+build: docker-build image-import k8s-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
+
 ##@ Development (without go container)
 
 .PHONY: vet
@@ -53,8 +60,8 @@ vet: $(STATIC_ANALYSIS_DIR) ## Run go vet against code.
 
 ##@ Build
 
-.PHONY: build
-build: ## Build controller binary.
+.PHONY: build-setup
+build-setup: ## Builds the setup Go binary.
 # pseudo target to support make help for compile target
 	@make compile
 
@@ -68,11 +75,6 @@ run: vet ## Run a controller from your host.
 setup-release: ## Interactively starts the release workflow.
 	@echo "Starting git flow release..."
 	@build/make/release.sh setup
-
-##@ EcoSystem
-
-.PHONY: build
-build: docker-build image-import k8s-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
 
 ##@ Docker
 
@@ -99,12 +101,19 @@ ifndef ignore-not-found
 endif
 
 .PHONY: k8s-apply
-k8s-apply:  ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	kubectl apply -f ${K8S_RESOURCE_DIR}
+k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	@echo "Apply all k8s-ces-setup resources to the K8s-EcoSystem..."
+	kubectl apply -f ${K8S_SETUP_DEV_RESOURCE_YAML}
+	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 .PHONY: k8s-delete
-k8s-delete:  ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	kubectl delete --ignore-not-found=$(ignore-not-found) -f ${K8S_RESOURCE_DIR}
+k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	@echo "Delete all k8s-ces-setup resources from the K8s-EcoSystem..."
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f ${K8S_SETUP_DEV_RESOURCE_YAML}
+	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
+
+${K8S_SETUP_DEV_RESOURCE_YAML}: # [not listed in help] Templates the deployment yaml with the latest image.
+	@yq e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 # Other targets
 

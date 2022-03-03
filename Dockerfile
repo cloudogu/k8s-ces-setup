@@ -29,4 +29,6 @@ COPY --from=builder /workspace/k8s-ces-setup .
 # dockerfile_lint - ignore
 USER 65532:65532
 
+EXPOSE 8080
+
 ENTRYPOINT ["/k8s-ces-setup"]
