@@ -28,102 +28,101 @@ developmentBranch = "develop"
 currentBranch = "${env.BRANCH_NAME}"
 
 
-parallel(
-        "source code": {
-            node('docker') {
-                timestamps {
-                    stage('Checkout') {
-                        checkout scm
-                        make 'clean'
-                    }
+node('docker') {
+    timestamps {
+        stage('Checkout') {
+            checkout scm
+        }
+    }
+}
 
-                    docker
-                            .image('golang:1.17.7')
-                            .mountJenkinsUser()
-                            .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
-                                    {
-                                        stage('Build') {
-                                            make 'build'
-                                        }
+node('docker') {
+    sh 'echo testing dogu integration with ces'
+    timestamps {
+        properties([
+                // Keep only the last x builds to preserve space
+                buildDiscarder(logRotator(numToKeepStr: '10')),
+                // Don't run concurrent builds for a branch, because they use the same workspace directory
+                disableConcurrentBuilds(),
+        ])
 
-                                        stage('Unit Tests') {
-                                            make 'unit-test'
-                                        }
-
-                                        stage("Review dog analysis") {
-                                            stageStaticAnalysisReviewDog()
-                                        }
-                                    }
-
-                    stage('SonarQube') {
-                        stageStaticAnalysisSonarQube()
-                    }
-                }
-            }
-        },
-        "k8s-integration": {
-            node('docker') {
-                sh 'echo testing dogu integration with ces'
-                timestamps {
-                    properties([
-                            // Keep only the last x builds to preserve space
-                            buildDiscarder(logRotator(numToKeepStr: '10')),
-                            // Don't run concurrent builds for a branch, because they use the same workspace directory
-                            disableConcurrentBuilds(),
-                    ])
-
-                    stage('Checkout') {
-                        git branch: 'main', url: 'https://github.com/cloudogu/gitops-playground'
-                        dir('k8s-ces-setup') {
-                            checkout scm
-                        }
-                    }
-
-                    stage('Lint - Dockerfile') {
-                        stageLintDockerfile()
-                    }
-
-                    stage("Lint - k8s Resources") {
-                        stageLintK8SResources()
-                    }
-
-                    try {
-                        stage('Set up k3d cluster') {
-                            k3d.startK3d()
-                        }
-
-                        stage('Install kubectl') {
-                            k3d.installKubectl()
-                        }
-
-                        stage('Build Image') {
-                            dir('k8s-ces-setup') {
-                                make "docker-build"
-                            }
-                        }
-
-                        stage('Import Image') {
-                            String currentVersion = "dev"
-                            dir('k8s-ces-setup') {
-                                currentVersion = getCurrentVersionFromMakefile()
-                            }
-                            sh "k3d image import ${repositoryOwner}/${repositoryName}:${currentVersion}"
-                        }
-
-                        stage('Deploy Setup') {
-                            k3d.kubectl("apply -f k8s-ces-setup/k8s/k8s-ces-setup.yaml")
-                        }
-
-                        stageAutomaticRelease()
-                    } finally {
-                        stage('Remove k3d cluster') {
-                            k3d.deleteK3d()
-                        }
-                    }
-                }
+        stage('Checkout') {
+            git branch: 'main', url: 'https://github.com/cloudogu/gitops-playground'
+            dir('k8s-ces-setup') {
+                checkout scm
+                make 'clean'
             }
         }
-)
+
+        dir('k8s-ces-setup') {
+            stage('Lint - Dockerfile') {
+                lintDockerfile()
+            }
+
+            stage("Lint - k8s Resources") {
+                stageLintK8SResources()
+            }
+
+            docker
+                    .image('golang:1.17.7')
+                    .mountJenkinsUser()
+                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                            {
+                                stage('Build') {
+                                    make 'build'
+                                }
+
+                                stage('Unit Tests') {
+                                    make 'unit-test'
+                                }
+
+                                stage("Review dog analysis") {
+                                    stageStaticAnalysisReviewDog()
+                                }
+                            }
+
+            stage('SonarQube') {
+                stageStaticAnalysisSonarQube()
+            }
+        }
+
+        try {
+            stage('Set up k3d cluster') {
+                k3d.startK3d()
+            }
+
+            stage('Install kubectl') {
+                k3d.installKubectl()
+            }
+
+            stage('Build Image') {
+                dir('k8s-ces-setup') {
+                    make "docker-build"
+                }
+            }
+
+            stage('Import Image') {
+                String currentVersion = "dev"
+                dir('k8s-ces-setup') {
+                    currentVersion = getCurrentVersionFromMakefile()
+                }
+                sh "k3d image import ${repositoryOwner}/${repositoryName}:${currentVersion}"
+            }
+
+            stage('Deploy Setup') {
+                k3d.kubectl("apply -f k8s-ces-setup/k8s/k8s-ces-setup.yaml")
+            }
+
+            dir('k8s-ces-setup') {
+                stageAutomaticRelease()
+            }
+        } finally {
+            stage('Remove k3d cluster') {
+                k3d.deleteK3d()
+            }
+        }
+    }
+}
 
 void gitWithCredentials(String command) {
     withCredentials([usernamePassword(credentialsId: 'cesmarvin', usernameVariable: 'GIT_AUTH_USR', passwordVariable: 'GIT_AUTH_PSW')]) {
@@ -135,22 +134,14 @@ void gitWithCredentials(String command) {
 }
 
 void stageLintK8SResources() {
-    dir('k8s-ces-setup') {
-        String kubevalImage = "cytopia/kubeval:0.13"
+    String kubevalImage = "cytopia/kubeval:0.13"
 
-        docker
-                .image(kubevalImage)
-                .inside("-v ${WORKSPACE}/k8s:/data -t --entrypoint=")
-                        {
-                            sh "kubeval /data/k8s-ces-setup.yaml --ignore-missing-schemas"
-                        }
-    }
-}
-
-void stageLintDockerfile() {
-    dir('k8s-ces-setup') {
-        lintDockerfile()
-    }
+    docker
+            .image(kubevalImage)
+            .inside("-v ${WORKSPACE}/k8s:/data -t --entrypoint=")
+                    {
+                        sh "kubeval /data/k8s-ces-setup.yaml --ignore-missing-schemas"
+                    }
 }
 
 void stageStaticAnalysisReviewDog() {
@@ -195,29 +186,27 @@ void stageStaticAnalysisSonarQube() {
 }
 
 void stageAutomaticRelease() {
-    dir('k8s-ces-setup') {
-        if (gitflow.isReleaseBranch()) {
-            String releaseVersion = git.getSimpleBranchName()
+    if (gitflow.isReleaseBranch()) {
+        String releaseVersion = git.getSimpleBranchName()
 
-            stage('Build & Push Image') {
-                def dockerImage = docker.build("cloudogu/${repositoryName}:${releaseVersion}")
+        stage('Build & Push Image') {
+            def dockerImage = docker.build("cloudogu/${repositoryName}:${releaseVersion}")
 
-                docker.withRegistry('https://registry.hub.docker.com/', 'dockerHubCredentials') {
-                    dockerImage.push("${releaseVersion}")
-                }
+            docker.withRegistry('https://registry.hub.docker.com/', 'dockerHubCredentials') {
+                dockerImage.push("${releaseVersion}")
             }
+        }
 
-            stage('Finish Release') {
-                gitflow.finishRelease(releaseVersion, productionReleaseBranch)
-            }
+        stage('Finish Release') {
+            gitflow.finishRelease(releaseVersion, productionReleaseBranch)
+        }
 
-            stage('Sign after Release') {
-                gpg.createSignature()
-            }
+        stage('Sign after Release') {
+            gpg.createSignature()
+        }
 
-            stage('Add Github-Release') {
-                releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
-            }
+        stage('Add Github-Release') {
+            releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
         }
     }
 }
