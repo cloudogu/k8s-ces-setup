@@ -4,12 +4,12 @@
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
-// Creating necessary git objects
-git = new Git(this, "cesmarvin")
-git.committerName = 'cesmarvin'
-git.committerEmail = 'cesmarvin@cloudogu.com'
-gitflow = new GitFlow(this, git)
-github = new GitHub(this, git)
+// Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
+gitWrapper = new Git(this, "cesmarvin")
+gitWrapper.committerName = 'cesmarvin'
+gitWrapper.committerEmail = 'cesmarvin@cloudogu.com'
+gitflow = new GitFlow(this, gitWrapper)
+github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
 gpg = new Gpg(this, docker)
@@ -27,17 +27,7 @@ productionReleaseBranch = "main"
 developmentBranch = "develop"
 currentBranch = "${env.BRANCH_NAME}"
 
-
 node('docker') {
-    timestamps {
-        stage('Checkout') {
-            checkout scm
-        }
-    }
-}
-
-node('docker') {
-    sh 'echo testing dogu integration with ces'
     timestamps {
         properties([
                 // Keep only the last x builds to preserve space
@@ -47,7 +37,7 @@ node('docker') {
         ])
 
         stage('Checkout') {
-            git branch: 'main', url: 'https://github.com/cloudogu/gitops-playground'
+            gitWrapper.git branch: 'main', url: 'https://github.com/cloudogu/gitops-playground'
             dir('k8s-ces-setup') {
                 checkout scm
                 make 'clean'
@@ -66,7 +56,7 @@ node('docker') {
             docker
                     .image('golang:1.17.7')
                     .mountJenkinsUser()
-                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                    .inside("--volume ${PWD}:/go/src/${project} -w /go/src/${project}")
                             {
                                 stage('Build') {
                                     make 'build'
@@ -135,10 +125,13 @@ void gitWithCredentials(String command) {
 
 void stageLintK8SResources() {
     String kubevalImage = "cytopia/kubeval:0.13"
-
+    sh "printenv"
+    String currentWorkspace = "${PWD}"
+    sh "echo ${env.PWD}"
+    sh "echo ${currentWorkspace}"
     docker
             .image(kubevalImage)
-            .inside("-v ${WORKSPACE}/k8s:/data -t --entrypoint=")
+            .inside("-v ${currentWorkspace}/k8s:/data -t --entrypoint=")
                     {
                         sh "kubeval /data/k8s-ces-setup.yaml --ignore-missing-schemas"
                     }
@@ -187,7 +180,7 @@ void stageStaticAnalysisSonarQube() {
 
 void stageAutomaticRelease() {
     if (gitflow.isReleaseBranch()) {
-        String releaseVersion = git.getSimpleBranchName()
+        String releaseVersion = gitWrapper.getSimpleBranchName()
 
         stage('Build & Push Image') {
             def dockerImage = docker.build("cloudogu/${repositoryName}:${releaseVersion}")

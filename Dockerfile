@@ -1,6 +1,8 @@
 # Build the manager binary
 FROM golang:1.17 as builder
 
+ENV VERSION="0.0.0"
+
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -11,24 +13,31 @@ RUN go mod download
 
 # Copy the go source
 COPY main.go main.go
+COPY app app
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -a -o k8s-ces-setup main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION} -s -w" -a -o k8s-ces-setup main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+## Production image
+FROM alpine:3.15.0
 LABEL maintainer="hello@cloudogu.com" \
       NAME="k8s-ces-setup" \
       VERSION="0.0.0"
 
-WORKDIR /
-COPY --from=builder /workspace/k8s-ces-setup .
+ENV USER=setup
 
-# the linter has a problem with the valid colon-syntax
-# dockerfile_lint - ignore
-USER 65532:65532
+WORKDIR /
+
+RUN apk add --no-cache bash \
+    && set -x \
+    && addgroup -S ${USER} \
+    && adduser -S ${USER} -G ${USER}
+
+USER ${USER}:${USER}
+
+COPY resources /
+COPY --from=builder /workspace/k8s-ces-setup .
 
 EXPOSE 8080
 
-ENTRYPOINT ["/k8s-ces-setup"]
+ENTRYPOINT ["/startup.sh"]

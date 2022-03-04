@@ -1,0 +1,17 @@
+#
+# The default configuration map for the ces-setup. Should always be deployed before the setup itself.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-ces-setup-config
+  namespace: default
+  labels:
+    app: cloudogu-ecosystem
+    app.kubernetes.io/name: k8s-ces-setup
+data:
+  k8s-ces-setup.yaml: |
+    namespace: "ecosystem-0"
+    log_level: "debug"
+    dogu_operator_version: "0.0.0"
+    etcd_server_version: "0.0.0"

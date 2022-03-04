@@ -8,6 +8,7 @@ MAKEFILES_VERSION=4.8.0
 IMAGE ?= cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
+K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
 K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
 K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
@@ -103,13 +104,15 @@ endif
 .PHONY: k8s-apply
 k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	@echo "Apply all k8s-ces-setup resources to the K8s-EcoSystem..."
+	kubectl apply -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
 	kubectl apply -f ${K8S_SETUP_DEV_RESOURCE_YAML}
 	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 .PHONY: k8s-delete
-k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	@echo "Delete all k8s-ces-setup resources from the K8s-EcoSystem..."
-	kubectl delete --ignore-not-found=$(ignore-not-found) -f ${K8S_SETUP_DEV_RESOURCE_YAML}
+	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
+	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_DEV_RESOURCE_YAML}
 	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 ${K8S_SETUP_DEV_RESOURCE_YAML}: # [not listed in help] Templates the deployment yaml with the latest image.
