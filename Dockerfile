@@ -33,6 +33,8 @@ RUN apk add --no-cache bash \
     && addgroup -S ${USER} \
     && adduser -S ${USER} -G ${USER}
 
+# the linter has a problem with the valid colon-syntax
+# dockerfile_lint - ignore
 USER ${USER}:${USER}
 
 COPY resources /

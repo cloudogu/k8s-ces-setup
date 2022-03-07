@@ -14,9 +14,6 @@ changelog = new Changelog(this)
 Docker docker = new Docker(this)
 gpg = new Gpg(this, docker)
 
-// Create necessary k3d object
-k3d = new K3d(this, env.WORKSPACE, env.PATH)
-
 // Configuration of repository
 repositoryOwner = "cloudogu"
 repositoryName = "k8s-ces-setup"
@@ -56,10 +53,10 @@ node('docker') {
             docker
                     .image('golang:1.17.7')
                     .mountJenkinsUser()
-                    .inside("--volume ${PWD}:/go/src/${project} -w /go/src/${project}")
+                    .inside("--volume ${WORKSPACE}/k8s-ces-setup:/go/src/${project} -w /go/src/${project}")
                             {
                                 stage('Build') {
-                                    make 'build'
+                                    make 'compile'
                                 }
 
                                 stage('Unit Tests') {
@@ -76,6 +73,8 @@ node('docker') {
             }
         }
 
+        def k3d = new K3d(this, env.WORKSPACE, env.PATH)
+
         try {
             stage('Set up k3d cluster') {
                 k3d.startK3d()
@@ -91,21 +90,22 @@ node('docker') {
                 }
             }
 
-            stage('Import Image') {
-                String currentVersion = "dev"
-                dir('k8s-ces-setup') {
-                    currentVersion = getCurrentVersionFromMakefile()
-                }
-                sh "k3d image import ${repositoryOwner}/${repositoryName}:${currentVersion}"
-            }
-
-            stage('Deploy Setup') {
-                k3d.kubectl("apply -f k8s-ces-setup/k8s/k8s-ces-setup.yaml")
-            }
-
-            dir('k8s-ces-setup') {
-                stageAutomaticRelease()
-            }
+            // todo: The step `Import Image` is currently not supported. We need to wait until the k3d cluster supports the import images (or a custom registry). This task is currently wip.
+//            stage('Import Image') {
+//                String currentVersion = "dev"
+//                dir('k8s-ces-setup') {
+//                    currentVersion = getCurrentVersionFromMakefile()
+//                }
+//                sh "k3d image import ${repositoryOwner}/${repositoryName}:${currentVersion}"
+//            }
+//
+//            stage('Deploy Setup') {
+//                k3d.kubectl("apply -f k8s-ces-setup/k8s/k8s-ces-setup.yaml")
+//            }
+//
+//            dir('k8s-ces-setup') {
+//                stageAutomaticRelease()
+//            }
         } finally {
             stage('Remove k3d cluster') {
                 k3d.deleteK3d()
@@ -125,13 +125,9 @@ void gitWithCredentials(String command) {
 
 void stageLintK8SResources() {
     String kubevalImage = "cytopia/kubeval:0.13"
-    sh "printenv"
-    String currentWorkspace = "${PWD}"
-    sh "echo ${env.PWD}"
-    sh "echo ${currentWorkspace}"
     docker
             .image(kubevalImage)
-            .inside("-v ${currentWorkspace}/k8s:/data -t --entrypoint=")
+            .inside("-v ${WORKSPACE}/k8s-ces-setup/k8s:/data -t --entrypoint=")
                     {
                         sh "kubeval /data/k8s-ces-setup.yaml --ignore-missing-schemas"
                     }
