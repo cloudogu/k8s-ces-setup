@@ -1,8 +1,6 @@
 # Build the manager binary
 FROM golang:1.17 as builder
 
-ENV VERSION="0.0.0"
-
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -15,8 +13,14 @@ RUN go mod download
 COPY main.go main.go
 COPY app app
 
+# Copy git and build files
+COPY .git .git
+COPY Makefile Makefile
+COPY build build
+
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=${VERSION} -s -w" -a -o k8s-ces-setup main.go
+RUN go mod vendor
+RUN make compile-generic
 
 ## Production image
 FROM alpine:3.15.0
@@ -38,7 +42,7 @@ RUN apk add --no-cache bash \
 USER ${USER}:${USER}
 
 COPY resources /
-COPY --from=builder /workspace/k8s-ces-setup .
+COPY --from=builder /workspace/target/k8s-ces-setup .
 
 EXPOSE 8080
 
