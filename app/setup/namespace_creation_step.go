@@ -8,20 +8,22 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type NamespaceCreationStep struct {
-	ClientSet *kubernetes.Clientset `json:"client_set"`
-	Namespace string                `json:"namespace"`
+// NamespaceCreator contains necessary information to create a new namespace in the cluster
+type NamespaceCreator struct {
+	ClientSet kubernetes.Interface `json:"clientSet"`
+	Namespace string               `json:"namespace"`
 }
 
-func NewNamespaceCreationStep(clientSet *kubernetes.Clientset, namespace string) NamespaceCreationStep {
-	newProvisioner := NamespaceCreationStep{
+// NewNamespaceCreator creates a new object of type NamespaceCreator
+func NewNamespaceCreator(clientSet kubernetes.Interface, namespace string) NamespaceCreator {
+	newProvisioner := NamespaceCreator{
 		ClientSet: clientSet,
 		Namespace: namespace,
 	}
 	return newProvisioner
 }
 
-func (n NamespaceCreationStep) createNamespace() error {
+func (n NamespaceCreator) createNamespace() error {
 	namespace := &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
@@ -37,10 +39,10 @@ func (n NamespaceCreationStep) createNamespace() error {
 	return nil
 }
 
-func (n NamespaceCreationStep) GetName() string {
+func (n NamespaceCreator) GetStepDescription() string {
 	return fmt.Sprintf("Create new namespace %s", n.Namespace)
 }
 
-func (n NamespaceCreationStep) PerformSetupStep() error {
+func (n NamespaceCreator) PerformSetupStep() error {
 	return n.createNamespace()
 }
