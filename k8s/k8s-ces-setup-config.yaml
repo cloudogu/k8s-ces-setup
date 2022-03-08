@@ -12,6 +12,6 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     namespace: "ecosystem-0"
-    log_level: "debug"
-    dogu_operator_version: "0.0.0"
-    etcd_server_version: "0.0.0"
+    logLevel: "WARN"
+    doguOperatorVersion: "0.0.0"
+    etcdServerVersion: "0.0.0"

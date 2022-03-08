@@ -1,4 +1,4 @@
-context_path: /
-log_level: DEBUG
-dogu_operator_version: "0.0.0"
-etcd_server_version: "0.0.0"
+namespace: "ecosystem"
+logLevel: DEBUG
+doguOperatorVersion: "0.0.0"
+etcdServerVersion: https://github.com/cloudogu/k8s-etcd/blob/develop/manifests/etcd.yaml

@@ -15,10 +15,10 @@ var AppVersion Version = "0.0.0"
 
 // Config contains the common configuration for the application.
 type Config struct {
-	LogLevel            logrus.Level `yaml:"log_level"`
+	LogLevel            logrus.Level `yaml:"logLevel"`
 	Namespace           string       `yaml:"namespace"`
-	DoguOperatorVersion string       `yaml:"dogu_operator_version"`
-	EtcdServerVersion   string       `yaml:"etcd_server_version"`
+	DoguOperatorVersion string       `yaml:"doguOperatorVersion"`
+	EtcdServerVersion   string       `yaml:"etcdServerVersion"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.
