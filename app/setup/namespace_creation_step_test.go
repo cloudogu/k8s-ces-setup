@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"

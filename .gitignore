@@ -24,3 +24,6 @@ vendor/
 # Ignore binary created by air when developing locally
 tmp
 
+# Ignore go utility binaries
+.bin
+

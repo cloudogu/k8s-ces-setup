@@ -80,15 +80,17 @@ setup-release: ## Interactively starts the release workflow.
 ##@ Docker
 
 .PHONY: docker-build
-docker-build: ## Builds the docker image of the k8s-ces-setup `registry.cloudogu.com/official/k8s-ces-setup:<version>>`.
+docker-build: ## Builds the docker image of the k8s-ces-setup `cloudogu/k8s-ces-setup:version`.
 	@echo "Building docker image of dogu..."
 	docker build . -t ${IMAGE}
 
-${K8S_CLUSTER_ROOT}/image.tar: # [not listed in help] Saves the `registry.cloudogu.com/official/nginx-ingress:dev` image into a file into the K8s root path to be available on all nodes.
+${K8S_CLUSTER_ROOT}/image.tar:
+	# Saves the `cloudogu/k8s-ces-setup:version` image into a file into the K8s root path to be available on all nodes.
 	docker save ${IMAGE} -o ${K8S_CLUSTER_ROOT}/image.tar
 
 .PHONY: image-import
-image-import: ${K8S_CLUSTER_ROOT}/image.tar ## Imports the currently available image `registry.cloudogu.com/official/nginx-ingress:dev` into the K8s cluster for all nodes.
+image-import: ${K8S_CLUSTER_ROOT}/image.tar
+    # Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
 	@echo "Import docker image of dogu into all K8s nodes..."
 	cd ${K8S_CLUSTER_ROOT} && vagrant ssh main -- -t "sudo k3s ctr images import /vagrant/image.tar"
 	cd ${K8S_CLUSTER_ROOT} && vagrant ssh worker-0 -- -t "sudo k3s ctr images import /vagrant/image.tar"

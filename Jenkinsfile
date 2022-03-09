@@ -1,6 +1,6 @@
 #!groovy
 
-@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@v1.49.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@09340047'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -35,9 +35,6 @@ node('docker') {
         stage('Checkout') {
             checkout scm
             make 'clean'
-            dir('k3d') {
-                gitWrapper.git branch: 'main', url: 'https://github.com/cloudogu/gitops-playground'
-            }
         }
 
         stage('Lint - Dockerfile') {
@@ -70,23 +67,20 @@ node('docker') {
             stageStaticAnalysisSonarQube()
         }
 
-        sh 'printenv'
-
-        def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH)
+        def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH, "cesmarvin")
 
         try {
-            dir('k3d') {
-                stage('Set up k3d cluster') {
-                    k3d.startK3d()
-                }
+            stage('Set up k3d cluster') {
+                k3d.startK3d()
+            }
 
-                stage('Install kubectl') {
-                    k3d.installKubectl()
-                }
+            stage('Install kubectl') {
+                k3d.installKubectl()
             }
 
             stage('Build Image') {
-                make "docker-build"
+                String setupVersion = getCurrentVersionFromMakefile()
+                docker.build("cloudogu/${repositoryName}:${setupVersion}")
             }
 
             // todo: The step `Import Image` is currently not supported. We need to wait until the k3d cluster supports the import images (or a custom registry). This task is currently wip.
@@ -108,15 +102,6 @@ node('docker') {
     }
 }
 
-void gitWithCredentials(String command) {
-    withCredentials([usernamePassword(credentialsId: 'cesmarvin', usernameVariable: 'GIT_AUTH_USR', passwordVariable: 'GIT_AUTH_PSW')]) {
-        sh(
-                script: "git -c credential.helper=\"!f() { echo username='\$GIT_AUTH_USR'; echo password='\$GIT_AUTH_PSW'; }; f\" " + command,
-                returnStdout: true
-        )
-    }
-}
-
 void stageLintK8SResources() {
     String kubevalImage = "cytopia/kubeval:0.13"
     docker
@@ -131,8 +116,8 @@ void stageStaticAnalysisReviewDog() {
     def commitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
-        withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=cloudogu", "CI_REPO_NAME=${repositoryName}"]) {
-            make 'static-analysis-ci'
+        withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
+            make 'static-analysis'
         }
     }
 }
@@ -140,8 +125,7 @@ void stageStaticAnalysisReviewDog() {
 void stageStaticAnalysisSonarQube() {
     def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     withSonarQubeEnv {
-        sh "git config 'remote.origin.fetch' '+refs/heads/*:refs/remotes/origin/*'"
-        gitWithCredentials("fetch --all")
+        gitWrapper.fetch()
 
         if (currentBranch == productionReleaseBranch) {
             echo "This branch has been detected as the production branch."
@@ -194,7 +178,6 @@ void make(String makeArgs) {
     sh "make ${makeArgs}"
 }
 
-// Is required for the stage('Import Image') which is currently begin developed
-//String getCurrentVersionFromMakefile() {
-//    return sh(returnStdout: true, script: 'cat Makefile | grep -e "^VERSION=" | sed "s/VERSION=//g"').trim()
-//}
+String getCurrentVersionFromMakefile() {
+    return sh(returnStdout: true, script: 'cat Makefile | grep -e "^VERSION=" | sed "s/VERSION=//g"').trim()
+}

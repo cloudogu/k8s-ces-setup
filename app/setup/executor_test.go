@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
+
+	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	testclient "k8s.io/client-go/kubernetes/fake"
