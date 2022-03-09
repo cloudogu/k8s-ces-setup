@@ -2,20 +2,21 @@ package setup
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"net/http"
 )
 
-const EndpointPostStartSetup = "/api/v1/setup"
+const endpointPostStartSetup = "/api/v1/setup"
 
 // SetupAPI setups the REST API for configuration information
 func SetupAPI(router gin.IRoutes, appConfig config.Config) error {
-	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, EndpointPostStartSetup)
-	router.POST(EndpointPostStartSetup, func(context *gin.Context) {
+	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
+	router.POST(endpointPostStartSetup, func(context *gin.Context) {
 		client, err := createKubernetesClient()
 		if err != nil {
 			_ = context.AbortWithError(http.StatusInternalServerError, err)

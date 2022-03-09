@@ -2,11 +2,12 @@ package health
 
 import (
 	"encoding/json"
-	"github.com/cloudogu/k8s-ces-setup/app/config"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/cloudogu/k8s-ces-setup/app/config"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ var testConfig = config.Config{
 	LogLevel: logrus.DebugLevel,
 }
 
-func setupGinAndAPIWithPermissions(t *testing.T, config config.Config) *gin.Engine {
+func setupGinAndAPI(t *testing.T, config config.Config) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
@@ -34,11 +35,11 @@ func Test_newRequestHandler(t *testing.T) {
 
 func Test_requestHandler_getHealth(t *testing.T) {
 	// given
-	r := setupGinAndAPIWithPermissions(t, testConfig)
+	r := setupGinAndAPI(t, testConfig)
 
 	// when
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", EndpointGetHealth, nil)
+	req, _ := http.NewRequest("GET", endpointGetHealth, nil)
 	r.ServeHTTP(w, req)
 
 	// then

@@ -11,12 +11,10 @@ type GetHealthResponse struct {
 	Version config.Version `json:"version"`
 }
 
-// newRequestHandler creates a new instance of the Controller for requesting information of the baseline tool
 func newRequestHandler() *requestHandler {
 	return &requestHandler{}
 }
 
-// requestHandler is the struct which is used to retrieve information of the baseline tool
 type requestHandler struct {
 }
 

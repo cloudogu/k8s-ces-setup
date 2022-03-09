@@ -1,20 +1,21 @@
 ---
 #
-# The service makes the setup available via port 30080
+# The service makes the setup available via port 30080. We should switch to a LoadBalancer if we figure out how to
+# solve out external IP assignment
 #
 apiVersion: v1
 kind: Service
 metadata:
   name: k8s-ces-setup
   labels:
-    app: cloduogu-ecosystem
+    app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
 spec:
   type: NodePort
   ports:
-    - name: "setup"
+    - name: setup
       port: 8080
-      targetPort: 8080
+      targetPort: setup-webui
       nodePort: 30080
   selector:
     app.kubernetes.io/name: k8s-ces-setup
@@ -26,7 +27,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app: cloduogu-ecosystem
+    app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
   name: k8s-ces-setup
 rules:
@@ -46,7 +47,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app: cloduogu-ecosystem
+    app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
   name: k8s-ces-setup
   namespace: default
@@ -60,7 +61,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app: cloduogu-ecosystem
+    app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
   name: k8s-ces-setup
 roleRef:
@@ -79,7 +80,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: cloduogu-ecosystem
+    app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
   name: k8s-ces-setup
 spec:
@@ -89,20 +90,17 @@ spec:
   template:
     metadata:
       labels:
+        app: k8s-ces-setup
         app.kubernetes.io/name: k8s-ces-setup
     spec:
       containers:
         - name: k8s-ces-setup
           image: "cloudogu/k8s-ces-setup:0.0.0"
-          volumeMounts:
-            - mountPath: /k8s-ces-setup.yaml
-              name: k8s-ces-setup-config
-              subPath: k8s-ces-setup.yaml
           livenessProbe:
             failureThreshold: 5
             httpGet:
               path: /api/v1/health
-              port: 8080
+              port: setup-webui
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -112,20 +110,24 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /api/v1/health
-              port: 8080
+              port: setup-webui
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
           ports:
-            - name: http
+            - name: setup-webui
               containerPort: 8080
               protocol: TCP
-      nodeSelector:
-        kubernetes.io/os: linux
-      serviceAccountName: k8s-ces-setup
+          volumeMounts:
+            - mountPath: /k8s-ces-setup.yaml
+              name: k8s-ces-setup-config
+              subPath: k8s-ces-setup.yaml
       volumes:
         - configMap:
             name: k8s-ces-setup-config
           name: k8s-ces-setup-config
+      serviceAccountName: k8s-ces-setup
+      nodeSelector:
+        kubernetes.io/os: linux

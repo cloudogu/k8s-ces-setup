@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/cloudogu/k8s-ces-setup/app/api"
 	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/toorop/gin-logrus"
+	ginlogrus "github.com/toorop/gin-logrus"
 )
 
 // SetupPort defines the port where the setup can be reached. Does not need to be configurable as the setup runs in
@@ -45,7 +46,6 @@ func main() {
 }
 
 func setupRouter(appConfig config.Config) *gin.Engine {
-	// TODO[jsprey] research more about trusted proxies in gin. Do we need this?
 	router := gin.New()
 	router.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
 

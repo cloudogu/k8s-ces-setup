@@ -1,13 +1,15 @@
 package setup_test
 
 import (
+	"context"
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func TestNewNamespaceCreator(t *testing.T) {
@@ -69,5 +71,10 @@ func TestNamespaceCreator_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
+
+		retrievedNamespace, err := clientSetMock.CoreV1().Namespaces().Get(context.Background(), "myTestNamespace", metav1.GetOptions{})
+		require.NoError(t, err)
+
+		assert.Equal(t, "myTestNamespace", retrievedNamespace.GetName())
 	})
 }

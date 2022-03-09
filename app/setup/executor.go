@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+
 	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -9,7 +10,10 @@ import (
 
 // ExecutorStep describes a valid step in the setup
 type ExecutorStep interface {
+	// GetStepDescription returns the description of the setup step. The Executor prints the description of every step
+	// when executing the setup
 	GetStepDescription() string
+	// PerformSetupStep is called for every registered step when executing the setup
 	PerformSetupStep() error
 }
 
@@ -38,8 +42,10 @@ func (e *Executor) RegisterSetupStep(step ExecutorStep) {
 // PerformSetup starts the setup and executes all registered setup steps
 func (e *Executor) PerformSetup() error {
 	logrus.Print("Starting the setup process")
+
 	for _, step := range e.Steps {
 		logrus.Printf("Setup-Step: %s", step.GetStepDescription())
+
 		err := step.PerformSetupStep()
 		if err != nil {
 			return fmt.Errorf("failed to perform step [%s]; %w", step.GetStepDescription(), err)

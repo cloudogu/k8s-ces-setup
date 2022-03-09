@@ -11,7 +11,7 @@ K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
 K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
-K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
+K8S_CLUSTER_ROOT=<your/path/to/k3ces>
 
 .DEFAULT_GOAL:=help
 

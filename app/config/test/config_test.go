@@ -1,9 +1,10 @@
 package config_test
 
 import (
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/sirupsen/logrus"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
