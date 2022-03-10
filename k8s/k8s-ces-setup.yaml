@@ -96,6 +96,9 @@ spec:
       containers:
         - name: k8s-ces-setup
           image: "cloudogu/k8s-ces-setup:0.0.0"
+          env:
+            - name: GIN_MODE
+              value: release
           livenessProbe:
             failureThreshold: 5
             httpGet:

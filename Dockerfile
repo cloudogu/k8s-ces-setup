@@ -1,6 +1,5 @@
 # Build the manager binary
-FROM golang:1.17-alpine3.15 as builder
-RUN apk add --no-cache build-base git
+FROM golang:1.17 as builder
 
 WORKDIR /workspace
 
@@ -26,27 +25,19 @@ RUN go mod vendor
 RUN make compile-generic
 
 ## Production image
-FROM alpine:3.15.0
+FROM gcr.io/distroless/static:nonroot
 LABEL maintainer="hello@cloudogu.com" \
       NAME="k8s-ces-setup" \
       VERSION="0.0.0"
 
-ENV USER_ID=15000
-
 WORKDIR /
-
-RUN apk add --no-cache bash \
-    && set -x \
-    && addgroup -g ${USER_ID} -S setup \
-    && adduser -u ${USER_ID} -S setup -G setup
 
 # the linter has a problem with the valid colon-syntax
 # dockerfile_lint - ignore
-USER ${USER_ID}:${USER_ID}
+USER 15000:15000
 
-COPY --chown=${USER_ID} resources /
-COPY --chown=${USER_ID} --from=builder /workspace/target/k8s-ces-setup /k8s-ces-setup
+COPY --chown=15000 --from=builder /workspace/target/k8s-ces-setup /k8s-ces-setup
 
 EXPOSE 8080
 
-ENTRYPOINT ["/startup.sh"]
+ENTRYPOINT ["/k8s-ces-setup"]
