@@ -13,10 +13,13 @@ K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
 K8S_CLUSTER_ROOT=<your/path/to/k3ces>
 
-.DEFAULT_GOAL:=help
-
 include build/make/variables.mk
 
+# make sure to create a statically linked binary otherwise it may quit with
+# "exec user process caused: no such file or directory"
+GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
+
+.DEFAULT_GOAL:=help
 ADDITIONAL_CLEAN=clean-vendor
 PRE_COMPILE=vet
 
@@ -76,7 +79,6 @@ image-import: ${K8S_CLUSTER_ROOT}/image.tar
 	@echo "Import docker image of dogu into all K8s nodes..."
 	cd ${K8S_CLUSTER_ROOT} && vagrant ssh main -- -t "sudo k3s ctr images import /vagrant/image.tar"
 	cd ${K8S_CLUSTER_ROOT} && vagrant ssh worker-0 -- -t "sudo k3s ctr images import /vagrant/image.tar"
-	cd ${K8S_CLUSTER_ROOT} && vagrant ssh worker-1 -- -t "sudo k3s ctr images import /vagrant/image.tar"
 	rm ${K8S_CLUSTER_ROOT}/image.tar
 
 ##@ Deployment
