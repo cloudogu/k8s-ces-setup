@@ -18,6 +18,8 @@ include build/make/variables.mk
 # make sure to create a statically linked binary otherwise it may quit with
 # "exec user process caused: no such file or directory"
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
+# remove DWARF symbol table to shave 8 MB from binary
+ADDITIONAL_LDFLAGS=-extldflags -static -w
 
 .DEFAULT_GOAL:=help
 ADDITIONAL_CLEAN=clean-vendor
