@@ -11,9 +11,8 @@ import (
 const endpointGetHealth = "/api/v1/health"
 
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router gin.IRoutes, _ config.Config) error {
+func SetupAPI(router gin.IRoutes, _ config.Config) {
 	requestHandler := requestHandler{}
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodGet, endpointGetHealth)
 	router.GET(endpointGetHealth, requestHandler.getHealth)
-	return nil
 }

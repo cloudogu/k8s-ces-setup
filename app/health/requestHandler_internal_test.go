@@ -18,12 +18,11 @@ var testConfig = config.Config{
 	LogLevel: logrus.DebugLevel,
 }
 
-func setupGinAndAPI(t *testing.T, config config.Config) *gin.Engine {
+func setupGinAndAPI(config config.Config) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	err := SetupAPI(r, config)
-	require.NoError(t, err)
+	SetupAPI(r, config)
 	return r
 }
 
@@ -35,7 +34,7 @@ func Test_newRequestHandler(t *testing.T) {
 
 func Test_requestHandler_getHealth(t *testing.T) {
 	// given
-	r := setupGinAndAPI(t, testConfig)
+	r := setupGinAndAPI(testConfig)
 
 	// when
 	w := httptest.NewRecorder()

@@ -14,7 +14,7 @@ import (
 const endpointPostStartSetup = "/api/v1/setup"
 
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router gin.IRoutes, appConfig config.Config) error {
+func SetupAPI(router gin.IRoutes, appConfig config.Config) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
 		client, err := createKubernetesClient()
@@ -34,7 +34,6 @@ func SetupAPI(router gin.IRoutes, appConfig config.Config) error {
 
 		context.Status(http.StatusOK)
 	})
-	return nil
 }
 
 func createKubernetesClient() (*kubernetes.Clientset, error) {

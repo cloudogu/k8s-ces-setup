@@ -12,6 +12,7 @@ import (
 
 type Version string
 
+// AppVersion
 var AppVersion Version = "0.0.0"
 
 // Config contains the common configuration for the setup
