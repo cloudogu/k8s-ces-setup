@@ -11,5 +11,19 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Makefiles
+target/
+
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
+
+# IDEs
+.code
+.idea
+
+# Ignore binary created by air when developing locally
+tmp
+
+# Ignore go utility binaries
+.bin
+

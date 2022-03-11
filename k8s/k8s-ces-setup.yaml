@@ -1,0 +1,136 @@
+---
+#
+# The service makes the setup available via port 30080. We should switch to a LoadBalancer if we figure out how to
+# solve out external IP assignment
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-ces-setup
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+spec:
+  type: NodePort
+  ports:
+    - name: setup
+      port: 8080
+      targetPort: setup-webui
+      nodePort: 30080
+  selector:
+    app.kubernetes.io/name: k8s-ces-setup
+---
+#
+# The cluster role provides the setup with the permission to get, list and create new namespaces.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - create
+---
+#
+# The service account is a token mounted into our setup pod. This token is used as authentication token against the
+# K8s cluster.
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+  namespace: default
+automountServiceAccountToken: true
+---
+#
+# The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
+# in the cluster role.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-ces-setup
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ces-setup
+    namespace: default
+---
+#
+# The deployment for the setup
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-ces-setup
+  template:
+    metadata:
+      labels:
+        app: k8s-ces-setup
+        app.kubernetes.io/name: k8s-ces-setup
+    spec:
+      containers:
+        - name: k8s-ces-setup
+          image: "cloudogu/k8s-ces-setup:0.0.0"
+          env:
+            - name: GIN_MODE
+              value: release
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          ports:
+            - name: setup-webui
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /k8s-ces-setup.yaml
+              name: k8s-ces-setup-config
+              subPath: k8s-ces-setup.yaml
+      volumes:
+        - configMap:
+            name: k8s-ces-setup-config
+          name: k8s-ces-setup-config
+      serviceAccountName: k8s-ces-setup
+      nodeSelector:
+        kubernetes.io/os: linux
