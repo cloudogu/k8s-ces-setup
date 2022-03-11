@@ -1,6 +1,8 @@
 package health
 
 import (
+	"net/http"
+
 	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/gin-gonic/gin"
 )
@@ -9,10 +11,6 @@ import (
 type GetHealthResponse struct {
 	Status  string         `json:"status"`
 	Version config.Version `json:"version"`
-}
-
-func newRequestHandler() *requestHandler {
-	return &requestHandler{}
 }
 
 type requestHandler struct {
@@ -26,5 +24,5 @@ func (r *requestHandler) getHealth(c *gin.Context) {
 		Version: config.AppVersion,
 	}
 
-	c.JSON(200, response)
+	c.JSON(http.StatusOK, response)
 }

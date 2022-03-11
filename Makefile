@@ -5,7 +5,7 @@ GOTAG?=1.17.7
 MAKEFILES_VERSION=5.0.0
 
 # Image URL to use all building/pushing image targets
-IMAGE ?= cloudogu/${ARTIFACT_ID}:${VERSION}
+IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
@@ -20,8 +20,6 @@ include build/make/variables.mk
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
 
 .DEFAULT_GOAL:=help
-ADDITIONAL_CLEAN=clean-vendor
-PRE_COMPILE=vet
 
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk
@@ -41,8 +39,10 @@ build: docker-build image-import k8s-apply ## Builds a new version of the setup 
 ##@ Development (without go container)
 
 .PHONY: vet
-vet: $(STATIC_ANALYSIS_DIR) ## Run go vet against code.
-	@go vet ./... | tee ${STATIC_ANALYSIS_DIR}/report-govet.out
+vet: ${STATIC_ANALYSIS_DIR}/report-govet.out ## Run go vet against code.
+
+${STATIC_ANALYSIS_DIR}/report-govet.out: ${SRC} $(STATIC_ANALYSIS_DIR)
+	@go vet ./... | tee $@
 
 ##@ Build
 
@@ -101,11 +101,6 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_DEV_RESOURCE_YAML}
 	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
-${K8S_SETUP_DEV_RESOURCE_YAML}: # [not listed in help] Templates the deployment yaml with the latest image.
+${K8S_SETUP_DEV_RESOURCE_YAML}:
+	# Templates the deployment yaml with the latest image.
 	@yq e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
-
-# Other targets
-
-.PHONY: clean-vendor
-clean-vendor:
-	rm -rf vendor

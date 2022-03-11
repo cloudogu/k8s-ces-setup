@@ -15,10 +15,12 @@ RUN go mod download
 COPY main.go main.go
 COPY app app
 
-# Copy git and build files
+# Copy .git files as the build process builds the current commit id into the binary via ldflags
 COPY .git .git
-COPY Makefile Makefile
+
+# Copy build files
 COPY build build
+COPY Makefile Makefile
 
 # Build
 RUN go mod vendor
@@ -36,7 +38,7 @@ WORKDIR /
 # dockerfile_lint - ignore
 USER 15000:15000
 
-COPY --chown=15000 --from=builder /workspace/target/k8s-ces-setup /k8s-ces-setup
+COPY --chown=15000:15000 --from=builder /workspace/target/k8s-ces-setup /k8s-ces-setup
 
 EXPOSE 8080
 

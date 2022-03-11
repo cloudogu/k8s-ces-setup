@@ -40,12 +40,12 @@ func SetupAPI(router gin.IRoutes, appConfig config.Config) error {
 func createKubernetesClient() (*kubernetes.Clientset, error) {
 	clusterConfig, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, fmt.Errorf("cannot load in cluster configuration; %w", err)
+		return nil, fmt.Errorf("cannot load in cluster configuration: %w", err)
 	}
 
 	clientSet, err := kubernetes.NewForConfig(clusterConfig)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create kubernetes configuration; %w", err)
+		return nil, fmt.Errorf("cannot create kubernetes configuration: %w", err)
 	}
 	return clientSet, nil
 }

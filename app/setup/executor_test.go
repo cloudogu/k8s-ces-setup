@@ -132,7 +132,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, "failed to perform step [Step2]; failed to do nothing", err.Error())
+		assert.Equal(t, "failed to perform step [Step2]: failed to do nothing", err.Error())
 		assert.True(t, step1.PerformedStep)
 		assert.True(t, !step2.PerformedStep)
 		assert.True(t, !step3.PerformedStep) // not performed because step 2 could not perform

@@ -19,9 +19,12 @@ type ExecutorStep interface {
 
 // Executor is responsible to perform the actual steps of the setup
 type Executor struct {
+	// ClientSet is the actual k8s client responsible for the k8s API communication
 	ClientSet kubernetes.Interface `json:"clientSet"`
-	Config    config.Config        `json:"config"`
-	Steps     []ExecutorStep       `json:"steps"`
+	// Config is the current configuration of the setup
+	Config config.Config `json:"config"`
+	// Steps contains all necessary steps for the setup
+	Steps []ExecutorStep `json:"steps"`
 }
 
 // NewExecutor creates a new setup executor with the given app configuration
@@ -48,7 +51,7 @@ func (e *Executor) PerformSetup() error {
 
 		err := step.PerformSetupStep()
 		if err != nil {
-			return fmt.Errorf("failed to perform step [%s]; %w", step.GetStepDescription(), err)
+			return fmt.Errorf("failed to perform step [%s]: %w", step.GetStepDescription(), err)
 		}
 	}
 

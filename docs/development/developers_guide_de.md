@@ -4,7 +4,7 @@ Dieses Dokument Informationen um die Entwicklung an dem `k8s-ces-setup` zu unter
 
 ## Lokale Entwicklung
 
-2. Die lokale Entwicklung am Setup kann mit `go run .` gestartet werden.
+Die lokale Entwicklung am Setup kann mit `go run .` gestartet werden.
 
 ## Makefile-Targets
 

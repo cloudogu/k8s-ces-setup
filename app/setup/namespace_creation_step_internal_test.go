@@ -59,7 +59,7 @@ func TestNamespaceCreator_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, "cannot create namespace myTestNamespace with clientset; namespaces \"myTestNamespace\" already exists", err.Error())
+		assert.Equal(t, "cannot create namespace myTestNamespace with clientset: namespaces \"myTestNamespace\" already exists", err.Error())
 	})
 
 	t.Run("Setup step runs without any problems", func(t *testing.T) {

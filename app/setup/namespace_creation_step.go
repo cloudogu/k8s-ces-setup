@@ -9,15 +9,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// NamespaceCreator contains necessary information to create a new namespace in the cluster
-type NamespaceCreator struct {
+// namespaceCreator contains necessary information to create a new namespace in the cluster.
+type namespaceCreator struct {
 	ClientSet kubernetes.Interface `json:"clientSet"`
 	Namespace string               `json:"namespace"`
 }
 
-// NewNamespaceCreator creates a new object of type NamespaceCreator
-func NewNamespaceCreator(clientSet kubernetes.Interface, namespace string) NamespaceCreator {
-	newProvisioner := NamespaceCreator{
+// newNamespaceCreator creates a new object of type namespaceCreator.
+func newNamespaceCreator(clientSet kubernetes.Interface, namespace string) *namespaceCreator {
+	newProvisioner := &namespaceCreator{
 		ClientSet: clientSet,
 		Namespace: namespace,
 	}
@@ -36,16 +36,18 @@ func (n NamespaceCreator) createNamespace() error {
 
 	_, err := n.ClientSet.CoreV1().Namespaces().Create(context.Background(), namespace, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("cannot create namespace %s with clientset; %w", n.Namespace, err)
+		return fmt.Errorf("cannot create namespace %s with clientset: %w", n.Namespace, err)
 	}
 
 	return nil
 }
 
-func (n NamespaceCreator) GetStepDescription() string {
+// GetStepDescription returns the description of the namespace creation step.
+func (n *namespaceCreator) GetStepDescription() string {
 	return fmt.Sprintf("Create new namespace %s", n.Namespace)
 }
 
-func (n NamespaceCreator) PerformSetupStep() error {
+// PerformSetupStep creates a namespace during setup execution.
+func (n *namespaceCreator) PerformSetupStep() error {
 	return n.createNamespace()
 }

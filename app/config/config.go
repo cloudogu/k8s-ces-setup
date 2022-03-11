@@ -14,12 +14,16 @@ type Version string
 
 var AppVersion Version = "0.0.0"
 
-// Config contains the common configuration for the application.
+// Config contains the common configuration for the setup
 type Config struct {
-	LogLevel            logrus.Level `yaml:"logLevel"`
-	Namespace           string       `yaml:"namespace"`
-	DoguOperatorVersion string       `yaml:"doguOperatorVersion"`
-	EtcdServerVersion   string       `yaml:"etcdServerVersion"`
+	// LogLevel sets the log level for the app
+	LogLevel logrus.Level `yaml:"logLevel"`
+	// Namespace represents the namespace that is created for the ecosystem
+	Namespace string `yaml:"namespace"`
+	// DoguOperatorVersion contains the link to the installed dogu operator version
+	DoguOperatorVersion string `yaml:"doguOperatorVersion"`
+	// EtcdServerVersion contains the link to the installed etcd server version
+	EtcdServerVersion string `yaml:"etcdServerVersion"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.

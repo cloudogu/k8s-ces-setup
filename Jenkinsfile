@@ -58,6 +58,10 @@ node('docker') {
                                 make 'unit-test'
                             }
 
+                            stage('Vet') {
+                                make 'vet'
+                            }
+
                             stage("Review dog analysis") {
                                 stageStaticAnalysisReviewDog()
                             }

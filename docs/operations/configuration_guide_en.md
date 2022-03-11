@@ -10,8 +10,6 @@ file contains a ConfigMap with important configuration for the `k8s-ces-setup`:
 
 ```yaml
 #
-  ```yaml
-#
 # The default configuration map for the ces-setup. Should always be deployed before the setup itself.
 #
 apiVersion: v1
