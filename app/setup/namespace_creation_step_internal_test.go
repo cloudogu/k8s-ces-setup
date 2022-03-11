@@ -1,10 +1,8 @@
-package setup_test
+package setup
 
 import (
 	"context"
 	"testing"
-
-	"github.com/cloudogu/k8s-ces-setup/app/setup"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +18,7 @@ func TestNewNamespaceCreator(t *testing.T) {
 	clientSetMock := testclient.NewSimpleClientset()
 
 	// when
-	creator := setup.NewNamespaceCreator(clientSetMock, "namespace")
+	creator := newNamespaceCreator(clientSetMock, "namespace")
 
 	// then
 	assert.NotNil(t, creator)
@@ -31,7 +29,7 @@ func TestNamespaceCreator_GetStepDescription(t *testing.T) {
 
 	// given
 	clientSetMock := testclient.NewSimpleClientset()
-	creator := setup.NewNamespaceCreator(clientSetMock, "myTestNamespace")
+	creator := newNamespaceCreator(clientSetMock, "myTestNamespace")
 
 	// when
 	description := creator.GetStepDescription()
@@ -52,7 +50,7 @@ func TestNamespaceCreator_PerformSetupStep(t *testing.T) {
 			Status:     v1.NamespaceStatus{},
 		}
 		clientSetMock := testclient.NewSimpleClientset(&namespace)
-		creator := setup.NewNamespaceCreator(clientSetMock, "myTestNamespace")
+		creator := newNamespaceCreator(clientSetMock, "myTestNamespace")
 
 		// when
 		err := creator.PerformSetupStep()
@@ -65,7 +63,7 @@ func TestNamespaceCreator_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step runs without any problems", func(t *testing.T) {
 		// given
 		clientSetMock := testclient.NewSimpleClientset()
-		creator := setup.NewNamespaceCreator(clientSetMock, "myTestNamespace")
+		creator := newNamespaceCreator(clientSetMock, "myTestNamespace")
 
 		// when
 		err := creator.PerformSetupStep()

@@ -24,7 +24,7 @@ func SetupAPI(router gin.IRoutes, appConfig config.Config) error {
 		}
 
 		setupExecutor := NewExecutor(client, appConfig)
-		setupExecutor.RegisterSetupStep(NewNamespaceCreator(setupExecutor.ClientSet, setupExecutor.Config.Namespace))
+		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, setupExecutor.Config.Namespace))
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {

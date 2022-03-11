@@ -28,7 +28,7 @@ func setupGinAndAPI(t *testing.T, config config.Config) *gin.Engine {
 }
 
 func Test_newRequestHandler(t *testing.T) {
-	handler := newRequestHandler()
+	handler := requestHandler{}
 
 	require.NotNil(t, handler)
 }
