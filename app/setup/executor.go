@@ -3,7 +3,6 @@ package setup
 import (
 	"fmt"
 
-	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -20,20 +19,14 @@ type ExecutorStep interface {
 // Executor is responsible to perform the actual steps of the setup
 type Executor struct {
 	// ClientSet is the actual k8s client responsible for the k8s API communication
-	ClientSet kubernetes.Interface `json:"clientSet"`
-	// Config is the current configuration of the setup
-	Config config.Config `json:"config"`
+	ClientSet kubernetes.Interface `json:"client_set"`
 	// Steps contains all necessary steps for the setup
 	Steps []ExecutorStep `json:"steps"`
 }
 
 // NewExecutor creates a new setup executor with the given app configuration
-func NewExecutor(clientSet kubernetes.Interface, appConfig config.Config) Executor {
-	e := Executor{
-		ClientSet: clientSet,
-		Config:    appConfig,
-	}
-	return e
+func NewExecutor(clientSet kubernetes.Interface) *Executor {
+	return &Executor{ClientSet: clientSet}
 }
 
 // RegisterSetupStep adds a new step to the setup

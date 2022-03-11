@@ -1,4 +1,4 @@
-package config
+package context
 
 import (
 	"fmt"
@@ -10,21 +10,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Version string
-
-// AppVersion
-var AppVersion Version = "0.0.0"
-
 // Config contains the common configuration for the setup
 type Config struct {
 	// LogLevel sets the log level for the app
-	LogLevel logrus.Level `yaml:"logLevel"`
+	LogLevel logrus.Level `yaml:"log_level"`
 	// Namespace represents the namespace that is created for the ecosystem
 	Namespace string `yaml:"namespace"`
 	// DoguOperatorVersion contains the link to the installed dogu operator version
-	DoguOperatorVersion string `yaml:"doguOperatorVersion"`
+	DoguOperatorVersion string `yaml:"dogu_operator_version"`
 	// EtcdServerVersion contains the link to the installed etcd server version
-	EtcdServerVersion string `yaml:"etcdServerVersion"`
+	EtcdServerVersion string `yaml:"etcd_server_version"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.

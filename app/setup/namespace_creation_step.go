@@ -11,7 +11,7 @@ import (
 
 // namespaceCreator contains necessary information to create a new namespace in the cluster.
 type namespaceCreator struct {
-	ClientSet kubernetes.Interface `json:"clientSet"`
+	ClientSet kubernetes.Interface `json:"client_set"`
 	Namespace string               `json:"namespace"`
 }
 

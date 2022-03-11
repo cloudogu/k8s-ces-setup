@@ -1,4 +1,0 @@
-namespace: "ecosystem"
-logLevel: "DEBUG"
-doguOperatorVersion: "0.0.0"
-etcdServerVersion: "0.0.0"

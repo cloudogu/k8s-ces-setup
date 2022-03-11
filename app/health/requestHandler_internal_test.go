@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/config"
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
@@ -14,15 +14,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testConfig = config.Config{
-	LogLevel: logrus.DebugLevel,
+var testContext = context.SetupContext{
+	AppVersion: "",
+	AppConfig: context.Config{
+		LogLevel: logrus.DebugLevel,
+	},
 }
 
-func setupGinAndAPI(config config.Config) *gin.Engine {
+func setupGinAndAPI() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	SetupAPI(r, config)
+	SetupAPI(r, testContext)
 	return r
 }
 
@@ -34,7 +37,7 @@ func Test_newRequestHandler(t *testing.T) {
 
 func Test_requestHandler_getHealth(t *testing.T) {
 	// given
-	r := setupGinAndAPI(testConfig)
+	r := setupGinAndAPI()
 
 	// when
 	w := httptest.NewRecorder()

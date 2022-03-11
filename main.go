@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+
 	"github.com/cloudogu/k8s-ces-setup/app/health"
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
 
-	"github.com/cloudogu/k8s-ces-setup/app/config"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	ginlogrus "github.com/toorop/gin-logrus"
@@ -52,29 +53,28 @@ func createSetupRouter(exiter ApplicationExiter, configFile string) *gin.Engine 
 	logrus.Printf("Starting k8s-ces-setup...")
 
 	logrus.Printf("Reading configuration file...")
-	appConfig, err := config.ReadConfig(configFile)
+	setupContext, err := context.NewSetupContext(Version, configFile)
 	if err != nil {
 		exiter.Exit(err)
 	}
 
-	config.AppVersion = config.Version(Version)
-	configureLogger(appConfig)
+	configureLogger(setupContext.AppConfig)
 
-	logrus.Debugf("Current Version: [%+v]", config.AppVersion)
-	logrus.Debugf("Current configuration: [%+v]", appConfig)
+	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
+	logrus.Debugf("Current context: [%+v]", setupContext)
 
-	return createRouter(appConfig)
+	return createRouter(setupContext)
 }
 
-func createRouter(appConfig config.Config) *gin.Engine {
+func createRouter(setupContext context.SetupContext) *gin.Engine {
 	router := gin.New()
 	router.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
 
-	setupAPI(router, appConfig)
+	setupAPI(router, setupContext)
 	return router
 }
 
-func configureLogger(appConfig config.Config) {
+func configureLogger(appConfig context.Config) {
 	logrus.SetLevel(appConfig.LogLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
@@ -82,7 +82,7 @@ func configureLogger(appConfig config.Config) {
 }
 
 // SetupAPI configures the individual endpoints of the API
-func setupAPI(router gin.IRoutes, appConfig config.Config) {
-	health.SetupAPI(router, appConfig)
-	setup.SetupAPI(router, appConfig)
+func setupAPI(router gin.IRoutes, context context.SetupContext) {
+	health.SetupAPI(router, context)
+	setup.SetupAPI(router, context)
 }
