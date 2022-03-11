@@ -95,7 +95,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.0.0"
+          image: "cloudogu/k8s-ces-setup:0.1.0"
           env:
             - name: GIN_MODE
               value: release
