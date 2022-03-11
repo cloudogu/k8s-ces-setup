@@ -23,8 +23,8 @@ var (
 	Version = "development"
 )
 
-// ApplicationExiter is responsible for exiting the application correctly.
-type ApplicationExiter interface {
+// applicationExiter is responsible for exiting the application correctly.
+type applicationExiter interface {
 	// Exit exits the application and prints the actuator error to the console.
 	Exit(err error)
 }
@@ -32,7 +32,7 @@ type ApplicationExiter interface {
 type osExiter struct {
 }
 
-// Exit prints the actuator error to stout and exits the application properly.
+// Exit prints the actual error to stout and exits the application properly.
 func (e *osExiter) Exit(err error) {
 	logrus.Errorf("exiting setup because of error: %s", err.Error())
 	os.Exit(1)
@@ -49,7 +49,7 @@ func main() {
 	}
 }
 
-func createSetupRouter(exiter ApplicationExiter, configFile string) *gin.Engine {
+func createSetupRouter(exiter applicationExiter, configFile string) *gin.Engine {
 	logrus.Printf("Starting k8s-ces-setup...")
 
 	logrus.Printf("Reading configuration file...")
