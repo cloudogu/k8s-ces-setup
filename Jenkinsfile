@@ -97,7 +97,7 @@ node('docker') {
 //                k3d.kubectl("apply -f k8s/k8s-ces-setup.yaml")
 //            }
 //
-//            stageAutomaticRelease()
+            stageAutomaticRelease()
         } finally {
             stage('Remove k3d cluster') {
                 k3d.deleteK3d()
