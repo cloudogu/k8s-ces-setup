@@ -37,39 +37,39 @@ node('docker') {
             make 'clean'
         }
 
-        stage('Lint - Dockerfile') {
-            lintDockerfile()
-        }
-
-        stage("Lint - k8s Resources") {
-            stageLintK8SResources()
-        }
-
-        docker
-                .image('golang:1.17.7')
-                .mountJenkinsUser()
-                .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
-                        {
-                            stage('Build') {
-                                make 'compile'
-                            }
-
-                            stage('Unit Tests') {
-                                make 'unit-test'
-                            }
-
-                            stage('Vet') {
-                                make 'vet'
-                            }
-
-                            stage("Review dog analysis") {
-                                stageStaticAnalysisReviewDog()
-                            }
-                        }
-
-        stage('SonarQube') {
-            stageStaticAnalysisSonarQube()
-        }
+//        stage('Lint - Dockerfile') {
+//            lintDockerfile()
+//        }
+//
+//        stage("Lint - k8s Resources") {
+//            stageLintK8SResources()
+//        }
+//
+//        docker
+//                .image('golang:1.17.7')
+//                .mountJenkinsUser()
+//                .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+//                        {
+//                            stage('Build') {
+//                                make 'compile'
+//                            }
+//
+//                            stage('Unit Tests') {
+//                                make 'unit-test'
+//                            }
+//
+//                            stage('Vet') {
+//                                make 'vet'
+//                            }
+//
+//                            stage("Review dog analysis") {
+//                                stageStaticAnalysisReviewDog()
+//                            }
+//                        }
+//
+//        stage('SonarQube') {
+//            stageStaticAnalysisSonarQube()
+//        }
 
         def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH, "cesmarvin")
 
@@ -77,14 +77,14 @@ node('docker') {
             stage('Set up k3d cluster') {
                 k3d.startK3d()
             }
-
+dele
             stage('Install kubectl') {
                 k3d.installKubectl()
             }
 
-            stage('Build Image') {
+            stage('Build & Push Image') {
                 String setupVersion = getCurrentVersionFromMakefile()
-                docker.build("cloudogu/${repositoryName}:${setupVersion}")
+                k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
 
             // todo: The step `Import Image` is currently not supported. We need to wait until the k3d cluster supports the import images (or a custom registry). This task is currently wip.
