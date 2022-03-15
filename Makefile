@@ -5,7 +5,7 @@ GOTAG?=1.17.7
 MAKEFILES_VERSION=5.0.0
 
 # Image URL to use all building/pushing image targets
-IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
+IMAGE?=cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
@@ -105,4 +105,20 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
-	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
+	$(call replace-yaml-image-yq,${K8S_SETUP_RESOURCE_YAML},${K8S_SETUP_DEV_RESOURCE_YAML},${IMAGE})
+
+.PHONY: rewrite-container-image-yaml
+rewrite-container-image-yaml: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Create a development ces-setup resource with a custom image
+ifeq (${SETUP_IMAGE_EXT},)
+	@echo "Could not rewrite container image. Was the image name exported to the env var SETUP_IMAGE_EXT?"
+	@exit 1
+endif
+
+	$(call replace-yaml-image-yq,${K8S_SETUP_RESOURCE_YAML},${K8S_SETUP_DEV_RESOURCE_YAML},${SETUP_IMAGE_EXT})
+
+define replace-yaml-image-yq
+	{ \
+		set -e ;\
+		yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${3}\"" ${1} > ${2} ;\
+	}
+endef
