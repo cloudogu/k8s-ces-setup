@@ -1,6 +1,6 @@
 #!groovy
 
-@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@1.50.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@b844c6f6'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -82,21 +82,29 @@ node('docker') {
                 k3d.installKubectl()
             }
 
+            def cessetupImageName
             stage('Build & Push Image') {
                 String setupVersion = getCurrentVersionFromMakefile()
-                k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
+                cessetupImageName=k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
 
-            // todo: The step `Import Image` is currently not supported. We need to wait until the k3d cluster supports the import images (or a custom registry). This task is currently wip.
-//            stage('Import Image') {
-//                String currentVersion = getCurrentVersionFromMakefile()
-//                sh "k3d image import ${repositoryOwner}/${repositoryName}:${currentVersion}"
-//            }
-//
-//            stage('Deploy Setup') {
-//                k3d.kubectl("apply -f k8s/k8s-ces-setup.yaml")
-//            }
-//
+            def sourceDeploymentYaml="k8s/k8s-ces-setup.yaml"
+            stage('Update development resources') {
+                docker.image('mikefarah/yq:4.22.1')
+                        .mountJenkinsUser()
+                        .inside("--volume ${WORKSPACE}:/workdir -w /workdir") {
+                            sh "yq -i '(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${cessetupImageName}\"' ${sourceDeploymentYaml}"
+                }
+            }
+
+            stage('Deploy Setup') {
+                k3d.kubectl("apply -f ${sourceDeploymentYaml}")
+            }
+
+            stage('Restore development resources') {
+                sh "git restore ${sourceDeploymentYaml}"
+            }
+
             stageAutomaticRelease()
         } finally {
             stage('Remove k3d cluster') {
