@@ -77,7 +77,7 @@ node('docker') {
             stage('Set up k3d cluster') {
                 k3d.startK3d()
             }
-dele
+
             stage('Install kubectl') {
                 k3d.installKubectl()
             }
