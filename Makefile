@@ -105,4 +105,4 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
-	@yq e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
+	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
