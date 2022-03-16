@@ -24,7 +24,7 @@ func newNamespaceCreator(clientSet kubernetes.Interface, namespace string) *name
 	return newProvisioner
 }
 
-func (n namespaceCreator) createNamespace() error {
+func (n *namespaceCreator) createNamespace() error {
 	namespace := &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
