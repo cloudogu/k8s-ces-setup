@@ -1,6 +1,6 @@
 #!groovy
 
-@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@b844c6f6'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@33f3242e'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -37,54 +37,51 @@ node('docker') {
             make 'clean'
         }
 
-//        stage('Lint - Dockerfile') {
-//            lintDockerfile()
-//        }
-//
-//        stage("Lint - k8s Resources") {
-//            stageLintK8SResources()
-//        }
-//
-//        docker
-//                .image('golang:1.17.7')
-//                .mountJenkinsUser()
-//                .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
-//                        {
-//                            stage('Build') {
-//                                make 'compile'
-//                            }
-//
-//                            stage('Unit Tests') {
-//                                make 'unit-test'
-//                            }
-//
-//                            stage('Vet') {
-//                                make 'vet'
-//                            }
-//
-//                            stage("Review dog analysis") {
-//                                stageStaticAnalysisReviewDog()
-//                            }
-//                        }
-//
-//        stage('SonarQube') {
-//            stageStaticAnalysisSonarQube()
-//        }
+        stage('Lint - Dockerfile') {
+            lintDockerfile()
+        }
 
-        def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH, "cesmarvin")
+        stage("Lint - k8s Resources") {
+            stageLintK8SResources()
+        }
+
+        docker
+                .image('golang:1.17.7')
+                .mountJenkinsUser()
+                .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                        {
+                            stage('Build') {
+                                make 'compile'
+                            }
+
+                            stage('Unit Tests') {
+                                make 'unit-test'
+                            }
+
+                            stage('Vet') {
+                                make 'vet'
+                            }
+
+                            stage("Review dog analysis") {
+                                stageStaticAnalysisReviewDog()
+                            }
+                        }
+
+        stage('SonarQube') {
+            stageStaticAnalysisSonarQube()
+        }
+
+        def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH)
 
         try {
             stage('Set up k3d cluster') {
                 k3d.startK3d()
             }
 
-            stage('Install kubectl') {
-                k3d.installKubectl()
-            }
-
             def cessetupImageName
             stage('Build & Push Image') {
-                String setupVersion = getCurrentVersionFromMakefile()
+                def makefile = new Makefile(this)
+                String setupVersion = makefile.getVersion()
                 cessetupImageName=k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
 
@@ -188,8 +185,4 @@ void stageAutomaticRelease() {
 
 void make(String makeArgs) {
     sh "make ${makeArgs}"
-}
-
-String getCurrentVersionFromMakefile() {
-    return sh(returnStdout: true, script: 'cat Makefile | grep -e "^VERSION=" | sed "s/VERSION=//g"').trim()
 }
