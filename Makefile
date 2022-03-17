@@ -13,6 +13,9 @@ K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
 K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
 
+LOCAL_HTTP_SERVER_PORT=9876
+LOCAL_HTTP_DIR=k8s/dev-resources
+
 include build/make/variables.mk
 
 # make sure to create a statically linked binary otherwise it may quit with
@@ -106,3 +109,10 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
 	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
+
+.PHONY: serve-local-yaml
+serve-local-yaml:
+	@echo "Starting to server ${WORKDIR}/${LOCAL_HTTP_DIR}"
+	@echo "Press Ctrl+C to exit"
+	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
+	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
