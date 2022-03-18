@@ -25,11 +25,12 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		}
 
 		setupExecutor := NewExecutor(client)
+		config := setupContext.AppConfig
 
-		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, etcdClientVersion))
-		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, setupContext.AppConfig.Namespace))
-		setupExecutor.RegisterSetupStep(newEtcdInstallerStep(setupExecutor.ClientSet, setupContext.AppConfig.EtcdServerVersion))
-		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(setupExecutor.ClientSet, setupContext.AppConfig.DoguOperatorVersion))
+		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
+		//setupExecutor.RegisterSetupStep(newEtcdInstallerStep(setupExecutor.ClientSet, config.EtcdServerVersion))
+		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, etcdClientVersion))
+		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(setupExecutor.ClientSet, config.DoguOperatorURL, config.DoguOperatorVersion))
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {

@@ -16,8 +16,12 @@ type Config struct {
 	LogLevel logrus.Level `yaml:"log_level"`
 	// Namespace represents the namespace that is created for the ecosystem
 	Namespace string `yaml:"namespace"`
+	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
+	DoguOperatorURL string `yaml:"dogu_operator_url"`
 	// DoguOperatorVersion contains the link to the installed dogu operator version
 	DoguOperatorVersion string `yaml:"dogu_operator_version"`
+	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
+	EtcdServerResourceURL string `yaml:"etcd_server_resource_url"`
 	// EtcdServerVersion contains the link to the installed etcd server version
 	EtcdServerVersion string `yaml:"etcd_server_version"`
 }

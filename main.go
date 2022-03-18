@@ -50,9 +50,9 @@ func main() {
 }
 
 func createSetupRouter(exiter applicationExiter, configFile string) *gin.Engine {
-	logrus.Printf("Starting k8s-ces-setup...")
+	logrus.Print("Starting k8s-ces-setup...")
 
-	logrus.Printf("Reading configuration file...")
+	logrus.Print("Reading configuration file...")
 	setupContext, err := context.NewSetupContext(Version, configFile)
 	if err != nil {
 		exiter.Exit(err)
