@@ -1,9 +1,12 @@
 package context
 
+import "k8s.io/client-go/rest"
+
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
-	AppVersion string `yaml:"app_version"`
-	AppConfig  Config `yaml:"app_config"`
+	AppVersion    string `yaml:"app_version"`
+	AppConfig     Config `yaml:"app_config"`
+	K8sRestConfig rest.Config
 }
 
 // NewSetupContext creates a new setup context.

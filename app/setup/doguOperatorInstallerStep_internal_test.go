@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
@@ -16,10 +15,9 @@ func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// given
-	clientSetMock := testclient.NewSimpleClientset()
 
 	// when
-	actual := newDoguOperatorInstallerStep(clientSetMock, "https://", "1.2.3")
+	actual := newDoguOperatorInstallerStep(nil, "https://", "1.2.3")
 
 	// then
 	assert.NotNil(t, actual)
@@ -30,8 +28,7 @@ func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	clientSetMock := testclient.NewSimpleClientset()
-	creator := newDoguOperatorInstallerStep(clientSetMock, "https://", "1.2.3")
+	creator := newDoguOperatorInstallerStep(nil, "https://", "1.2.3")
 
 	// when
 	description := creator.GetStepDescription()
@@ -45,15 +42,8 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("Setup step fails for because...", func(t *testing.T) {
 		// given
-		namespace := v1.Namespace{
-			TypeMeta:   metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{Name: "myNamespace"},
-			Spec:       v1.NamespaceSpec{},
-			Status:     v1.NamespaceStatus{},
-		}
 
-		clientSetMock := testclient.NewSimpleClientset(&namespace)
-		creator := newDoguOperatorInstallerStep(clientSetMock, "http://", "1.2.3")
+		creator := newDoguOperatorInstallerStep(nil, "http://", "1.2.3")
 
 		// when
 		err := creator.PerformSetupStep()
@@ -66,7 +56,7 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step runs without any problems", func(t *testing.T) {
 		// given
 		clientSetMock := testclient.NewSimpleClientset()
-		creator := newDoguOperatorInstallerStep(clientSetMock, "http://", "1.2.3")
+		creator := newDoguOperatorInstallerStep(nil, "http://", "1.2.3")
 
 		// when
 		err := creator.PerformSetupStep()

@@ -18,7 +18,13 @@ const etcdClientVersion = "1.2.3"
 func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
-		client, err := createKubernetesClient()
+		clusterConfig, err := rest.InClusterConfig()
+		if err != nil {
+			logrus.Errorf("cannot load in cluster configuration: %s", err.Error())
+			return
+		}
+
+		client, err := createKubernetesClient(clusterConfig)
 		if err != nil {
 			_ = context.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -27,10 +33,10 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		setupExecutor := NewExecutor(client)
 		config := setupContext.AppConfig
 
-		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
-		//setupExecutor.RegisterSetupStep(newEtcdInstallerStep(setupExecutor.ClientSet, config.EtcdServerVersion))
-		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, etcdClientVersion))
-		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(setupExecutor.ClientSet, config.DoguOperatorURL, config.DoguOperatorVersion))
+		//setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
+		//setupExecutor.RegisterSetupStep(newEtcdInstallerStep(clusterConfig, config.EtcdServerVersion))
+		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(sclusterConfig, etcdClientVersion))
+		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, config.DoguOperatorURL, config.DoguOperatorVersion))
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {
@@ -42,15 +48,11 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 	})
 }
 
-func createKubernetesClient() (*kubernetes.Clientset, error) {
-	clusterConfig, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, fmt.Errorf("cannot load in cluster configuration: %w", err)
-	}
-
+func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, error) {
 	clientSet, err := kubernetes.NewForConfig(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create kubernetes configuration: %w", err)
 	}
+
 	return clientSet, nil
 }

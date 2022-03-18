@@ -13,5 +13,6 @@ data:
   k8s-ces-setup.yaml: |
     namespace: "ecosystem"
     log_level: "DEBUG"
+    dogu_operator_url: http://192.168.56.1:9876/helloWorld
     dogu_operator_version: "0.0.0"
     etcd_server_version: "0.0.0"

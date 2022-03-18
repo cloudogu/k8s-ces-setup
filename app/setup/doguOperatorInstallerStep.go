@@ -2,34 +2,35 @@ package setup
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"strings"
-
-	v1apps "k8s.io/api/apps/v1"
-	v1core "k8s.io/api/core/v1"
-	v1rbac "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/kubernetes"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"github.com/cloudogu/k8s-ces-setup/app/core"
+	"k8s.io/client-go/rest"
 )
 
-func newDoguOperatorInstallerStep(clientSet kubernetes.Interface, resourceURL, version string) *doguOperatorInstallerStep {
+type fileClient interface {
+	// Get retrieves a file identified by its URL and returns the contents.
+	Get(url string) ([]byte, error)
+}
+
+type k8sClient interface {
+	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
+	Apply(yamlResources []byte) error
+}
+
+func newDoguOperatorInstallerStep(clusterConfig *rest.Config, resourceURL, version string) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
-		ClientSet:   clientSet,
 		resourceURL: resourceURL,
 		Version:     version,
-		httpClient:  &http.Client{},
+		fileClient:  core.NewFileClient(),
+		k8sClient:   core.NewK8sClient(clusterConfig),
 	}
 }
 
 type doguOperatorInstallerStep struct {
-	ClientSet   kubernetes.Interface
-	Version     string
-	resourceURL string
-	httpClient  *http.Client
+	clusterConfig *rest.Config
+	Version       string
+	resourceURL   string
+	fileClient    fileClient
+	k8sClient     k8sClient
 }
 
 func (dois *doguOperatorInstallerStep) GetStepDescription() string {
@@ -37,91 +38,15 @@ func (dois *doguOperatorInstallerStep) GetStepDescription() string {
 }
 
 func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
-	var yamlResourceFiles []string
+	fileContent, err := dois.fileClient.Get(dois.resourceURL)
+	if err != nil {
+		return err
+	}
 
-	fileContent, err := fetchYaml(dois.resourceURL, dois.httpClient)
-	yamlResourceFiles = splitYamlFileSections(fileContent)
-	_, err = parseYamlResources(yamlResourceFiles)
+	err = dois.k8sClient.Apply(fileContent)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func fetchYaml(url string, httpClient *http.Client) ([]byte, error) {
-	resp, err := httpClient.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("could not find YAML file '%s'", url)
-	}
-
-	bytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	return bytes, nil
-}
-
-func splitYamlFileSections(resourceBytes []byte) []string {
-	fileAsString := string(resourceBytes[:])
-
-	const yamlFileSeparator = "---\n"
-	preResult := strings.Split(fileAsString, yamlFileSeparator)
-
-	cleanedResult := make([]string, 0)
-	for _, section := range preResult {
-		if section != "" {
-			cleanedResult = append(cleanedResult, section)
-		}
-	}
-
-	return cleanedResult
-}
-
-func parseYamlResources(yamlResourceFiles []string) (interface{}, error) {
-	for _, f := range yamlResourceFiles {
-		parseYamlResource(f)
-	}
-
-	return nil, nil
-}
-
-func parseYamlResource(resource string) {
-	sch := runtime.NewScheme()
-	_ = clientgoscheme.AddToScheme(sch)
-
-	decode := serializer.NewCodecFactory(sch).UniversalDeserializer().Decode
-
-	obj, _ /*groupVersionKind*/, err := decode([]byte(resource), nil, nil)
-
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error while decoding YAML object. Err was: %s", err))
-	}
-
-	switch o := obj.(type) {
-	case *v1core.Namespace:
-		fmt.Printf("Namespace: %+v\n", o)
-	case *v1core.Pod:
-		fmt.Printf("Pod: %+v\n", o)
-	case *v1rbac.Role:
-		fmt.Printf("Role: %+v\n", o)
-	case *v1rbac.RoleBinding:
-		fmt.Printf("RoleBinding: %+v\n", o)
-	case *v1rbac.ClusterRole:
-		fmt.Printf("ClusterRole: %+v\n", o)
-	case *v1rbac.ClusterRoleBinding:
-		fmt.Printf("ClusterRoleBinding: %+v\n", o)
-	case *v1core.ServiceAccount:
-		fmt.Printf("ServiceAccount: %+v\n", o)
-	case *v1apps.Deployment:
-		fmt.Printf("Deployment: %+v\n", o)
-	default:
-		//o is unknown for us
-	}
 }
