@@ -1,6 +1,7 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.1.0
+VERSION=0.1.0-dev
+
 GOTAG?=1.17.7
 MAKEFILES_VERSION=5.0.0
 
@@ -11,7 +12,6 @@ K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
 K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
-K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
 
 LOCAL_HTTP_SERVER_PORT=9876
 LOCAL_HTTP_DIR=k8s/dev-resources
@@ -52,9 +52,7 @@ ${STATIC_ANALYSIS_DIR}/report-govet.out: ${SRC} $(STATIC_ANALYSIS_DIR)
 ##@ Build
 
 .PHONY: build-setup
-build-setup: ## Builds the setup Go binary.
-# pseudo target to support make help for compile target
-	@make compile
+build-setup: ${SRC} compile ## Builds the setup Go binary.
 
 .PHONY: run
 run: vet ## Run a controller from your host.
@@ -70,11 +68,11 @@ setup-release: ## Interactively starts the release workflow.
 ##@ Docker
 
 .PHONY: docker-build
-docker-build: ## Builds the docker image of the k8s-ces-setup `cloudogu/k8s-ces-setup:version`.
+docker-build: ${SRC} compile ## Builds the docker image of the k8s-ces-setup `cloudogu/k8s-ces-setup:version`.
 	@echo "Building docker image of dogu..."
 	docker build . -t ${IMAGE}
 
-${K8S_CLUSTER_ROOT}/image.tar:
+${K8S_CLUSTER_ROOT}/image.tar: check-k8s-cluster-root-env-var
 	# Saves the `cloudogu/k8s-ces-setup:version` image into a file into the K8s root path to be available on all nodes.
 	docker save ${IMAGE} -o ${K8S_CLUSTER_ROOT}/image.tar
 
@@ -82,9 +80,20 @@ ${K8S_CLUSTER_ROOT}/image.tar:
 image-import: ${K8S_CLUSTER_ROOT}/image.tar
     # Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
 	@echo "Import docker image of dogu into all K8s nodes..."
-	cd ${K8S_CLUSTER_ROOT} && vagrant ssh main -- -t "sudo k3s ctr images import /vagrant/image.tar"
-	cd ${K8S_CLUSTER_ROOT} && vagrant ssh worker-0 -- -t "sudo k3s ctr images import /vagrant/image.tar"
+	@cd ${K8S_CLUSTER_ROOT} && \
+		for node in $$(vagrant status --machine-readable | grep "state,running" | awk -F',' '{print $$2}'); \
+		do  \
+			echo "...$${node}"; \
+			vagrant ssh ${node} -- -t "sudo k3s ctr images import /vagrant/image.tar"; \
+		done;
+	@echo "Done."
 	rm ${K8S_CLUSTER_ROOT}/image.tar
+
+.PHONY: check-k8s-cluster-root-env-var
+check-k8s-cluster-root-env-var:
+	@echo "Checking if env var K8S_CLUSTER_ROOT is set..."
+	@bash -c export -p | grep K8S_CLUSTER_ROOT
+	@echo "Done."
 
 ##@ Deployment
 
