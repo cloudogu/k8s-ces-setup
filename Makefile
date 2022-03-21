@@ -84,7 +84,7 @@ image-import: ${K8S_CLUSTER_ROOT}/image.tar
 		for node in $$(vagrant status --machine-readable | grep "state,running" | awk -F',' '{print $$2}'); \
 		do  \
 			echo "...$${node}"; \
-			vagrant ssh ${node} -- -t "sudo k3s ctr images import /vagrant/image.tar"; \
+			vagrant ssh $${node} -- -t "sudo k3s ctr images import /vagrant/image.tar"; \
 		done;
 	@echo "Done."
 	rm ${K8S_CLUSTER_ROOT}/image.tar
