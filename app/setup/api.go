@@ -15,6 +15,16 @@ import (
 const endpointPostStartSetup = "/api/v1/setup"
 const etcdClientVersion = "1.2.3"
 
+type fileClient interface {
+	// Get retrieves a file identified by its URL and returns the contents.
+	Get(url string) ([]byte, error)
+}
+
+type k8sClient interface {
+	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
+	Apply(yamlResources []byte) error
+}
+
 // SetupAPI setups the REST API for configuration information
 func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
@@ -34,10 +44,10 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		setupExecutor := NewExecutor(client)
 		config := setupContext.AppConfig
 
-		//setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
-		//setupExecutor.RegisterSetupStep(newEtcdInstallerStep(clusterConfig, config.EtcdServerVersion))
-		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(sclusterConfig, etcdClientVersion))
-		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, config.DoguOperatorURL, config.DoguOperatorVersion))
+		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
+		setupExecutor.RegisterSetupStep(newEtcdInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {

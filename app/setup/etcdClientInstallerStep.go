@@ -2,22 +2,41 @@ package setup
 
 import (
 	"fmt"
-	"k8s.io/client-go/kubernetes"
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/core"
+	"k8s.io/client-go/rest"
 )
 
-func newEtcdClientInstallerStep(clientSet kubernetes.Interface, etcdClientVersion string) *etcdClientInstallerStep {
-	return &etcdClientInstallerStep{ClientSet: clientSet, Version: etcdClientVersion}
+func newEtcdClientInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdClientInstallerStep {
+	return &etcdClientInstallerStep{
+		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
+		fileClient:  core.NewFileClient(setupCtx.AppVersion),
+		k8sClient:   core.NewK8sClient(clusterConfig),
+	}
 }
 
 type etcdClientInstallerStep struct {
-	ClientSet kubernetes.Interface
-	Version   string
+	resourceURL string
+	fileClient  fileClient
+	k8sClient   k8sClient
 }
 
+// GetStepDescription returns a human-readable description of the etcd client step.
 func (ecis *etcdClientInstallerStep) GetStepDescription() string {
-	return fmt.Sprintf("Install etcd client v%s", ecis.Version)
+	return fmt.Sprintf("Install etcd client from %s", ecis.resourceURL)
 }
 
+// PerformSetupStep installs an etcd client.
 func (ecis *etcdClientInstallerStep) PerformSetupStep() error {
-	panic("implement me")
+	fileContent, err := ecis.fileClient.Get(ecis.resourceURL)
+	if err != nil {
+		return err
+	}
+
+	err = ecis.k8sClient.Apply(fileContent)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
