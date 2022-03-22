@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const endpointPostStartSetup = "/api/v1/setup"
@@ -18,7 +19,7 @@ const etcdClientVersion = "1.2.3"
 func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
-		clusterConfig, err := rest.InClusterConfig()
+		clusterConfig, err := ctrl.GetConfig()
 		if err != nil {
 			logrus.Errorf("cannot load in cluster configuration: %s", err.Error())
 			return
