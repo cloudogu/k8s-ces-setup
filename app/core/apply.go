@@ -6,8 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/dynamic"
@@ -66,15 +64,15 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte) error {
 	}
 
 	// 6. Marshal object into JSON
-	data, err := json.Marshal(k8sObjects)
-	if err != nil {
-		return err
-	}
+	//data, err := json.Marshal(k8sObjects)
+	//if err != nil {
+	//	return err
+	//}
 
 	// 7. Create or Update the object with SSA
 	//     types.ApplyPatchType indicates SSA.
 	//     FieldManager specifies the field owner ID.
-	_, err = dr.Patch(ctx, k8sObjects.GetName(), types.ApplyPatchType, data, metav1.PatchOptions{
+	_, err = dr.Create(ctx, k8sObjects, metav1.CreateOptions{
 		FieldManager: "sample-controller",
 	})
 
