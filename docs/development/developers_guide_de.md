@@ -4,7 +4,25 @@ Dieses Dokument Informationen um die Entwicklung an dem `k8s-ces-setup` zu unter
 
 ## Lokale Entwicklung
 
-Die lokale Entwicklung am Setup kann mit `go run .` gestartet werden.
+Zuerst sollten Entwicklungsdateien angelegt werden, die anstelle der Cluster-Werte verwendet werden sollen:
+
+Dogu-Operator-Resource:
+- eine passende YAML-Datei (z. B. `dev-dogu-operator.yaml`) unter `k8s/dev-resources/` ablegen
+- `make serve-local-yaml` liefert alle Ressourcen in dem Verzeichnis aus
+  - Test: [http://localhost:9876/](http://localhost:9876/)
+  - ein DNS-/Host-Alias ist hilfreich, um vom lokalen K8s-Cluster mit diesem HTTP-Server zu kommunizieren 
+  - das Target benötigt Python3
+
+`k8s/dev-config/k8s-ces-setup.yaml`:
+- `namespace` legt fest, in welchem Namespace das Cloudogu EcoSystem installiert werden soll
+- `dogu_operator_url` legt die Dogu-Operator-Resource fest
+  - z. B. `http://192.168.56.1:9876/dev-dogu-operator.yaml` (siehe oben)
+
+### Ausführung mit `go run` oder einer IDE
+
+- die lokale Entwicklung am Setup kann mit `STAGE=development go run .` gestartet werden
+- Ausführung und Debugging in IDEs wie IntelliJ ist möglich
+  - allerdings sollte hierbei die Umgebungsvariable `STAGE` ebenfalls nicht vergessen werden
 
 ## Makefile-Targets
 

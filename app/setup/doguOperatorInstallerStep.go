@@ -16,11 +16,11 @@ type k8sClient interface {
 	Apply(yamlResources []byte) error
 }
 
-func newDoguOperatorInstallerStep(clusterConfig *rest.Config, resourceURL, version string) *doguOperatorInstallerStep {
+func newDoguOperatorInstallerStep(clusterConfig *rest.Config, resourceURL, appVersion string) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
 		resourceURL: resourceURL,
-		Version:     version,
-		fileClient:  core.NewFileClient(),
+		Version:     appVersion,
+		fileClient:  core.NewFileClient(appVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),
 	}
 }

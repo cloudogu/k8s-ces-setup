@@ -10,8 +10,10 @@ type defaultHttpClient struct {
 	httpClient *http.Client
 }
 
-func NewFileClient() *defaultHttpClient {
-	return &defaultHttpClient{httpClient: &http.Client{}}
+func NewFileClient(appVersion string) *defaultHttpClient {
+	return &defaultHttpClient{
+		httpClient: &http.Client{},
+	}
 }
 
 // Get retrieves a file over HTTP returns its contents.

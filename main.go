@@ -41,7 +41,11 @@ func (e *osExiter) Exit(err error) {
 func main() {
 	exiter := &osExiter{}
 
-	router := createSetupRouter(exiter, "k8s-ces-setup.yaml")
+	configFile := "k8s-ces-setup.yaml"
+	if os.Getenv("STAGE") == "development" {
+		configFile = "k8s/dev-resources/k8s-ces-setup.yaml"
+	}
+	router := createSetupRouter(exiter, configFile)
 
 	err := router.Run(fmt.Sprintf(":%d", setupPort))
 	if err != nil {
