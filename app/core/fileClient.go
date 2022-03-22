@@ -12,6 +12,7 @@ type defaultHttpClient struct {
 	version    string
 }
 
+//NewFileClient creates a http client to read files from the network.
 func NewFileClient(appVersion string) *defaultHttpClient {
 	return &defaultHttpClient{
 		httpClient: &http.Client{},
