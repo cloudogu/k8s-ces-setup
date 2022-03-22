@@ -1,5 +1,0 @@
-namespace: "ecosystem"
-log_level: "WARN"
-dogu_operator_version: "0.0.0"
-etcd_server_version: "0.0.0"
-rootToolURL: http://github.com/cloudogu

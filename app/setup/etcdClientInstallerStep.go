@@ -9,7 +9,7 @@ import (
 
 func newEtcdClientInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdClientInstallerStep {
 	return &etcdClientInstallerStep{
-		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
+		resourceURL: setupCtx.AppConfig.EtcdClientResourceURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),
 	}

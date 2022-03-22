@@ -7,33 +7,33 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func newEtcdInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdInstallerStep {
-	return &etcdInstallerStep{
-		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
+func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdServerInstallerStep {
+	return &etcdServerInstallerStep{
+		resourceURL: setupCtx.AppConfig.EtcdServerResourceURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),
 	}
 }
 
-type etcdInstallerStep struct {
+type etcdServerInstallerStep struct {
 	resourceURL string
 	fileClient  fileClient
 	k8sClient   k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the etcd installation step.
-func (eis *etcdInstallerStep) GetStepDescription() string {
-	return fmt.Sprintf("Install etcd server from %s", eis.resourceURL)
+func (esis *etcdServerInstallerStep) GetStepDescription() string {
+	return fmt.Sprintf("Install etcd server from %s", esis.resourceURL)
 }
 
 // PerformSetupStep installs the CES etcd.
-func (eis *etcdInstallerStep) PerformSetupStep() error {
-	fileContent, err := eis.fileClient.Get(eis.resourceURL)
+func (esis *etcdServerInstallerStep) PerformSetupStep() error {
+	fileContent, err := esis.fileClient.Get(esis.resourceURL)
 	if err != nil {
 		return err
 	}
 
-	err = eis.k8sClient.Apply(fileContent)
+	err = esis.k8sClient.Apply(fileContent)
 	if err != nil {
 		return err
 	}

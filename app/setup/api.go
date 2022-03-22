@@ -45,7 +45,7 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		config := setupContext.AppConfig
 
 		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
-		setupExecutor.RegisterSetupStep(newEtcdInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(newEtcdServerInstallerStep(clusterConfig, setupContext))
 		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
 		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
 

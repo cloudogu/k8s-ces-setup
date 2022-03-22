@@ -18,12 +18,10 @@ type Config struct {
 	Namespace string `yaml:"namespace"`
 	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
 	DoguOperatorURL string `yaml:"dogu_operator_url"`
-	// DoguOperatorVersion contains the link to the installed dogu operator version
-	DoguOperatorVersion string `yaml:"dogu_operator_version"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
-	EtcdServerResourceURL string `yaml:"etcd_server_resource_url"`
-	// EtcdServerVersion contains the link to the installed etcd server version
-	EtcdServerVersion string `yaml:"etcd_server_version"`
+	EtcdServerResourceURL string `yaml:"etcd_server_url"`
+	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
+	EtcdClientResourceURL string `yaml:"etcd_client_url"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.
