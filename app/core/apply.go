@@ -70,8 +70,8 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte) error {
 	// 7. Create or Update the object with SSA
 	//     types.ApplyPatchType indicates SSA.
 	//     FieldManager specifies the field owner ID.
-	_, err = dr.Create(ctx, k8sObjects, metav1.CreateOptions{
-		FieldManager: "sample-controller",
+	_, err = dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
+		FieldManager: "k8s-ces-setup",
 	})
 
 	return err
