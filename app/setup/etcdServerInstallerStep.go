@@ -9,6 +9,7 @@ import (
 
 func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdServerInstallerStep {
 	return &etcdServerInstallerStep{
+		namespace:   setupCtx.AppConfig.Namespace,
 		resourceURL: setupCtx.AppConfig.EtcdServerResourceURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),
@@ -16,6 +17,7 @@ func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.Set
 }
 
 type etcdServerInstallerStep struct {
+	namespace   string
 	resourceURL string
 	fileClient  fileClient
 	k8sClient   k8sClient
@@ -33,7 +35,7 @@ func (esis *etcdServerInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	err = esis.k8sClient.Apply(fileContent)
+	err = esis.k8sClient.Apply(fileContent, esis.namespace)
 	if err != nil {
 		return err
 	}

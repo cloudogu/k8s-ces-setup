@@ -9,6 +9,7 @@ import (
 
 func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
+		namespace:   setupCtx.AppConfig.Namespace,
 		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),
@@ -16,6 +17,7 @@ func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.S
 }
 
 type doguOperatorInstallerStep struct {
+	namespace   string
 	resourceURL string
 	fileClient  fileClient
 	k8sClient   k8sClient
@@ -33,7 +35,7 @@ func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	err = dois.k8sClient.Apply(fileContent)
+	err = dois.k8sClient.Apply(fileContent, dois.namespace)
 	if err != nil {
 		return err
 	}

@@ -21,8 +21,8 @@ type fileClient interface {
 }
 
 type k8sClient interface {
-	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
-	Apply(yamlResources []byte) error
+	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster's namespace.
+	Apply(yamlResources []byte, namespace string) error
 }
 
 // SetupAPI setups the REST API for configuration information

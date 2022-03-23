@@ -24,7 +24,7 @@ func NewK8sClient(clusterConfig *rest.Config) *k8sApplyClient {
 }
 
 // Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
-func (dkc *k8sApplyClient) Apply(yamlResources []byte) error {
+func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 	logrus.Debug("Applying K8s resources")
 	logrus.Debug(string(yamlResources))
 
@@ -61,7 +61,7 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte) error {
 	var dr dynamic.ResourceInterface
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
 		// namespaced resources should specify the namespace
-		dr = dyn.Resource(mapping.Resource).Namespace(k8sObjects.GetNamespace())
+		dr = dyn.Resource(mapping.Resource).Namespace(namespace)
 	} else {
 		// for cluster-wide resources
 		dr = dyn.Resource(mapping.Resource)
