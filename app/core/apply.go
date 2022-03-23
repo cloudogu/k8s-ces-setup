@@ -2,7 +2,9 @@ package core
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -29,7 +31,6 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 	logrus.Debug(string(yamlResources))
 
 	var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-	ctx := context.Background()
 
 	// 1. Prepare a RESTMapper to find GVR
 	dc, err := discovery.NewDiscoveryClientForConfig(dkc.clusterConfig)
@@ -64,15 +65,47 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 		dr = dyn.Resource(mapping.Resource).Namespace(namespace)
 	} else {
 		// for cluster-wide resources
+
 		dr = dyn.Resource(mapping.Resource)
 	}
 
-	// 7. Create or Update the object with SSA
-	//     types.ApplyPatchType indicates SSA.
+	ctx := context.Background()
+	resourceExists := true
+	_, err = dr.Get(ctx, k8sObjects.GetName(), metav1.GetOptions{})
+	if err != nil {
+		var e *k8serr.StatusError
+		// Note: *QueryError is the type of the error.
+		if errors.As(err, &e) {
+			if e.Status().Reason == metav1.StatusReasonNotFound {
+				logrus.Debug("Resource does not exist yet")
+				resourceExists = false
+			}
+		} else {
+			return errors.Wrap(err, "error while getting existing resource")
+		}
+	}
+
+	// 7. Create or Update the object with server-side-apply
+	//     types.ApplyPatchType indicates server-side-apply.
 	//     FieldManager specifies the field owner ID.
-	_, err = dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
+	if resourceExists {
+		_, err = dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
+			FieldManager: "k8s-ces-setup",
+		})
+		if err != nil {
+			return errors.Wrap(err, "error during applying resource as update")
+		}
+
+		return nil
+	}
+
+	_, err = dr.Create(ctx, k8sObjects, metav1.CreateOptions{
 		FieldManager: "k8s-ces-setup",
 	})
+	if err != nil {
+		return errors.Wrap(err, "error during applying resource as create")
 
-	return err
+	}
+
+	return nil
 }

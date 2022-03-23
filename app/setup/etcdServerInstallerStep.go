@@ -35,9 +35,17 @@ func (esis *etcdServerInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	err = esis.k8sClient.Apply(fileContent, esis.namespace)
-	if err != nil {
-		return err
+	// avoid extra namespace validation: during the namespace creation earlier it was already validated by the K8s API
+	fileContent = replaceNamespacedResources(fileContent, esis.namespace)
+	fileContent = removeLegacyNamespaceFromResources(fileContent)
+
+	sections := splitYamlFileSections(fileContent)
+
+	for _, section := range sections {
+		err = esis.k8sClient.Apply(section, esis.namespace)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

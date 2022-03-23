@@ -91,6 +91,113 @@ metadata:
 	assert.Equal(t, expectedNoResource, string(actual))
 }
 
+func Test_splitYamlFileSections(t *testing.T) {
+	t.Run("should return two sections (with leading delimiter)", func(t *testing.T) {
+		const simpleMultiLineYaml = `---
+test:
+---
+anotherTest:
+`
+		input := []byte(simpleMultiLineYaml)
+
+		// when
+		sections := splitYamlFileSections(input)
+
+		// then
+		assert.Len(t, sections, 2)
+		assert.Equal(t, "test:\n", string(sections[0]))
+		assert.Equal(t, "anotherTest:\n", string(sections[1]))
+	})
+	t.Run("should return two sections (without leading delimiter)", func(t *testing.T) {
+		const simpleMultiLineYaml = `test:
+---
+anotherTest:
+`
+		input := []byte(simpleMultiLineYaml)
+
+		// when
+		sections := splitYamlFileSections(input)
+
+		// then
+		assert.Len(t, sections, 2)
+		assert.Equal(t, "test:\n", string(sections[0]))
+		assert.Equal(t, "anotherTest:\n", string(sections[1]))
+	})
+	t.Run("should return sections for complex YAML", func(t *testing.T) {
+		input := []byte(multiFileYaml())
+
+		// when
+		sections := splitYamlFileSections(input)
+
+		// then
+		assert.Len(t, sections, 2)
+		assert.Equal(t, `# A comment for the service
+apiVersion: v1
+kind: Service
+metadata:
+  name: your-app
+  app.kubernetes.io/name: your-app
+  labels:
+    app: your-app
+spec:
+  type: NodePort
+  ports:
+`, string(sections[0]))
+		assert.Equal(t, `# a comment for the deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: your-app
+  name: your-app
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: your-app
+  template:
+    metadata:
+      labels:
+        app: your-app
+        app.kubernetes.io/name: your-app
+    spec:
+`, string(sections[1]))
+	})
+}
+
+func multiFileYaml() string {
+	return `---
+# A comment for the service
+apiVersion: v1
+kind: Service
+metadata:
+  name: your-app
+  app.kubernetes.io/name: your-app
+  labels:
+    app: your-app
+spec:
+  type: NodePort
+  ports:
+---
+# a comment for the deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: your-app
+  name: your-app
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: your-app
+  template:
+    metadata:
+      labels:
+        app: your-app
+        app.kubernetes.io/name: your-app
+    spec:
+`
+}
+
 func simpleTestRoleBinding() []byte {
 	return []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

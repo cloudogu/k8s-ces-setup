@@ -44,12 +44,31 @@ func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
 	fileContent = replaceNamespacedResources(fileContent, dois.namespace)
 	fileContent = removeLegacyNamespaceFromResources(fileContent)
 
-	err = dois.k8sClient.Apply(fileContent, dois.namespace)
-	if err != nil {
-		return err
+	sections := splitYamlFileSections(fileContent)
+
+	for _, section := range sections {
+		err = dois.k8sClient.Apply(section, dois.namespace)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func splitYamlFileSections(resourceBytes []byte) [][]byte {
+	yamlFileSeparator := []byte("---\n")
+
+	preResult := bytes.Split(resourceBytes, yamlFileSeparator)
+
+	cleanedResult := make([][]byte, 0)
+	for _, section := range preResult {
+		if len(section) > 0 {
+			cleanedResult = append(cleanedResult, section)
+		}
+	}
+
+	return cleanedResult
 }
 
 func replaceNamespacedResources(content []byte, namespace string) []byte {
