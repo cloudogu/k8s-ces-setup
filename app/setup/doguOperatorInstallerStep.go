@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
@@ -9,7 +10,7 @@ import (
 )
 
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
-var namespaceRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
+var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
 
 func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
@@ -40,7 +41,8 @@ func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
 	}
 
 	// avoid extra namespace validation: during the namespace creation earlier it was already validated by the K8s API
-	fileContent = replaceNamespace(fileContent, dois.namespace)
+	fileContent = replaceNamespacedResources(fileContent, dois.namespace)
+	fileContent = removeLegacyNamespaceFromResources(fileContent)
 
 	err = dois.k8sClient.Apply(fileContent, dois.namespace)
 	if err != nil {
@@ -50,7 +52,17 @@ func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
 	return nil
 }
 
-func replaceNamespace(content []byte, namespace string) []byte {
+func replaceNamespacedResources(content []byte, namespace string) []byte {
 	// do not re-use possible quotation marks because DNS labels are also proper YAML values
-	return namespaceRfc1123Regex.ReplaceAll(content, []byte("${1}"+namespace))
+	return namespacedResourcesRfc1123Regex.ReplaceAll(content, []byte("${1}"+namespace))
+}
+
+func removeLegacyNamespaceFromResources(content []byte) []byte {
+	return bytes.ReplaceAll(content, []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: ecosystem
+---`), []byte("---"))
 }
