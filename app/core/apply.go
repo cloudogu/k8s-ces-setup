@@ -70,42 +70,53 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 	}
 
 	ctx := context.Background()
-	resourceExists := true
-	_, err = dr.Get(ctx, k8sObjects.GetName(), metav1.GetOptions{})
+	resourceExists, err := existsResource(ctx, dr, k8sObjects)
 	if err != nil {
-		var e *k8serr.StatusError
-		// Note: *QueryError is the type of the error.
-		if errors.As(err, &e) {
-			if e.Status().Reason == metav1.StatusReasonNotFound {
-				logrus.Debug("Resource does not exist yet")
-				resourceExists = false
-			}
-		} else {
-			return errors.Wrap(err, "error while getting existing resource")
-		}
+		return err
 	}
 
 	// 7. Create or Update the object with server-side-apply
 	//     types.ApplyPatchType indicates server-side-apply.
 	//     FieldManager specifies the field owner ID.
+	return createOrUpdateResource(resourceExists, ctx, dr, k8sObjects)
+}
+
+func createOrUpdateResource(resourceExists bool, ctx context.Context, dr dynamic.ResourceInterface, k8sObjects *unstructured.Unstructured) error {
 	if resourceExists {
-		_, err = dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
+		logrus.Debugf("Updating resource %s/%s/%s", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+		_, err := dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
 			FieldManager: "k8s-ces-setup",
 		})
 		if err != nil {
-			return errors.Wrap(err, "error during applying resource as update")
+			return NewResourceError(err, "error while updating", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
 		}
 
 		return nil
 	}
 
-	_, err = dr.Create(ctx, k8sObjects, metav1.CreateOptions{
+	logrus.Debugf("Creating resource %s/%s/%s", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+	_, err := dr.Create(ctx, k8sObjects, metav1.CreateOptions{
 		FieldManager: "k8s-ces-setup",
 	})
 	if err != nil {
-		return errors.Wrap(err, "error during applying resource as create")
-
+		return NewResourceError(err, "error while creating", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
 	}
 
 	return nil
+}
+
+func existsResource(ctx context.Context, dr dynamic.ResourceInterface, k8sObjects *unstructured.Unstructured) (bool, error) {
+	_, err := dr.Get(ctx, k8sObjects.GetName(), metav1.GetOptions{})
+	if err != nil {
+		var typedErr *k8serr.StatusError
+		if errors.As(err, &typedErr) && typedErr.Status().Reason == metav1.StatusReasonNotFound {
+			logrus.Debugf("Resource %s/%s/%s does not exist yet", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+			return false, nil
+		}
+
+		return false, NewResourceError(err, "error while getting", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+	}
+
+	logrus.Debugf("Resource %s/%s/%s already exists", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+	return true, nil
 }
