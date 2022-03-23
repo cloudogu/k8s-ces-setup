@@ -13,7 +13,6 @@ import (
 )
 
 const endpointPostStartSetup = "/api/v1/setup"
-const etcdClientVersion = "1.2.3"
 
 type fileClient interface {
 	// Get retrieves a file identified by its URL and returns the contents.
@@ -46,7 +45,7 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 
 		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
 		setupExecutor.RegisterSetupStep(newEtcdServerInstallerStep(clusterConfig, setupContext))
-		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
+		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
 		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
 
 		err = setupExecutor.PerformSetup()

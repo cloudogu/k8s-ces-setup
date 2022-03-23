@@ -2,6 +2,7 @@ package setup
 
 import (
 	"context"
+	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,13 +12,19 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
+var setupCtx = ctx.SetupContext{
+	AppVersion: "1.2.3",
+	AppConfig: ctx.Config{
+		Namespace:       testNamespaceName,
+		DoguOperatorURL: "http://url.server.com/dogu/operator.yaml",
+	},
+}
+
 func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
-	// given
-
 	// when
-	actual := newDoguOperatorInstallerStep(nil, "https://", "1.2.3")
+	actual := newDoguOperatorInstallerStep(nil, setupCtx)
 
 	// then
 	assert.NotNil(t, actual)
@@ -28,7 +35,7 @@ func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	creator := newDoguOperatorInstallerStep(nil, "https://", "1.2.3")
+	creator := newDoguOperatorInstallerStep(nil, setupCtx)
 
 	// when
 	description := creator.GetStepDescription()
@@ -43,7 +50,7 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step fails for because...", func(t *testing.T) {
 		// given
 
-		creator := newDoguOperatorInstallerStep(nil, "http://", "1.2.3")
+		creator := newDoguOperatorInstallerStep(nil, setupCtx)
 
 		// when
 		err := creator.PerformSetupStep()
@@ -56,7 +63,7 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step runs without any problems", func(t *testing.T) {
 		// given
 		clientSetMock := testclient.NewSimpleClientset()
-		creator := newDoguOperatorInstallerStep(nil, "http://", "1.2.3")
+		creator := newDoguOperatorInstallerStep(nil, setupCtx)
 
 		// when
 		err := creator.PerformSetupStep()
