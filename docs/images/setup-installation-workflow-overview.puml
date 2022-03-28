@@ -10,6 +10,7 @@
 !includeurl CLOUDOGUURL/tools/k8s.puml
 !define SECONDARY_COLOR #55EE55
 !define POD_COLOR #abcdef
+
 rectangle external as "External Services" {
     database registry as "Image Registry" #white
     file doguratoryaml as "Dogu Operator Resource" #white
@@ -17,38 +18,71 @@ rectangle external as "External Services" {
 
 rectangle "Cluster" as cluster <<$k8s>> {
 
-    rectangle podSA as "service account" SECONDARY_COLOR
+    rectangle setupres as "Setup Resources" {
+        rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
+        rectangle podSA as "service account" SECONDARY_COLOR
+        rectangle setupconfig as "Setup Configuration" #white
+        note top of setupconfig #lightyellow
+            - Component URLs
+            - Log level
+            - Target namespace
+        end note
 
-    rectangle cp1 as "control-plane" #white {
-        rectangle apiserver as "API Server" <<$k8s>> #white
-        rectangle scheduler as "Scheduler" <<$k8s>> #white
+        note top of podSA #lightyellow
+            The setup might use RBAC permissions
+            from different locations (f. i. from
+            the setup itself or from the development
+            machine)
+        end note
     }
+
+    rectangle cp1 as "control-plane" <<$k8s>> #white
+
     rectangle setuppod as "Pod" POD_COLOR {
         rectangle setup as "k8s-ces-setup" <<$cloudogu>> #white {
-            file kubeConfig SECONDARY_COLOR
-            rectangle applier as "k8sApplyClient"
+            rectangle setupui as "Setup UI"
+            rectangle setupapi as "Setup API"
+            rectangle setupbackend {
+                file kubeConfig SECONDARY_COLOR
+                rectangle applier as "k8sApplyClient"
+            }
         }
     }
 
-    rectangle pod as "Pod" POD_COLOR {
-        rectangle dogurator as "Dogu Operator" <<$cloudogu>> #white
+    rectangle targetns as "Target Namespace" {
+rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
+
+        rectangle pod as "Pod" POD_COLOR {
+            rectangle dogurator as "Dogu Operator" <<$cloudogu>> #white
+        }
     }
+
 }
+setup --u-> setupconfig : read config
+ic <-d- setupbackend : read secret by name
+setupbackend ---> icCopied : provide namespace with instance credentials
+
+setupui -r-> setupapi : provide data for the next setup run
+setupapi ---d-> setupbackend : call backend with setup data
 
 applier -l-> kubeConfig : uses
-applier <= doguratoryaml : 1. read resource
-applier ==> apiserver : 2. generically apply resource(s)
-apiserver -> scheduler
+applier <== doguratoryaml : 1. read resource
+applier ==> cp1 : 2. generically apply resource(s)
 doguratoryaml -.> registry : reference image
-scheduler --> dogurator : instantiate container
-registry -.r->  dogurator
+cp1 --> dogurator : instantiate container
+cp1 -.->  dogurator
 
 podSA -> kubeConfig  :  auto pod mounted
 
 'styling
-registry -[hidden]d-> doguratoryaml
-external -[hidden]r-> cluster
-doguratoryaml -[hidden]-> applier
+setupres ---[hidden]-> setuppod
+'registry -[hidden]d-> doguratoryaml
+'external -[hidden]l-> cluster
+'doguratoryaml -[hidden]-> applier
+
+legend bottom right
+not shown: Installation of setup
+end legend
 
 caption Example workflow of how k8s-ces-setup installs Cloudogu K8s components
 @enduml
