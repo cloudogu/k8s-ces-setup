@@ -58,16 +58,18 @@ rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>>
     }
 
 }
-setup --u-> setupconfig : read config
-ic <-d- setupbackend : read secret by name
-setupbackend ---> icCopied : provide namespace with instance credentials
+setup --u-> setupconfig : 1. read config
+ic <-d- setupbackend : 2a. read secret by name
+setupbackend ---> icCopied : 3. provide namespace with instance credentials
 
 setupui -r-> setupapi : provide data for the next setup run
 setupapi ---d-> setupbackend : call backend with setup data
+setupbackend --> setupbackend : 2b. use secret from ui
+dogurator -> icCopied : use credentials
 
 applier -l-> kubeConfig : uses
-applier <== doguratoryaml : 1. read resource
-applier ==> cp1 : 2. generically apply resource(s)
+applier <== doguratoryaml : 4. read resource
+applier ==> cp1 : 5. generically apply resource(s)
 doguratoryaml -.> registry : reference image
 cp1 --> dogurator : instantiate container
 cp1 -.->  dogurator
