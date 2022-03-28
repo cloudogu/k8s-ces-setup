@@ -1,0 +1,54 @@
+
+@startuml
+!define CLOUDOGUURL https://raw.githubusercontent.com/cloudogu/plantuml-cloudogu-sprites/master
+
+!includeurl CLOUDOGUURL/common.puml
+!includeurl CLOUDOGUURL/dogus/cloudogu.puml
+!includeurl CLOUDOGUURL/tools/docker.puml
+!includeurl CLOUDOGUURL/tools/virtualbox.puml
+!includeurl CLOUDOGUURL/dogus/nginx.puml
+!includeurl CLOUDOGUURL/tools/k8s.puml
+!define SECONDARY_COLOR #55EE55
+!define POD_COLOR #abcdef
+rectangle external as "External Services" {
+    database registry as "Image Registry" #white
+    file doguratoryaml as "Dogu Operator Resource" #white
+}
+
+rectangle "Cluster" as cluster <<$k8s>> {
+
+    rectangle podSA as "service account" SECONDARY_COLOR
+
+    rectangle cp1 as "control-plane" #white {
+        rectangle apiserver as "API Server" <<$k8s>> #white
+        rectangle scheduler as "Scheduler" <<$k8s>> #white
+    }
+    rectangle setuppod as "Pod" POD_COLOR {
+        rectangle setup as "k8s-ces-setup" <<$cloudogu>> #white {
+            file kubeConfig SECONDARY_COLOR
+            rectangle applier as "k8sApplyClient"
+        }
+    }
+
+    rectangle pod as "Pod" POD_COLOR {
+        rectangle dogurator as "Dogu Operator" <<$cloudogu>> #white
+    }
+}
+
+applier -l-> kubeConfig : uses
+applier <= doguratoryaml : 1. read resource
+applier ==> apiserver : 2. generically apply resource(s)
+apiserver -> scheduler
+doguratoryaml -.> registry : reference image
+scheduler --> dogurator : instantiate container
+registry -.r->  dogurator
+
+podSA -> kubeConfig  :  auto pod mounted
+
+'styling
+registry -[hidden]d-> doguratoryaml
+external -[hidden]r-> cluster
+doguratoryaml -[hidden]-> applier
+
+caption Example workflow of how k8s-ces-setup installs Cloudogu K8s components
+@enduml
