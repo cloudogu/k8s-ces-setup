@@ -20,7 +20,7 @@ func Test_createSetupRouter(t *testing.T) {
 		mockExiter := &mockExiter{}
 
 		// when
-		createSetupRouter(mockExiter, "k8s-ces-setup.yaml")
+		createSetupRouter(mockExiter, "testdata/k8s-ces-setup-testdata.yaml")
 
 		//then
 		assert.Nil(t, mockExiter.Error)

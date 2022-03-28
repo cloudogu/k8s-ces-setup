@@ -13,8 +13,9 @@ func TestReadConfig(t *testing.T) {
 	c, err := context.ReadConfig("testdata/testConfig.yaml")
 	assert.NoError(t, err)
 	assert.Equal(t, "ecosystem", c.Namespace)
-	assert.Equal(t, "0.0.0", c.DoguOperatorVersion)
-	assert.Equal(t, "0.0.0", c.EtcdServerVersion)
+	assert.Equal(t, "https://dop.yaml", c.DoguOperatorURL)
+	assert.Equal(t, "https://etcds.yaml", c.EtcdServerResourceURL)
+	assert.Equal(t, "https://etcdc.yaml", c.EtcdClientResourceURL)
 	assert.Equal(t, logrus.DebugLevel, c.LogLevel)
 }
 

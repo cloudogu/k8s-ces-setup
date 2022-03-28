@@ -2,13 +2,13 @@ package core
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/dynamic"
@@ -52,71 +52,49 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 		return err
 	}
 
-	// 4. Find GVR
-	mapping, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	// 4. Map GVK to GVR
+	// a resource can be uniquely identified by GroupVersionResource, but we need the GVK to find the corresponding GVR
+	gvr, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return err
 	}
 
 	// 5. Obtain REST interface for the GVR
 	var dr dynamic.ResourceInterface
-	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+	if gvr.Scope.Name() == meta.RESTScopeNameNamespace {
 		// namespaced resources should specify the namespace
-		dr = dyn.Resource(mapping.Resource).Namespace(namespace)
+		dr = dyn.Resource(gvr.Resource).Namespace(namespace)
 	} else {
 		// for cluster-wide resources
-
-		dr = dyn.Resource(mapping.Resource)
+		dr = dyn.Resource(gvr.Resource)
 	}
 
 	ctx := context.Background()
-	resourceExists, err := existsResource(ctx, dr, k8sObjects)
 	if err != nil {
 		return err
 	}
 
-	// 7. Create or Update the object with server-side-apply
-	//     types.ApplyPatchType indicates server-side-apply.
-	//     FieldManager specifies the field owner ID.
-	return createOrUpdateResource(resourceExists, ctx, dr, k8sObjects)
+	return createOrUpdateResource(k8sObjects, ctx, dr)
 }
 
-func createOrUpdateResource(resourceExists bool, ctx context.Context, dr dynamic.ResourceInterface, k8sObjects *unstructured.Unstructured) error {
-	if resourceExists {
-		logrus.Debugf("Updating resource %s/%s/%s", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-		_, err := dr.Update(ctx, k8sObjects, metav1.UpdateOptions{
-			FieldManager: "k8s-ces-setup",
-		})
-		if err != nil {
-			return NewResourceError(err, "error while updating", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-		}
+func createOrUpdateResource(desiredResource *unstructured.Unstructured, ctx context.Context, dr dynamic.ResourceInterface) error {
+	const fieldManager = "k8s-ces-setup"
 
-		return nil
+	logrus.Debugf("Patching resource %s/%s/%s", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
+
+	jsondata, err := json.Marshal(desiredResource)
+	if err != nil {
+		return NewResourceError(err, "error while parsing resource to json", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
 	}
-
-	logrus.Debugf("Creating resource %s/%s/%s", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-	_, err := dr.Create(ctx, k8sObjects, metav1.CreateOptions{
-		FieldManager: "k8s-ces-setup",
+	// 6a. Update the object with server-side-apply
+	//     types.ApplyPatchType indicates server-side-apply.
+	//     FieldManager specifies the field owner ID.
+	_, err = dr.Patch(ctx, desiredResource.GetName(), types.ApplyPatchType, jsondata, metav1.PatchOptions{
+		FieldManager: fieldManager,
 	})
 	if err != nil {
-		return NewResourceError(err, "error while creating", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
+		return NewResourceError(err, "error while patching", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
 	}
 
 	return nil
-}
-
-func existsResource(ctx context.Context, dr dynamic.ResourceInterface, k8sObjects *unstructured.Unstructured) (bool, error) {
-	_, err := dr.Get(ctx, k8sObjects.GetName(), metav1.GetOptions{})
-	if err != nil {
-		var typedErr *k8serr.StatusError
-		if errors.As(err, &typedErr) && typedErr.Status().Reason == metav1.StatusReasonNotFound {
-			logrus.Debugf("Resource %s/%s/%s does not exist yet", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-			return false, nil
-		}
-
-		return false, NewResourceError(err, "error while getting", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-	}
-
-	logrus.Debugf("Resource %s/%s/%s already exists", k8sObjects.GetKind(), k8sObjects.GetAPIVersion(), k8sObjects.GetName())
-	return true, nil
 }
