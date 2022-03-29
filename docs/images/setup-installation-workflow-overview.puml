@@ -15,39 +15,48 @@ rectangle external as "External Services" {
     database registry as "Image Registry" #white
     file doguratoryaml as "Dogu Operator Resource" #white
 }
+note top of external #lightyellow
+        Public services like
+        - github.com
+        - cloudogu.com or
+        - a local web server (for YAML files)
+    end note
 
 rectangle "Cluster" as cluster <<$k8s>> {
 
-    rectangle setupres as "Setup Resources" {
-        rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
-        rectangle podSA as "service account" SECONDARY_COLOR
-        rectangle setupconfig as "Setup Configuration" #white
-        note top of setupconfig #lightyellow
-            - Component URLs
-            - Log level
-            - Target namespace
-        end note
+    rectangle setupns as "Setup Namespace" {
+        rectangle setupres as "Setup Resources" {
+            rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
+            rectangle podSA as "service account" SECONDARY_COLOR
+            rectangle setupconfig as "Setup Configuration" #white
+            note top of setupconfig #lightyellow
+                - Component URLs
+                - Log level
+                - Target namespace
+            end note
 
-        note top of podSA #lightyellow
-            The setup might use RBAC permissions
-            from different locations (f. i. from
-            the setup itself or from the development
-            machine)
-        end note
-    }
+            note top of podSA #lightyellow
+                The setup might use RBAC permissions
+                from different locations (f. i. from
+                the setup itself or from the development
+                machine)
+            end note
+        }
 
-    rectangle cp1 as "control-plane" <<$k8s>> #white
 
-    rectangle setuppod as "Pod" POD_COLOR {
-        rectangle setup as "k8s-ces-setup" <<$cloudogu>> #white {
-            rectangle setupui as "Setup UI"
-            rectangle setupapi as "Setup API"
-            rectangle setupbackend {
-                file kubeConfig SECONDARY_COLOR
-                rectangle applier as "k8sApplyClient"
+        rectangle setuppod as "Pod" POD_COLOR {
+            rectangle setup as "k8s-ces-setup" <<$cloudogu>> #white {
+                rectangle setupui as "Setup UI"
+                rectangle setupapi as "Setup API"
+                rectangle setupbackend {
+                    file kubeConfig SECONDARY_COLOR
+                    rectangle applier as "k8sApplyClient" #white
+                }
             }
         }
     }
+
+    rectangle cp1 as "control-plane" <<$k8s>> #white
 
     rectangle targetns as "Target Namespace" {
 rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
@@ -57,14 +66,17 @@ rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>>
         }
     }
 
+    note top of targetns #lightyellow
+        Created by setup
+    end note
 }
 setup --u-> setupconfig : 1. read config
-ic <-d- setupbackend : 2a. read secret by name
+ic <-d- setupbackend : 2a. read credential secrets \nfrom current namespace
 setupbackend ---> icCopied : 3. provide namespace with instance credentials
 
 setupui -r-> setupapi : provide data for the next setup run
 setupapi ---d-> setupbackend : call backend with setup data
-setupbackend --> setupbackend : 2b. use secret from ui
+setupbackend --> setupbackend : 2b. use secret from UI
 dogurator -> icCopied : use credentials
 
 applier -l-> kubeConfig : uses
@@ -72,7 +84,6 @@ applier <== doguratoryaml : 4. read resource
 applier ==> cp1 : 5. generically apply resource(s)
 doguratoryaml -.> registry : reference image
 cp1 --> dogurator : instantiate container
-cp1 -.->  dogurator
 
 podSA -> kubeConfig  :  auto pod mounted
 
