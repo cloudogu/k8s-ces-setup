@@ -3,6 +3,7 @@ package setup
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
@@ -43,8 +44,17 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		setupExecutor := NewExecutor(client)
 		config := setupContext.AppConfig
 
+		credentialSourceNamespace, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
+		if err != nil {
+			logrus.Error(err.Error())
+			err = fmt.Errorf("failed to read current namespace from CREDENTIAL_SOURCE_NAMESPACE")
+			_ = context.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
 		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
-		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, config.Namespace))
+		// maybe we should even transport the pure credential pair instead of the meta-namespace?
+		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, config.Namespace, credentialSourceNamespace))
 		setupExecutor.RegisterSetupStep(newEtcdServerInstallerStep(clusterConfig, setupContext))
 		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
 		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
@@ -66,4 +76,13 @@ func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, 
 	}
 
 	return clientSet, nil
+}
+
+// getEnvVar returns the namespace the operator should be watching for changes
+func getEnvVar(name string) (string, error) {
+	ns, found := os.LookupEnv(name)
+	if !found {
+		return "", fmt.Errorf("%s must be set", name)
+	}
+	return ns, nil
 }

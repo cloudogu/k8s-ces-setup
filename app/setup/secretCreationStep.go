@@ -5,39 +5,33 @@ import (
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
-
 	"k8s.io/client-go/kubernetes"
 )
 
 const (
-	namespaceEnv             = "NAMESPACE"
 	secretNameDoguRegistry   = "dogu-cloudogu-com"
-	secretNameDockerRegistry = "docker-image-pull"
+	secretNameDockerRegistry = "registry-cloudogu-com"
 )
 
 // secretCreator contains necessary information to create a new secrets in the cluster.
 type secretCreator struct {
-	ClientSet kubernetes.Interface `json:"client_set"`
-	Namespace string               `json:"namespace"`
+	ClientSet                 kubernetes.Interface `json:"client_set"`
+	TargetNamespace           string               `json:"target_namespace"`
+	CredentialSourceNamespace string               `yaml:"credential_source_namespace"`
 }
 
 // newSecretCreator creates a new object of type secretCreator.
-func newSecretCreator(clientSet kubernetes.Interface, namespace string) *secretCreator {
+func newSecretCreator(clientSet kubernetes.Interface, targetNamespace, credentialSourceNamespace string) *secretCreator {
 	newProvisioner := &secretCreator{
-		ClientSet: clientSet,
-		Namespace: namespace,
+		ClientSet:                 clientSet,
+		TargetNamespace:           targetNamespace,
+		CredentialSourceNamespace: credentialSourceNamespace,
 	}
 	return newProvisioner
 }
 
-func (n *secretCreator) createSecrets() error {
-	actualNamespace, err := getEnvVar(namespaceEnv)
-	if err != nil {
-		return fmt.Errorf("failed to read actual namespace")
-	}
-
-	setupSecretInterface := n.ClientSet.CoreV1().Secrets(actualNamespace)
+func (sc *secretCreator) createSecrets() error {
+	setupSecretInterface := sc.ClientSet.CoreV1().Secrets(sc.CredentialSourceNamespace)
 	options := metav1.GetOptions{}
 	dccSecret, err := setupSecretInterface.Get(context.Background(), secretNameDoguRegistry, options)
 	if err != nil {
@@ -48,28 +42,29 @@ func (n *secretCreator) createSecrets() error {
 		return fmt.Errorf("failed to get docker image pull secret: %w", err)
 	}
 
+	targetNamespace := sc.TargetNamespace
 	destDccSecret := &v1.Secret{
 		TypeMeta:   dccSecret.TypeMeta,
-		ObjectMeta: metav1.ObjectMeta{Name: secretNameDoguRegistry, Namespace: n.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: secretNameDoguRegistry, Namespace: targetNamespace},
 		Immutable:  dccSecret.Immutable,
 		Data:       dccSecret.Data,
 		StringData: dccSecret.StringData,
 		Type:       dccSecret.Type,
 	}
-	_, err = n.ClientSet.CoreV1().Secrets(n.Namespace).Create(context.Background(), destDccSecret, metav1.CreateOptions{})
+	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(context.Background(), destDccSecret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create dogu registry secret: %w", err)
 	}
 
 	destDockerSecret := &v1.Secret{
 		TypeMeta:   dockerSecret.TypeMeta,
-		ObjectMeta: metav1.ObjectMeta{Name: secretNameDockerRegistry, Namespace: n.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: secretNameDockerRegistry, Namespace: targetNamespace},
 		Immutable:  dockerSecret.Immutable,
 		Data:       dockerSecret.Data,
 		StringData: dockerSecret.StringData,
 		Type:       dockerSecret.Type,
 	}
-	_, err = n.ClientSet.CoreV1().Secrets(n.Namespace).Create(context.Background(), destDockerSecret, metav1.CreateOptions{})
+	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(context.Background(), destDockerSecret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create docker image pull secret: %w", err)
 	}
@@ -78,20 +73,11 @@ func (n *secretCreator) createSecrets() error {
 }
 
 // GetStepDescription returns the description of the namespace creation step.
-func (n *secretCreator) GetStepDescription() string {
-	return fmt.Sprintf("Create new Secrets in namespace %s", n.Namespace)
+func (sc *secretCreator) GetStepDescription() string {
+	return fmt.Sprintf("Create new Secrets in namespace %s", sc.TargetNamespace)
 }
 
 // PerformSetupStep creates a namespace during setup execution.
-func (n *secretCreator) PerformSetupStep() error {
-	return n.createSecrets()
-}
-
-// getEnvVar returns the namespace the operator should be watching for changes
-func getEnvVar(name string) (string, error) {
-	ns, found := os.LookupEnv(name)
-	if !found {
-		return "", fmt.Errorf("%s must be set", name)
-	}
-	return ns, nil
+func (sc *secretCreator) PerformSetupStep() error {
+	return sc.createSecrets()
 }

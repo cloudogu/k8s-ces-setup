@@ -33,29 +33,6 @@ func init() {
 	}
 }
 
-func Test_getEnvVar(t *testing.T) {
-	t.Run("successfully query env var namespace", func(t *testing.T) {
-		// given
-		t.Setenv("NAMESPACE", "myTestNamespace")
-
-		// when
-		ns, err := getEnvVar("NAMESPACE")
-
-		// then
-		require.NoError(t, err)
-
-		assert.Equal(t, "myTestNamespace", ns)
-	})
-
-	t.Run("failed to query env var namespace", func(t *testing.T) {
-		// when
-		_, err := getEnvVar("NAMESPACE")
-
-		// then
-		require.Error(t, err)
-	})
-}
-
 func Test_newSecretCreator(t *testing.T) {
 	t.Parallel()
 
@@ -63,7 +40,7 @@ func Test_newSecretCreator(t *testing.T) {
 	clientSetMock := testclient.NewSimpleClientset()
 
 	// when
-	creator := newSecretCreator(clientSetMock, "namespace")
+	creator := newSecretCreator(clientSetMock, "namespace", "currentNamespace")
 
 	// then
 	assert.NotNil(t, creator)
@@ -74,7 +51,7 @@ func Test_secretCreator_GetStepDescription(t *testing.T) {
 
 	// given
 	clientSetMock := testclient.NewSimpleClientset()
-	creator := newSecretCreator(clientSetMock, "myTestNamespace")
+	creator := newSecretCreator(clientSetMock, "myTestNamespace", "currentNamespace")
 
 	// when
 	description := creator.GetStepDescription()
@@ -85,15 +62,14 @@ func Test_secretCreator_GetStepDescription(t *testing.T) {
 
 func Test_secretCreator_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step runs without any problems", func(t *testing.T) {
-		t.Setenv("NAMESPACE", "actualNamespace")
 		// given
 		clientSetMock := testclient.NewSimpleClientset()
 		fmt.Println(dccSecret)
-		dccSecret, _ = clientSetMock.CoreV1().Secrets("actualNamespace").Create(context.TODO(), dccSecret, metav1.CreateOptions{})
-		_, err := clientSetMock.CoreV1().Secrets("actualNamespace").Create(context.TODO(), dockerSecret, metav1.CreateOptions{})
+		dccSecret, _ = clientSetMock.CoreV1().Secrets("currentNamespace").Create(context.TODO(), dccSecret, metav1.CreateOptions{})
+		_, err := clientSetMock.CoreV1().Secrets("currentNamespace").Create(context.TODO(), dockerSecret, metav1.CreateOptions{})
 		require.NoError(t, err)
 
-		creator := newSecretCreator(clientSetMock, "myTestNamespace")
+		creator := newSecretCreator(clientSetMock, "myTestNamespace", "currentNamespace")
 
 		// when
 		err = creator.PerformSetupStep()
@@ -101,15 +77,15 @@ func Test_secretCreator_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		retrievedDccSecret, err := clientSetMock.CoreV1().Secrets(creator.Namespace).Get(context.Background(), "dogu-cloudogu-com", metav1.GetOptions{})
+		retrievedDccSecret, err := clientSetMock.CoreV1().Secrets(creator.TargetNamespace).Get(context.Background(), "dogu-cloudogu-com", metav1.GetOptions{})
 		require.NoError(t, err)
-		retrievedDockerSecret, err := clientSetMock.CoreV1().Secrets(creator.Namespace).Get(context.Background(), "docker-image-pull", metav1.GetOptions{})
+		retrievedDockerSecret, err := clientSetMock.CoreV1().Secrets(creator.TargetNamespace).Get(context.Background(), "registry-cloudogu-com", metav1.GetOptions{})
 		require.NoError(t, err)
 
 		assert.Equal(t, "dogu-cloudogu-com", retrievedDccSecret.GetName())
 		assert.Equal(t, dccSecret.Data, retrievedDccSecret.Data)
 		assert.Equal(t, dccSecret.StringData, retrievedDccSecret.StringData)
-		assert.Equal(t, "docker-image-pull", retrievedDockerSecret.GetName())
+		assert.Equal(t, "registry-cloudogu-com", retrievedDockerSecret.GetName())
 		assert.Equal(t, dockerSecret.Data, retrievedDockerSecret.Data)
 		assert.Equal(t, dockerSecret.StringData, retrievedDockerSecret.StringData)
 	})

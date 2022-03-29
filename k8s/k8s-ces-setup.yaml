@@ -188,7 +188,7 @@ spec:
           env:
             - name: GIN_MODE
               value: release
-            - name: NAMESPACE
+            - name: CREDENTIAL_SOURCE_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
