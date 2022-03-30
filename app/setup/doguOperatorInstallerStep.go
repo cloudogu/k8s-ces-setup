@@ -14,7 +14,7 @@ var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a
 
 func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
-		namespace:   setupCtx.AppConfig.Namespace,
+		namespace:   setupCtx.AppConfig.TargetNamespace,
 		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),

@@ -11,7 +11,7 @@ import (
 var setupCtx = ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
-		Namespace:       testNamespaceName,
+		TargetNamespace: testNamespaceName,
 		DoguOperatorURL: "http://url.server.com/dogu/operator.yaml",
 	},
 }

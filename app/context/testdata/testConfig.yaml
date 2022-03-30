@@ -1,5 +1,5 @@
-namespace: "ecosystem"
+target_namespace: "ecosystem"
 log_level: "DEBUG"
 dogu_operator_url: https://dop.yaml
 etcd_server_url: https://etcds.yaml
-etcd_client_url: https://etcdc.yaml
+etcd_client_image_repo: https://etcdc.yaml

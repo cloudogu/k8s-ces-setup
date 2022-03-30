@@ -52,11 +52,11 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 			return
 		}
 
-		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.Namespace))
+		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.TargetNamespace))
 		// maybe we should even transport the pure credential pair instead of the meta-namespace?
-		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, config.Namespace, credentialSourceNamespace))
+		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, config.TargetNamespace, credentialSourceNamespace))
 		setupExecutor.RegisterSetupStep(newEtcdServerInstallerStep(clusterConfig, setupContext))
-		//setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, setupContext))
 		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
 
 		err = setupExecutor.PerformSetup()

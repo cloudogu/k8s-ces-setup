@@ -9,7 +9,7 @@ import (
 
 func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdServerInstallerStep {
 	return &etcdServerInstallerStep{
-		namespace:   setupCtx.AppConfig.Namespace,
+		namespace:   setupCtx.AppConfig.TargetNamespace,
 		resourceURL: setupCtx.AppConfig.EtcdServerResourceURL,
 		fileClient:  core.NewFileClient(setupCtx.AppVersion),
 		k8sClient:   core.NewK8sClient(clusterConfig),

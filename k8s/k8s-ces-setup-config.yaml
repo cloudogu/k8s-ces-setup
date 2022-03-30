@@ -11,8 +11,8 @@ metadata:
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
-    namespace: "ecosystem"
+    target_namespace: "ecosystem"
     log_level: "DEBUG"
     dogu_operator_url: http://192.168.56.1:9876/helloWorld
     etcd_server_url: http://192.168.56.1:9876/helloWorld
-    etcd_client_url: http://192.168.56.1:9876/helloWorld
+    etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
