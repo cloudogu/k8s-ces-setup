@@ -10,10 +10,13 @@ import (
 )
 
 func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx ctx.SetupContext) *etcdClientInstallerStep {
+	etcdServiceUrl := fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupCtx.AppConfig.TargetNamespace)
+
 	return &etcdClientInstallerStep{
 		ClientSet:       clientSet,
 		targetNamespace: setupCtx.AppConfig.TargetNamespace,
 		imageURL:        setupCtx.AppConfig.EtcdClientImageRepo,
+		etcdServiceUrl:  etcdServiceUrl,
 	}
 }
 
@@ -21,6 +24,7 @@ type etcdClientInstallerStep struct {
 	ClientSet       kubernetes.Interface `json:"client_set"`
 	targetNamespace string
 	imageURL        string
+	etcdServiceUrl  string
 }
 
 // GetStepDescription returns a human-readable description of the etcd client step.
@@ -39,7 +43,7 @@ func (ecis *etcdClientInstallerStep) PerformSetupStep() error {
 }
 
 func (ecis *etcdClientInstallerStep) installClient() error {
-	err := ecis.createPod()
+	err := ecis.createPod(ecis.etcdServiceUrl)
 	if err != nil {
 		return err
 	}
@@ -47,12 +51,12 @@ func (ecis *etcdClientInstallerStep) installClient() error {
 	return nil
 }
 
-func (ecis *etcdClientInstallerStep) createPod() error {
+func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 	etcdClientName := "etcd-client"
+	const etcdAPIVersion = "2"
 	etcdClientLabels := make(map[string]string, 0)
 	etcdClientLabels["run"] = etcdClientName
 	mountServiceAccountToken := true
-	const etcdAPIVersion = "2"
 
 	etcdPod := &corev1.Pod{
 		TypeMeta: metav1.TypeMeta{},
@@ -73,12 +77,8 @@ func (ecis *etcdClientInstallerStep) createPod() error {
 							Value: etcdAPIVersion,
 						},
 						{
-							Name:  "ROOT_PASSWORD",
-							Value: "",
-						},
-						{
 							Name:  "ETCDCTL_ENDPOINTS",
-							Value: "",
+							Value: etcdServiceUrl,
 						},
 					},
 				},
