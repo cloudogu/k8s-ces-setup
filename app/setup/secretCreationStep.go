@@ -31,43 +31,38 @@ func newSecretCreator(clientSet kubernetes.Interface, targetNamespace, credentia
 }
 
 func (sc *secretCreator) createSecrets() error {
+	err := sc.copySecretToTargetNamespace(secretNameDoguRegistry)
+	if err != nil {
+		return fmt.Errorf("failed to copy dogu registry secret: %w", err)
+	}
+	err = sc.copySecretToTargetNamespace(secretNameDockerRegistry)
+	if err != nil {
+		return fmt.Errorf("failed to copy docker image pull secret: %w", err)
+	}
+
+	return nil
+}
+
+// copySecretToTargetNamespace copies a secret from one namespace to another by rewriting the namespace.
+func (sc *secretCreator) copySecretToTargetNamespace(secretName string) error {
 	setupSecretInterface := sc.ClientSet.CoreV1().Secrets(sc.CredentialSourceNamespace)
-	options := metav1.GetOptions{}
-	ctx := context.Background()
-	dccSecret, err := setupSecretInterface.Get(ctx, secretNameDoguRegistry, options)
+
+	originalSecret, err := setupSecretInterface.Get(context.Background(), secretName, metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get dogu registry secret: %w", err)
-	}
-	dockerSecret, err := setupSecretInterface.Get(ctx, secretNameDockerRegistry, options)
-	if err != nil {
-		return fmt.Errorf("failed to get docker image pull secret: %w", err)
+		return err
 	}
 
-	targetNamespace := sc.TargetNamespace
-	destDccSecret := &v1.Secret{
-		TypeMeta:   dccSecret.TypeMeta,
-		ObjectMeta: metav1.ObjectMeta{Name: secretNameDoguRegistry, Namespace: targetNamespace},
-		Immutable:  dccSecret.Immutable,
-		Data:       dccSecret.Data,
-		StringData: dccSecret.StringData,
-		Type:       dccSecret.Type,
+	secretCopy := &v1.Secret{
+		TypeMeta:   originalSecret.TypeMeta,
+		ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: sc.TargetNamespace},
+		Immutable:  originalSecret.Immutable,
+		Data:       originalSecret.Data,
+		StringData: originalSecret.StringData,
+		Type:       originalSecret.Type,
 	}
-	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(ctx, destDccSecret, metav1.CreateOptions{})
+	_, err = sc.ClientSet.CoreV1().Secrets(sc.TargetNamespace).Create(context.Background(), secretCopy, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to create dogu registry secret: %w", err)
-	}
-
-	destDockerSecret := &v1.Secret{
-		TypeMeta:   dockerSecret.TypeMeta,
-		ObjectMeta: metav1.ObjectMeta{Name: secretNameDockerRegistry, Namespace: targetNamespace},
-		Immutable:  dockerSecret.Immutable,
-		Data:       dockerSecret.Data,
-		StringData: dockerSecret.StringData,
-		Type:       dockerSecret.Type,
-	}
-	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(ctx, destDockerSecret, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to create docker image pull secret: %w", err)
+		return err
 	}
 
 	return nil
