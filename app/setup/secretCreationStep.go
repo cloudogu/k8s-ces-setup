@@ -33,11 +33,12 @@ func newSecretCreator(clientSet kubernetes.Interface, targetNamespace, credentia
 func (sc *secretCreator) createSecrets() error {
 	setupSecretInterface := sc.ClientSet.CoreV1().Secrets(sc.CredentialSourceNamespace)
 	options := metav1.GetOptions{}
-	dccSecret, err := setupSecretInterface.Get(context.Background(), secretNameDoguRegistry, options)
+	ctx := context.Background()
+	dccSecret, err := setupSecretInterface.Get(ctx, secretNameDoguRegistry, options)
 	if err != nil {
 		return fmt.Errorf("failed to get dogu registry secret: %w", err)
 	}
-	dockerSecret, err := setupSecretInterface.Get(context.Background(), secretNameDockerRegistry, options)
+	dockerSecret, err := setupSecretInterface.Get(ctx, secretNameDockerRegistry, options)
 	if err != nil {
 		return fmt.Errorf("failed to get docker image pull secret: %w", err)
 	}
@@ -51,7 +52,7 @@ func (sc *secretCreator) createSecrets() error {
 		StringData: dccSecret.StringData,
 		Type:       dccSecret.Type,
 	}
-	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(context.Background(), destDccSecret, metav1.CreateOptions{})
+	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(ctx, destDccSecret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create dogu registry secret: %w", err)
 	}
@@ -64,7 +65,7 @@ func (sc *secretCreator) createSecrets() error {
 		StringData: dockerSecret.StringData,
 		Type:       dockerSecret.Type,
 	}
-	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(context.Background(), destDockerSecret, metav1.CreateOptions{})
+	_, err = sc.ClientSet.CoreV1().Secrets(targetNamespace).Create(ctx, destDockerSecret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create docker image pull secret: %w", err)
 	}
