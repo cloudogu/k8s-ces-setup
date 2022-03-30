@@ -16,6 +16,8 @@ type Config struct {
 	LogLevel logrus.Level `yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
 	TargetNamespace string `yaml:"target_namespace"`
+	// CredentialSourceNamespace contains the namespace in which the initial CES instance credential secrets reside.
+	CredentialSourceNamespace string `yaml:"credential_source_namespace"`
 	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
 	DoguOperatorURL string `yaml:"dogu_operator_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.

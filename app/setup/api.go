@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -44,10 +45,9 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		setupExecutor := NewExecutor(client)
 		config := setupContext.AppConfig
 
-		credentialSourceNamespace, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
+		credentialSourceNamespace, err := readCredentialSourceNamespace(config.CredentialSourceNamespace)
 		if err != nil {
 			logrus.Error(err.Error())
-			err = fmt.Errorf("failed to read current namespace from CREDENTIAL_SOURCE_NAMESPACE")
 			_ = context.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
@@ -67,6 +67,19 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 
 		context.Status(http.StatusOK)
 	})
+}
+
+func readCredentialSourceNamespace(credSourceNamespaceFromConfig string) (string, error) {
+	if credSourceNamespaceFromConfig != "" {
+		return credSourceNamespaceFromConfig, nil
+	}
+
+	credentialSourceNamespace, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read current namespace from CREDENTIAL_SOURCE_NAMESPACE")
+	}
+
+	return credentialSourceNamespace, err
 }
 
 func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, error) {
