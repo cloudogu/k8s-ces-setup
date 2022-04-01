@@ -6,13 +6,13 @@ import (
 	"testing"
 )
 
-const testNamespaceName = "myfavouritenamespace-1"
+const testTargetNamespaceName = "myfavouritenamespace-1"
 
 func Test_replaceNamespace(t *testing.T) {
 	t.Run("should replace namespace within simple namespaced resource", func(t *testing.T) {
 		input := simpleTestRoleBinding()
 		// when
-		actual := replaceNamespacedResources(input, testNamespaceName)
+		actual := replaceNamespacedResources(input, testTargetNamespaceName)
 
 		// then
 		expected := fmt.Sprintf(`apiVersion: rbac.authorization.k8s.io/v1
@@ -28,7 +28,7 @@ subjects:
 - kind: ServiceAccount
   name: k8s-dogu-operator-controller-manager
   namespace: %s
-`, testNamespaceName, testNamespaceName)
+`, testTargetNamespaceName, testTargetNamespaceName)
 		assert.Equal(t, expected, string(actual))
 	})
 
@@ -36,7 +36,7 @@ subjects:
 		input := twoNamespacedResources()
 
 		// when
-		actual := replaceNamespacedResources(input, testNamespaceName)
+		actual := replaceNamespacedResources(input, testTargetNamespaceName)
 
 		// then
 		expected := fmt.Sprintf(`---
@@ -54,7 +54,7 @@ metadata:
 rules:
 - apiGroups:
 `,
-			testNamespaceName, testNamespaceName)
+			testTargetNamespaceName, testTargetNamespaceName)
 
 		assert.Equal(t, expected, string(actual))
 	})

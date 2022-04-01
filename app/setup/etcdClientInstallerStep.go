@@ -13,7 +13,7 @@ func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx ctx.Set
 	etcdServiceUrl := fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupCtx.AppConfig.TargetNamespace)
 
 	return &etcdClientInstallerStep{
-		ClientSet:       clientSet,
+		clientSet:       clientSet,
 		targetNamespace: setupCtx.AppConfig.TargetNamespace,
 		imageURL:        setupCtx.AppConfig.EtcdClientImageRepo,
 		etcdServiceUrl:  etcdServiceUrl,
@@ -21,7 +21,7 @@ func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx ctx.Set
 }
 
 type etcdClientInstallerStep struct {
-	ClientSet       kubernetes.Interface `json:"client_set"`
+	clientSet       kubernetes.Interface
 	targetNamespace string
 	imageURL        string
 	etcdServiceUrl  string
@@ -67,7 +67,6 @@ func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-
 					Name:    etcdClientName,
 					Image:   ecis.imageURL,
 					Command: []string{"sleep", "infinity"},
@@ -88,9 +87,10 @@ func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 		Status: corev1.PodStatus{},
 	}
 
-	_, err := ecis.ClientSet.CoreV1().Pods(ecis.targetNamespace).Create(context.Background(), etcdPod, metav1.CreateOptions{})
+	_, err := ecis.clientSet.CoreV1().Pods(ecis.targetNamespace).Create(context.Background(), etcdPod, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("cannot create etcd pod in namespace %s with clientset: %w", ecis.targetNamespace, err)
 	}
+
 	return nil
 }

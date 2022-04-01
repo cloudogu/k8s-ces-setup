@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var setupCtx = ctx.SetupContext{
+var doguOperatorSetupCtx = ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
-		TargetNamespace: testNamespaceName,
+		TargetNamespace: testTargetNamespaceName,
 		DoguOperatorURL: "http://url.server.com/dogu/operator.yaml",
 	},
 }
@@ -20,7 +20,7 @@ func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual := newDoguOperatorInstallerStep(nil, setupCtx)
+	actual := newDoguOperatorInstallerStep(nil, doguOperatorSetupCtx)
 
 	// then
 	assert.NotNil(t, actual)
@@ -31,7 +31,7 @@ func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	creator := newDoguOperatorInstallerStep(nil, setupCtx)
+	creator := newDoguOperatorInstallerStep(nil, doguOperatorSetupCtx)
 
 	// when
 	description := creator.GetStepDescription()
