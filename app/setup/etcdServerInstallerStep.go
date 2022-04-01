@@ -44,12 +44,20 @@ func (esis *etcdServerInstallerStep) PerformSetupStep() error {
 
 	sections := splitYamlFileSections(fileContent)
 
+	err = esis.applyYamlSections(sections)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (esis *etcdServerInstallerStep) applyYamlSections(sections [][]byte) error {
 	for _, section := range sections {
-		err = esis.k8sClient.Apply(section, esis.namespace)
+		err := esis.k8sClient.Apply(section, esis.namespace)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
