@@ -31,3 +31,11 @@ func TestResourceError_Error(t *testing.T) {
 			"assert.AnError general error for testing", sut.Error())
 	})
 }
+
+func TestResourceError_Unwrap(t *testing.T) {
+	sut := NewResourceError(assert.AnError, "a", "b", "c", "d")
+
+	actual := sut.Unwrap()
+
+	assert.Equal(t, assert.AnError, actual)
+}

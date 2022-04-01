@@ -9,6 +9,14 @@ import (
 	"testing"
 )
 
+func TestNewFileClient(t *testing.T) {
+	actual := NewFileClient("1.2.3")
+
+	require.NotNil(t, actual)
+	assert.NotNil(t, actual.httpClient)
+	assert.Equal(t, "1.2.3", actual.version)
+}
+
 func Test_fileClient_Get(t *testing.T) {
 	t.Run("should return error on HTTP not found", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

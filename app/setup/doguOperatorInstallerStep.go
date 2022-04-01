@@ -14,18 +14,20 @@ var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a
 
 func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *doguOperatorInstallerStep {
 	return &doguOperatorInstallerStep{
-		namespace:   setupCtx.AppConfig.TargetNamespace,
-		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
-		fileClient:  core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:   core.NewK8sClient(clusterConfig),
+		namespace:              setupCtx.AppConfig.TargetNamespace,
+		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
+		fileClient:             core.NewFileClient(setupCtx.AppVersion),
+		k8sClient:              core.NewK8sClient(clusterConfig),
+		fileContentModificator: &defaultFileContentModificator{},
 	}
 }
 
 type doguOperatorInstallerStep struct {
-	namespace   string
-	resourceURL string
-	fileClient  fileClient
-	k8sClient   k8sClient
+	namespace              string
+	resourceURL            string
+	fileClient             fileClient
+	fileContentModificator fileContentModificator
+	k8sClient              k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the dogu operator installation step.
@@ -40,19 +42,28 @@ func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	// avoid extra namespace validation: during the namespace creation earlier it was already validated by the K8s API
-	fileContent = replaceNamespacedResources(fileContent, dois.namespace)
-	fileContent = removeLegacyNamespaceFromResources(fileContent)
+	mod := dois.fileContentModificator
+
+	fileContent = mod.replaceNamespacedResources(fileContent, dois.namespace)
+	fileContent = mod.removeLegacyNamespaceFromResources(fileContent)
 
 	sections := splitYamlFileSections(fileContent)
 
+	err = dois.applyYamlSections(sections)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dois *doguOperatorInstallerStep) applyYamlSections(sections [][]byte) error {
 	for _, section := range sections {
-		err = dois.k8sClient.Apply(section, dois.namespace)
+		err := dois.k8sClient.Apply(section, dois.namespace)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -71,12 +82,20 @@ func splitYamlFileSections(resourceBytes []byte) [][]byte {
 	return cleanedResult
 }
 
-func replaceNamespacedResources(content []byte, namespace string) []byte {
+type fileContentModificator interface {
+	replaceNamespacedResources(content []byte, namespace string) []byte
+	removeLegacyNamespaceFromResources(content []byte) []byte
+}
+
+type defaultFileContentModificator struct{}
+
+func (fdm *defaultFileContentModificator) replaceNamespacedResources(content []byte, namespace string) []byte {
+	// do not validate namespace: during the namespace creation earlier it was already validated by the K8s API
 	// do not re-use possible quotation marks because DNS labels are also proper YAML values
 	return namespacedResourcesRfc1123Regex.ReplaceAll(content, []byte("${1}"+namespace))
 }
 
-func removeLegacyNamespaceFromResources(content []byte) []byte {
+func (fdm *defaultFileContentModificator) removeLegacyNamespaceFromResources(content []byte) []byte {
 	return bytes.ReplaceAll(content, []byte(`apiVersion: v1
 kind: Namespace
 metadata:

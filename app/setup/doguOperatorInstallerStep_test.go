@@ -8,11 +8,13 @@ import (
 
 const testTargetNamespaceName = "myfavouritenamespace-1"
 
-func Test_replaceNamespace(t *testing.T) {
+func TestDefaultFileContentModificator_replaceNamespace(t *testing.T) {
 	t.Run("should replace namespace within simple namespaced resource", func(t *testing.T) {
 		input := simpleTestRoleBinding()
+		sut := &defaultFileContentModificator{}
+
 		// when
-		actual := replaceNamespacedResources(input, testTargetNamespaceName)
+		actual := sut.replaceNamespacedResources(input, testTargetNamespaceName)
 
 		// then
 		expected := fmt.Sprintf(`apiVersion: rbac.authorization.k8s.io/v1
@@ -34,9 +36,10 @@ subjects:
 
 	t.Run("should replace namespace in complex resources", func(t *testing.T) {
 		input := twoNamespacedResources()
+		sut := &defaultFileContentModificator{}
 
 		// when
-		actual := replaceNamespacedResources(input, testTargetNamespaceName)
+		actual := sut.replaceNamespacedResources(input, testTargetNamespaceName)
 
 		// then
 		expected := fmt.Sprintf(`---
@@ -60,7 +63,7 @@ rules:
 	})
 }
 
-func Test_removeLegacyNamespaceFromResources(t *testing.T) {
+func TestDefaultFileContentModificator_removeLegacyNamespaceFromResources(t *testing.T) {
 	input := []byte(`apiVersion: v1
 kind: Namespace
 metadata:
@@ -75,9 +78,10 @@ metadata:
     controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
   name: dogus.k8s.cloudogu.com`)
+	sut := &defaultFileContentModificator{}
 
 	// when
-	actual := removeLegacyNamespaceFromResources(input)
+	actual := sut.removeLegacyNamespaceFromResources(input)
 
 	// then
 	expectedNoResource := `---
