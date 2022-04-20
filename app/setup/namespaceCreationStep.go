@@ -11,14 +11,14 @@ import (
 
 // namespaceCreator contains necessary information to create a new namespace in the cluster.
 type namespaceCreator struct {
-	ClientSet       kubernetes.Interface `json:"client_set"`
-	targetNamespace string               `json:"namespace"`
+	clientSet       kubernetes.Interface
+	targetNamespace string
 }
 
 // newNamespaceCreator creates a new object of type namespaceCreator.
 func newNamespaceCreator(clientSet kubernetes.Interface, targetNamespace string) *namespaceCreator {
 	newProvisioner := &namespaceCreator{
-		ClientSet:       clientSet,
+		clientSet:       clientSet,
 		targetNamespace: targetNamespace,
 	}
 	return newProvisioner
@@ -34,7 +34,7 @@ func (n *namespaceCreator) createNamespace() error {
 		Status: corev1.NamespaceStatus{},
 	}
 
-	_, err := n.ClientSet.CoreV1().Namespaces().Create(context.Background(), namespace, metav1.CreateOptions{})
+	_, err := n.clientSet.CoreV1().Namespaces().Create(context.Background(), namespace, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("cannot create namespace %s with clientset: %w", n.targetNamespace, err)
 	}
