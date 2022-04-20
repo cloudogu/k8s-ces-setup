@@ -22,7 +22,7 @@ type etcdServerInstallerStep struct {
 	resourceURL            string
 	fileClient             fileClient
 	k8sClient              k8sClient
-	fileContentModificator *defaultFileContentModificator
+	fileContentModificator fileContentModificator
 }
 
 // GetStepDescription returns a human-readable description of the etcd installation step.
