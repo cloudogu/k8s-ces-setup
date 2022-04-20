@@ -77,15 +77,15 @@ func Test_secretCreator_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		retrievedDccSecret, err := clientSetMock.CoreV1().Secrets(creator.targetNamespace).Get(context.Background(), "cloudogu-dogu-registry", metav1.GetOptions{})
+		retrievedDccSecret, err := clientSetMock.CoreV1().Secrets(creator.targetNamespace).Get(context.Background(), "k8s-dogu-operator-dogu-registry", metav1.GetOptions{})
 		require.NoError(t, err)
-		retrievedDockerSecret, err := clientSetMock.CoreV1().Secrets(creator.targetNamespace).Get(context.Background(), "cloudogu-image-registry", metav1.GetOptions{})
+		retrievedDockerSecret, err := clientSetMock.CoreV1().Secrets(creator.targetNamespace).Get(context.Background(), "k8s-dogu-operator-docker-registry", metav1.GetOptions{})
 		require.NoError(t, err)
 
-		assert.Equal(t, "cloudogu-dogu-registry", retrievedDccSecret.GetName())
+		assert.Equal(t, "k8s-dogu-operator-dogu-registry", retrievedDccSecret.GetName())
 		assert.Equal(t, dccSecret.Data, retrievedDccSecret.Data)
 		assert.Equal(t, dccSecret.StringData, retrievedDccSecret.StringData)
-		assert.Equal(t, "cloudogu-image-registry", retrievedDockerSecret.GetName())
+		assert.Equal(t, "k8s-dogu-operator-docker-registry", retrievedDockerSecret.GetName())
 		assert.Equal(t, dockerSecret.Data, retrievedDockerSecret.Data)
 		assert.Equal(t, dockerSecret.StringData, retrievedDockerSecret.StringData)
 	})

@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	secretNameDoguRegistry  = "cloudogu-dogu-registry"
-	secretNameImageRegistry = "cloudogu-image-registry"
+	secretNameDoguRegistry  = "k8s-dogu-operator-dogu-registry"
+	secretNameImageRegistry = "k8s-dogu-operator-docker-registry"
 )
 
 // secretCreator contains necessary information to create a new secrets in the cluster.
