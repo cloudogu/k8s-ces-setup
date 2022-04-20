@@ -28,3 +28,32 @@ func Test_getEnvVar(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func Test_readCredentialSourceNamespace(t *testing.T) {
+	t.Run("should try to read credential source namespace from env var if original is empty", func(t *testing.T) {
+		t.Setenv("CREDENTIAL_SOURCE_NAMESPACE", "nsfromenvvar")
+
+		// when
+		actual, err := readCredentialSourceNamespace("")
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "nsfromenvvar", actual)
+	})
+	t.Run("should default to given credential source namespace when env var is unset", func(t *testing.T) {
+		// when
+		actual, err := readCredentialSourceNamespace("mynamespace")
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "mynamespace", actual)
+	})
+	t.Run("should error when no namespace can be found either way", func(t *testing.T) {
+		// when
+		_, err := readCredentialSourceNamespace("")
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to read current namespace")
+	})
+}
