@@ -54,7 +54,7 @@ func (ecis *etcdClientInstallerStep) installClient() error {
 func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 	etcdClientName := "etcd-client"
 	const etcdAPIVersion = "2"
-	etcdClientLabels := make(map[string]string, 0)
+	etcdClientLabels := make(map[string]string)
 	etcdClientLabels["run"] = etcdClientName
 	mountServiceAccountToken := true
 
