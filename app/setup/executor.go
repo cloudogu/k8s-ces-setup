@@ -36,7 +36,7 @@ func (e *Executor) RegisterSetupStep(step ExecutorStep) {
 }
 
 // PerformSetup starts the setup and executes all registered setup steps
-func (e *Executor) PerformSetup() error {
+func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 	logrus.Print("Starting the setup process")
 
 	for _, step := range e.Steps {
@@ -44,9 +44,9 @@ func (e *Executor) PerformSetup() error {
 
 		err := step.PerformSetupStep()
 		if err != nil {
-			return fmt.Errorf("failed to perform step [%s]: %w", step.GetStepDescription(), err)
+			return fmt.Errorf("failed to perform step [%s]: %w", step.GetStepDescription(), err), step.GetStepDescription()
 		}
 	}
 
-	return nil
+	return nil, ""
 }

@@ -1,8 +1,13 @@
 package setup
 
 import (
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -55,5 +60,33 @@ func Test_readCredentialSourceNamespace(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to read current namespace")
+	})
+}
+
+func TestSetupAPI(t *testing.T) {
+	t.Run("should fail SetupAPI during namespace creation with connection refused", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+		router := gin.Default()
+
+		SetupAPI(router, context.SetupContext{
+			AppVersion: "1.2.3",
+			AppConfig: context.Config{
+				LogLevel:                  logrus.DebugLevel,
+				TargetNamespace:           testTargetNamespaceName,
+				CredentialSourceNamespace: "default",
+				DoguOperatorURL:           "http://example.com/1.yaml",
+				EtcdServerResourceURL:     "http://example.com/2.yaml",
+				EtcdClientImageRepo:       "bitnami/etcd:3.5.2-debian-10-r0",
+			},
+		})
+		w := httptest.NewRecorder()
+
+		// when
+		req, _ := http.NewRequest("POST", "/api/v1/setup", nil)
+		router.ServeHTTP(w, req)
+
+		// then
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, "HTTP 500: An error occurred during this action: Create new namespace myfavouritenamespace-1", w.Body.String())
 	})
 }

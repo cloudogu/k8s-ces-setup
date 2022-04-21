@@ -99,7 +99,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		executor.RegisterSetupStep(step2)
 
 		// when
-		err := executor.PerformSetup()
+		err, _ := executor.PerformSetup()
 
 		// then
 		require.NoError(t, err)
@@ -122,10 +122,11 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		executor.RegisterSetupStep(step3)
 
 		// when
-		err := executor.PerformSetup()
+		err, uiCause := executor.PerformSetup()
 
 		// then
 		require.Error(t, err)
+		assert.Equal(t, "Step2", uiCause)
 		assert.Equal(t, "failed to perform step [Step2]: failed to do nothing", err.Error())
 		assert.True(t, step1.PerformedStep)
 		assert.True(t, !step2.PerformedStep)

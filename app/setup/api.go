@@ -28,37 +28,37 @@ type k8sClient interface {
 
 // SetupAPI setups the REST API for configuration information
 func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
-	const errMsg = "error while setting up the setup API"
+
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
 		clusterConfig, err := ctrl.GetConfig()
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "cannot load in cluster configuration"))
+			handleInternalServerError(context, err, "Load cluster configuration")
 			return
 		}
 
 		client, err := createKubernetesClient(clusterConfig)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "error while creating kubernetes client for the setup API"))
+			handleInternalServerError(context, err, "error while creating kubernetes client for the setup API")
 			return
 		}
 
 		appConfig := setupContext.AppConfig
 		credentialSourceNamespace, err := readCredentialSourceNamespace(appConfig.CredentialSourceNamespace)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, errMsg))
+			handleInternalServerError(context, err, "Fetch credentials")
 			return
 		}
 
 		etcdSrvInstallerStep, err := newEtcdServerInstallerStep(clusterConfig, setupContext)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, errMsg))
+			handleInternalServerError(context, err, "Create registry step")
 			return
 		}
 		doguOpInstallerStep, err := newDoguOperatorInstallerStep(clusterConfig, setupContext)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, errMsg))
+			handleInternalServerError(context, err, "Create dogu operator step")
 			return
 		}
 
@@ -70,9 +70,10 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, setupContext))
 		setupExecutor.RegisterSetupStep(doguOpInstallerStep)
 
-		err = setupExecutor.PerformSetup()
+		err, errCausingAction := setupExecutor.PerformSetup()
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, errMsg))
+			err2 := errors.Wrap(err, "error while setting up the setup API")
+			handleInternalServerError(context, err2, errCausingAction)
 			return
 		}
 
@@ -111,7 +112,11 @@ func getEnvVar(name string) (string, error) {
 	return ns, nil
 }
 
-func handleInternalServerError(ginCtx *gin.Context, err error) {
+func handleInternalServerError(ginCtx *gin.Context, err error, causingAction string) {
 	logrus.Error(err.Error())
-	_ = ginCtx.AbortWithError(http.StatusInternalServerError, err)
+	ginCtx.String(http.StatusInternalServerError, "HTTP %d: An error occurred during this action: %s",
+		http.StatusInternalServerError, causingAction)
+	ginCtx.Writer.WriteHeaderNow()
+	ginCtx.Abort()
+	_ = ginCtx.Error(err)
 }
