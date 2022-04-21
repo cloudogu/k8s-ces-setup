@@ -87,6 +87,7 @@ func TestSetupAPI(t *testing.T) {
 
 		// then
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Equal(t, "HTTP 500: An error occurred during this action: Create new namespace myfavouritenamespace-1", w.Body.String())
+		// depending on whether a kube config exists (local dev) or not (CI) errors may be returned at different phases
+		assert.Regexp(t, "HTTP 500: An error occurred during this action: (Create new namespace myfavouritenamespace-1|Load cluster configuration)", w.Body.String())
 	})
 }
