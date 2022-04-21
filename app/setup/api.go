@@ -28,7 +28,9 @@ type k8sClient interface {
 
 // SetupAPI setups the REST API for configuration information
 func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
+	const errMsg = "error while setting up the setup API"
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
+
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
 		clusterConfig, err := ctrl.GetConfig()
 		if err != nil {
@@ -45,18 +47,18 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 		appConfig := setupContext.AppConfig
 		credentialSourceNamespace, err := readCredentialSourceNamespace(appConfig.CredentialSourceNamespace)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			handleInternalServerError(context, errors.Wrap(err, errMsg))
 			return
 		}
 
 		etcdSrvInstallerStep, err := newEtcdServerInstallerStep(clusterConfig, setupContext)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			handleInternalServerError(context, errors.Wrap(err, errMsg))
 			return
 		}
 		doguOpInstallerStep, err := newDoguOperatorInstallerStep(clusterConfig, setupContext)
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			handleInternalServerError(context, errors.Wrap(err, errMsg))
 			return
 		}
 
@@ -70,7 +72,7 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {
-			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			handleInternalServerError(context, errors.Wrap(err, errMsg))
 			return
 		}
 
