@@ -22,7 +22,7 @@ func TestNewK8sClient(t *testing.T) {
 }
 
 func Test_k8sApplyClient_Apply(t *testing.T) {
-	t.Run("should create new resource", func(t *testing.T) {
+	t.Run("should create new namespaced resource with PATCH", func(t *testing.T) {
 		// given
 		expectedResourceGroupKind := schema.GroupKind{Group: "", Kind: "ServiceAccount"}
 		mockedRestMapping := &meta.RESTMapping{
@@ -58,6 +58,54 @@ func Test_k8sApplyClient_Apply(t *testing.T) {
 
 		testResource := []byte(`apiVersion: v1
 kind: ServiceAccount
+metadata:
+  name: k8s-dogu-operator-controller-manager
+  namespace: ecosystem`)
+
+		// when
+		err := sut.Apply(testResource, "mynamespace")
+
+		// then
+		require.NoError(t, err)
+		gvrMapperMock.AssertExpectations(t)
+		dynClientMock.AssertExpectations(t)
+	})
+	t.Run("should create new global resource with PATCH", func(t *testing.T) {
+		// given
+		expectedResourceGroupKind := schema.GroupKind{Group: "", Kind: "Namespace"}
+		mockedRestMapping := &meta.RESTMapping{
+			Resource: schema.GroupVersionResource{
+				Group:    "",
+				Version:  "v1",
+				Resource: "k8s-dogu-operator-controller-manager",
+			},
+			GroupVersionKind: schema.GroupVersionKind{
+				Group:   "",
+				Version: "v1",
+				Kind:    "Namespace",
+			},
+			Scope: meta.RESTScopeRoot,
+		}
+		gvrMapperMock := &mockGvrMapper{}
+		gvrMapperMock.On("RESTMapping", expectedResourceGroupKind, []string{"v1"}).Return(mockedRestMapping, nil)
+
+		parsedJsonResult := make(map[string]interface{})
+		unstructuredResultMock := &unstructured.Unstructured{Object: parsedJsonResult}
+
+		apiInterfaceMock := &mockNsResourceInterface{}
+		apiInterfaceMock.On("Patch", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			Return(unstructuredResultMock, nil)
+
+		dynClientMock := &mockDynClient{}
+		dynClientMock.On("Resource", mock.Anything).Return(apiInterfaceMock)
+
+		sut := k8sApplyClient{
+			gvrMapper: gvrMapperMock,
+			dynClient: dynClientMock,
+		}
+
+		testResource := []byte(`apiVersion: v1
+kind: Namespace
 metadata:
   name: k8s-dogu-operator-controller-manager
   namespace: ecosystem`)
