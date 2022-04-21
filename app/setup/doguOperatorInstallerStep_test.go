@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/rest"
 	"testing"
 )
 
@@ -185,7 +186,7 @@ func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual := newDoguOperatorInstallerStep(nil, doguOperatorSetupCtx)
+	actual, _ := newDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
 
 	// then
 	assert.NotNil(t, actual)
@@ -196,7 +197,7 @@ func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer := newDoguOperatorInstallerStep(nil, doguOperatorSetupCtx)
+	installer, _ := newDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
 
 	// when
 	description := installer.GetStepDescription()

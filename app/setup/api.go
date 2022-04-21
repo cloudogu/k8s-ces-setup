@@ -32,36 +32,45 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 	router.POST(endpointPostStartSetup, func(context *gin.Context) {
 		clusterConfig, err := ctrl.GetConfig()
 		if err != nil {
-			logrus.Errorf("cannot load in cluster configuration: %s", err.Error())
+			handleInternalServerError(context, errors.Wrap(err, "cannot load in cluster configuration"))
 			return
 		}
 
 		client, err := createKubernetesClient(clusterConfig)
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
+			handleInternalServerError(context, errors.Wrap(err, "error while creating kubernetes client for the setup API"))
+			return
+		}
+
+		appConfig := setupContext.AppConfig
+		credentialSourceNamespace, err := readCredentialSourceNamespace(appConfig.CredentialSourceNamespace)
+		if err != nil {
+			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			return
+		}
+
+		etcdSrvInstallerStep, err := newEtcdServerInstallerStep(clusterConfig, setupContext)
+		if err != nil {
+			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
+			return
+		}
+		doguOpInstallerStep, err := newDoguOperatorInstallerStep(clusterConfig, setupContext)
+		if err != nil {
+			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
 			return
 		}
 
 		setupExecutor := NewExecutor(client)
-		config := setupContext.AppConfig
-
-		credentialSourceNamespace, err := readCredentialSourceNamespace(config.CredentialSourceNamespace)
-		if err != nil {
-			logrus.Error(err.Error())
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-
-		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, config.TargetNamespace))
+		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, appConfig.TargetNamespace))
 		// maybe we should even transport the pure credential pair instead of the meta-namespace?
-		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, config.TargetNamespace, credentialSourceNamespace))
-		setupExecutor.RegisterSetupStep(newEtcdServerInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, appConfig.TargetNamespace, credentialSourceNamespace))
+		setupExecutor.RegisterSetupStep(etcdSrvInstallerStep)
 		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, setupContext))
-		setupExecutor.RegisterSetupStep(newDoguOperatorInstallerStep(clusterConfig, setupContext))
+		setupExecutor.RegisterSetupStep(doguOpInstallerStep)
 
 		err = setupExecutor.PerformSetup()
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
+			handleInternalServerError(context, errors.Wrap(err, "error while setting up the setup API"))
 			return
 		}
 
@@ -98,4 +107,9 @@ func getEnvVar(name string) (string, error) {
 		return "", fmt.Errorf("%s must be set", name)
 	}
 	return ns, nil
+}
+
+func handleInternalServerError(ginCtx *gin.Context, err error) {
+	logrus.Error(err.Error())
+	_ = ginCtx.AbortWithError(http.StatusInternalServerError, err)
 }

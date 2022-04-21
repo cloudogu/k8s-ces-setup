@@ -7,14 +7,18 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) *etcdServerInstallerStep {
+func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) (*etcdServerInstallerStep, error) {
+	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
+	if err != nil {
+		return nil, err
+	}
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
 		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              core.NewK8sClient(clusterConfig),
+		k8sClient:              k8sApplyClient,
 		fileContentModificator: &defaultFileContentModificator{},
-	}
+	}, nil
 }
 
 type etcdServerInstallerStep struct {

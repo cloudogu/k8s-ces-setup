@@ -5,6 +5,7 @@ import (
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/rest"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func TestNewEtcdServerInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual := newEtcdServerInstallerStep(nil, etcdServerSetupCtx)
+	actual, _ := newEtcdServerInstallerStep(&rest.Config{}, etcdServerSetupCtx)
 
 	// then
 	assert.NotNil(t, actual)
@@ -33,7 +34,7 @@ func TestEtcdServerInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer := newEtcdServerInstallerStep(nil, etcdServerSetupCtx)
+	installer, _ := newEtcdServerInstallerStep(&rest.Config{}, etcdServerSetupCtx)
 
 	// when
 	description := installer.GetStepDescription()

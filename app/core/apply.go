@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,12 +18,42 @@ import (
 )
 
 type k8sApplyClient struct {
-	clusterConfig *rest.Config
+	gvrMapper meta.RESTMapper
+	dynClient dynamic.Interface
 }
 
-// NewK8sClient creates a `kubectl`-like client which operates on the K8s API.
-func NewK8sClient(clusterConfig *rest.Config) *k8sApplyClient {
-	return &k8sApplyClient{clusterConfig: clusterConfig}
+// NewK8sClient creates a `kubectl`-like client which operates on the K8s API with YAML resources.
+func NewK8sClient(clusterConfig *rest.Config) (*k8sApplyClient, error) {
+	gvrMapper, err := createGVRMapper(clusterConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "error while creating k8s apply client")
+	}
+	dynCli, err := createDynamicClient(clusterConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "error while creating k8s apply client")
+	}
+
+	return &k8sApplyClient{gvrMapper: gvrMapper, dynClient: dynCli}, nil
+}
+
+func createGVRMapper(config *rest.Config) (meta.RESTMapper, error) {
+	// 1. Prepare a RESTMapper to find GVR
+	dc, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc)), nil
+}
+
+func createDynamicClient(config *rest.Config) (dynamic.Interface, error) {
+	// 2. Prepare the dynamic client
+	dyn, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return dyn, nil
 }
 
 // Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
@@ -30,22 +61,8 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 	logrus.Debug("Applying K8s resources")
 	logrus.Debug(string(yamlResources))
 
-	var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-
-	// 1. Prepare a RESTMapper to find GVR
-	dc, err := discovery.NewDiscoveryClientForConfig(dkc.clusterConfig)
-	if err != nil {
-		return err
-	}
-	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
-
-	// 2. Prepare the dynamic client
-	dyn, err := dynamic.NewForConfig(dkc.clusterConfig)
-	if err != nil {
-		return err
-	}
-
 	// 3. Decode YAML manifest into unstructured.Unstructured
+	var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	k8sObjects := &unstructured.Unstructured{}
 	_, gvk, err := decUnstructured.Decode(yamlResources, nil, k8sObjects)
 	if err != nil {
@@ -54,7 +71,7 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 
 	// 4. Map GVK to GVR
 	// a resource can be uniquely identified by GroupVersionResource, but we need the GVK to find the corresponding GVR
-	gvr, err := mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	gvr, err := dkc.gvrMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return err
 	}
@@ -63,10 +80,10 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 	var dr dynamic.ResourceInterface
 	if gvr.Scope.Name() == meta.RESTScopeNameNamespace {
 		// namespaced resources should specify the namespace
-		dr = dyn.Resource(gvr.Resource).Namespace(namespace)
+		dr = dkc.dynClient.Resource(gvr.Resource).Namespace(namespace)
 	} else {
 		// for cluster-wide resources
-		dr = dyn.Resource(gvr.Resource)
+		dr = dkc.dynClient.Resource(gvr.Resource)
 	}
 
 	ctx := context.Background()
@@ -74,10 +91,10 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 		return err
 	}
 
-	return createOrUpdateResource(k8sObjects, ctx, dr)
+	return createOrUpdateResource(ctx, k8sObjects, dr)
 }
 
-func createOrUpdateResource(desiredResource *unstructured.Unstructured, ctx context.Context, dr dynamic.ResourceInterface) error {
+func createOrUpdateResource(ctx context.Context, desiredResource *unstructured.Unstructured, dr dynamic.ResourceInterface) error {
 	const fieldManager = "k8s-ces-setup"
 
 	logrus.Debugf("Patching resource %s/%s/%s", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
