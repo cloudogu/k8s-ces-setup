@@ -98,14 +98,14 @@ func createOrUpdateResource(ctx context.Context, desiredResource *unstructured.U
 	const fieldManager = "k8s-ces-setup"
 
 	logrus.Debugf("Patching resource %s/%s/%s", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
-
+	// 6. marshal unstructured resource into proper JSON
 	jsondata, err := json.Marshal(desiredResource)
 	if err != nil {
 		return NewResourceError(err, "error while parsing resource to json", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
 	}
-	// 6a. Update the object with server-side-apply
-	//     types.ApplyPatchType indicates server-side-apply.
-	//     FieldManager specifies the field owner ID.
+	// 7. Update the object with server-side-apply
+	//    types.ApplyPatchType indicates server-side-apply.
+	//    FieldManager specifies the field owner ID.
 	_, err = dr.Patch(ctx, desiredResource.GetName(), types.ApplyPatchType, jsondata, metav1.PatchOptions{
 		FieldManager: fieldManager,
 	})

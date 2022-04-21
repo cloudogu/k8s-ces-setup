@@ -1,4 +1,3 @@
-
 @startuml
 !define CLOUDOGUURL https://raw.githubusercontent.com/cloudogu/plantuml-cloudogu-sprites/master
 
@@ -7,8 +6,11 @@
 !includeurl CLOUDOGUURL/tools/docker.puml
 !includeurl CLOUDOGUURL/tools/virtualbox.puml
 !includeurl CLOUDOGUURL/dogus/nginx.puml
+!includeurl CLOUDOGUURL/tools/etcd.puml
 !includeurl CLOUDOGUURL/tools/k8s.puml
 !define SECONDARY_COLOR #55EE55
+!define TERTIARY_COLOR #EEEE66
+!define QUATERNARY_COLOR #FF6633
 !define POD_COLOR #abcdef
 
 rectangle external as "External Services" {
@@ -26,9 +28,9 @@ rectangle "Cluster" as cluster <<$k8s>> {
 
     rectangle setupns as "Setup Namespace" {
         rectangle setupres as "Setup Resources" {
-            rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
+            rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> TERTIARY_COLOR
             rectangle podSA as "service account" SECONDARY_COLOR
-            rectangle setupconfig as "Setup Configuration" #white
+            rectangle setupconfig as "Setup Configuration" QUATERNARY_COLOR
             note top of setupconfig #lightyellow
                 - Component URLs
                 - Log level
@@ -43,12 +45,11 @@ rectangle "Cluster" as cluster <<$k8s>> {
             end note
         }
 
-
         rectangle setuppod as "Pod" POD_COLOR {
             rectangle setup as "k8s-ces-setup" <<$cloudogu>> #white {
-                rectangle setupui as "Setup UI"
+                rectangle setupui as "Setup UI (TBD)" #lightgrey
                 rectangle setupapi as "Setup API"
-                rectangle setupbackend {
+                rectangle setupbackend as "Setup Backend" {
                     file kubeConfig SECONDARY_COLOR
                     rectangle applier as "k8sApplyClient" #white
                 }
@@ -59,42 +60,50 @@ rectangle "Cluster" as cluster <<$k8s>> {
     rectangle cp1 as "control-plane" <<$k8s>> #white
 
     rectangle targetns as "Target Namespace" {
-rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> SECONDARY_COLOR
+        rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> TERTIARY_COLOR
 
-        rectangle pod as "Pod" POD_COLOR {
-            rectangle dogurator as "Dogu Operator" <<$cloudogu>> #white
-        }
+        rectangle dogurator as "Dogu Operator" <<$cloudogu>> QUATERNARY_COLOR
+        rectangle etcd as "etcd server" <<$etcd>> QUATERNARY_COLOR
+        rectangle etcclient as "etcd client" <<$etcd>> QUATERNARY_COLOR
     }
 
     note top of targetns #lightyellow
-        Created by setup
+        4. create namespace
     end note
 }
-setup --u-> setupconfig : 1. read config
-ic <-d- setupbackend : 2a. read credential secrets \nfrom current namespace
-setupbackend ---> icCopied : 3. provide namespace with instance credentials
 
-setupui -r-> setupapi : provide data for the next setup run
+setup --u-> setupconfig       : 1. read setup config
+podSA -> kubeConfig           : 2. read cluster config \n(auto pod mounted)
+ic <-d- setupbackend          : 3a. read credential secrets \nfrom source namespace
+setupbackend --> setupbackend : 4b. use secret from UI
+setupbackend ---> icCopied    : 5. copy instance credentials
+applier <== doguratoryaml     : 6a./7a./8a. read resource
+
+setupui -r-> setupapi : provide data for the up-coming setup run
 setupapi ---d-> setupbackend : call backend with setup data
-setupbackend --> setupbackend : 2b. use secret from UI
-dogurator -> icCopied : use credentials
+dogurator --> icCopied : use credentials
 
 applier -l-> kubeConfig : uses
-applier <== doguratoryaml : 4. read resource
-applier ==> cp1 : 5. generically apply resource(s)
+applier ==> cp1 : 6./7./8. install components with \n resources from setup configuration
 doguratoryaml -.> registry : reference image
-cp1 --> dogurator : instantiate container
+cp1 --> dogurator
+cp1 --> etcd
+cp1 --> etcclient
 
-podSA -> kubeConfig  :  auto pod mounted
 
 'styling
+icCopied -[hidden]l-> dogurator
+dogurator -[hidden]r-> etcclient
+etcclient -[hidden]l-> etcd
 setupres ---[hidden]-> setuppod
 'registry -[hidden]d-> doguratoryaml
 'external -[hidden]l-> cluster
 'doguratoryaml -[hidden]-> applier
 
 legend bottom right
-not shown: Installation of setup
+not shown:
+- Installation of setup
+- Dogu installation
 end legend
 
 caption Example workflow of how k8s-ces-setup installs Cloudogu K8s components
