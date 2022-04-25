@@ -49,6 +49,13 @@ vet: ${STATIC_ANALYSIS_DIR}/report-govet.out ## Run go vet against code.
 ${STATIC_ANALYSIS_DIR}/report-govet.out: ${SRC} $(STATIC_ANALYSIS_DIR)
 	@go vet ./... | tee $@
 
+.PHONY: serve-local-yaml
+serve-local-yaml:
+	@echo "Starting to server ${WORKDIR}/${LOCAL_HTTP_DIR}"
+	@echo "Press Ctrl+C to exit"
+	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
+	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
+
 ##@ Build
 
 .PHONY: build-setup
@@ -118,10 +125,3 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
 	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
-
-.PHONY: serve-local-yaml
-serve-local-yaml:
-	@echo "Starting to server ${WORKDIR}/${LOCAL_HTTP_DIR}"
-	@echo "Press Ctrl+C to exit"
-	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
-	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
