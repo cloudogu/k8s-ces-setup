@@ -11,7 +11,6 @@ metadata:
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
-    target_namespace: "ecosystem"
     log_level: "DEBUG"
     dogu_operator_url: http://192.168.56.1:9876/helloWorld
     etcd_server_url: http://192.168.56.1:9876/helloWorld

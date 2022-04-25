@@ -18,17 +18,33 @@ The automatic setup of a CES instance completely without further user interactio
 **Execution:**
 It is done in several steps, which the figure above illustrates well:
 
+Preparation (deployment of the setup):
+- A. Admin creates target namespace
+- B. Admin creates required setup data in target namespace
+   - Instance credentials
+   - Setup configuration
+- C. Admin deploys the setup
+- D. Admin triggers the setup execution (see below)
+
+**Setup execution:**
+
 1. read setup configuration
-2. read in cluster configuration
-   - in production mode this is provided by the setup deployment
-   - in development mode it can also be read from local kubeconfig files
+2. read cluster configuration
+   - in production mode this is provided by setup deployment
+   - in development mode this can also be read from local cube configs
 3. read dogu and image credentials
-4. create new namespace (according to setup configuration)
-5. copy read credentials into the new namespace
-6. install etcd server into the new namespace
-7. install etcd client into the new namespace
-8. install dogu operator into the new namespace
-9. (not yet implemented) install Dogus (according to `setup.json`)
+4. install etcd server into the new namespace
+5. install etcd client into the new namespace
+6. install dogu-operator into the new namespace
+7. install (not yet implemented) Dogus (according to `setup.json`)
+
+## Necessary permissions to run the setup
+
+The setup always runs in the namespace that is to be made operational for the future Cloudogu EcoSystem.
+
+The setup depends with regard to the necessary permissions very much on the resources to be installed, especially the Dogu operator. Since its resources can fluctuate with respective releases, the setup requires **all rights to the target namespace (Role/RoleBinding)**.
+
+In addition, a CustomResourceDefinition (CRD) must be installed via the Dogu operator. CRDs are generally valid cluster-wide. Therefore, the setup additionally requires the right **to create/update CRDs (ClusterRole/ClusterRoleBinding)**.
 
 ## (Unstructured) Apply YAML resources to the K8s API
 

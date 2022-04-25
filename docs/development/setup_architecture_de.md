@@ -12,23 +12,40 @@ Das automatische Setup einer CES-Instanz ganz ohne weitere Benutzerinteraktion (
 
 **Voraussetzungen für ein unattended Setup:**
 1. [Dogu-](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_de.md) und [Image-Instanz credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_de.md) werden als secrets bereitgestellt
-1. [Setup-Konfiguration](../operations/configuration_guide_de.md) liegt in einer `ConfigMap` im gleichen Namespace, in dem das Setup läuft
-1. (noch nicht umgesetzt) ein Setup-Deskriptor `setup.json` liegt vor
+2. [Setup-Konfiguration](../operations/configuration_guide_de.md) liegt in einer `ConfigMap` im gleichen Namespace, in dem das Setup läuft
+3. (noch nicht umgesetzt) ein Setup-Deskriptor `setup.json` liegt vor
+4. Ein Clusteradministrator muss das Setup lauffähig deployen (siehe unten)
 
 **Durchführung:**
 Es erfolgt in mehreren Schritten, die die Abbildung oben gut veranschaulicht:
+
+Vorbereitung (Deployment des Setups):
+- A. Admin legt Zielnamespace an
+- B. Admin legt benötigte Setup-Daten im Zielnamespace an
+  - Instanz Credentials
+  - Setup-Konfiguration
+- C. Admin deployt das Setup
+- D. Admin löst die Setup-Ausführung an (siehe unten)
+
+**Setup-Ausführung:**
 
 1. Setup-Konfiguration einlesen
 2. Cluster-Konfiguration einlesen
    - im Produktionsbetrieb wird diese durch das Setup-Deployment bereitgestellt
    - im Entwicklungsbetrieb kann diese auch von lokalen Kube-Configs ausgelesen werden
 3. Dogu- und Image-Credentials auslesen
-4. neuen Namespace (gemäß Setup-Konfiguration) anlegen
-5. ausgelesene Credentials in den neuen Namespace kopieren 
-6. etcd-Server in den neuen Namespace installieren
-7. etcd-Client in den neuen Namespace installieren
-8. Dogu-Operator in den neuen Namespace installieren
-9. (noch nicht umgesetzt) Dogus (gemäß `setup.json` installieren)
+4. etcd-Server in den neuen Namespace installieren
+5. etcd-Client in den neuen Namespace installieren
+6. Dogu-Operator in den neuen Namespace installieren
+7. (noch nicht umgesetzt) Dogus (gemäß `setup.json` installieren)
+
+## Benötigte Berechtigungen zur Ausführung des Setups
+
+Das Setup läuft grundsätzlich immer in dem Namespace, der für das zukünftige Cloudogu EcoSystem betriebsbereit gemacht werden soll.
+
+Das Setup hängt bzgl. der nötigen Berechtigungen sehr stark von den zu installierenden Ressourcen ab, insbesondere dem Dogu-Operator. Da dessen Ressourcen mit jeweiligen Releases schwanken können, benötigt der das Setup **alle Rechte auf den Zielnamespace (Role/RoleBinding)**.
+
+Hinzu kommt, dass jedenfalls über den Dogu-Operator eine CustomResourceDefinition (CRD) installiert werden muss. CRDs gelten  grundsätzlich clusterweit. Daher benötigt das Setup zusätzlich das Recht **zur Erzeugung/Aktualisierung von CRDs (ClusterRole/ClusterRoleBinding)**.
 
 ## (Unstructured) YAML-Ressourcen auf die K8s-API anwenden
 

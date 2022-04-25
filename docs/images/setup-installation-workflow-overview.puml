@@ -26,7 +26,10 @@ note top of external #lightyellow
 
 rectangle "Cluster" as cluster <<$k8s>> {
 
-    rectangle setupns as "Setup Namespace" {
+    rectangle cp1 as "control-plane" <<$k8s>> #white
+
+    rectangle targetns as "Target Namespace" {
+
         rectangle setupres as "Setup Resources" {
             rectangle ic as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> TERTIARY_COLOR
             rectangle podSA as "service account" SECONDARY_COLOR
@@ -52,57 +55,58 @@ rectangle "Cluster" as cluster <<$k8s>> {
                 rectangle setupbackend as "Setup Backend" {
                     file kubeConfig SECONDARY_COLOR
                     rectangle applier as "k8sApplyClient" #white
+
+                    note bottom of applier #lightyellow
+                        3b. use secret from UI
+                    end note
                 }
             }
         }
+
+        rectangle targetapps as "Target Applications" #white {
+            rectangle dogurator as "Dogu Operator" <<$cloudogu>> QUATERNARY_COLOR
+            rectangle etcd as "etcd server" <<$etcd>> QUATERNARY_COLOR
+            rectangle etcdclient as "etcd client" <<$etcd>> QUATERNARY_COLOR
+        }
     }
-
-    rectangle cp1 as "control-plane" <<$k8s>> #white
-
-    rectangle targetns as "Target Namespace" {
-        rectangle icCopied as "Instance Credentials (Image/Dogu.json) (Secret)" <<$k8s>> TERTIARY_COLOR
-
-        rectangle dogurator as "Dogu Operator" <<$cloudogu>> QUATERNARY_COLOR
-        rectangle etcd as "etcd server" <<$etcd>> QUATERNARY_COLOR
-        rectangle etcclient as "etcd client" <<$etcd>> QUATERNARY_COLOR
-    }
-
-    note top of targetns #lightyellow
-        4. create namespace
-    end note
 }
 
+actor admin as "Admin"
+
+admin -.r-> targetns          : A. create target namespace
+admin -.r-> ic                : B. deploy instance credentials
+admin -.r-> setuppod          : C. deploy setup
+admin -.r-> setup             : D. execute setup
 setup --u-> setupconfig       : 1. read setup config
 podSA -> kubeConfig           : 2. read cluster config \n(auto pod mounted)
-ic <-d- setupbackend          : 3a. read credential secrets \nfrom source namespace
-setupbackend --> setupbackend : 4b. use secret from UI
-setupbackend ---> icCopied    : 5. copy instance credentials
-applier <== doguratoryaml     : 6a./7a./8a. read resource
+ic <-- setupbackend           : 3a. read instance \ncredential if existing
+applier <== doguratoryaml     : 4a./5a./6a. read resource
 
-setupui -r-> setupapi : provide data for the up-coming setup run
-setupapi ---d-> setupbackend : call backend with setup data
-dogurator --> icCopied : use credentials
+setupui --> setupapi          : provide data for the up-coming setup run
+setupapi ----> setupbackend   : call backend with setup data
+dogurator -u-> ic              : use credentials
 
-applier -l-> kubeConfig : uses
-applier ==> cp1 : 6./7./8. install components with \n resources from setup configuration
+applier --> kubeConfig        : uses
+applier =r=> cp1              : 4./5./6. install components with \n resources from setup configuration
 doguratoryaml -.> registry : reference image
-cp1 --> dogurator
-cp1 --> etcd
-cp1 --> etcclient
+cp1 -u-> dogurator
+cp1 -u-> etcd
+cp1 -u-> etcdclient
 
+targetapps --l-> setuppod
 
 'styling
-icCopied -[hidden]l-> dogurator
-dogurator -[hidden]r-> etcclient
-etcclient -[hidden]l-> etcd
-setupres ---[hidden]-> setuppod
-'registry -[hidden]d-> doguratoryaml
-'external -[hidden]l-> cluster
-'doguratoryaml -[hidden]-> applier
+dogurator --[hidden]u-> setupres
+etcd --[hidden]u-> setupres
+etcdclient --[hidden]r-> setupres
+dogurator -[hidden]l-> etcd
+etcd -[hidden]l-> etcdclient
+dogurator ----[hidden]r-> etcdclient
+
+
 
 legend bottom right
 not shown:
-- Installation of setup
 - Dogu installation
 end legend
 

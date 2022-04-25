@@ -21,148 +21,6 @@ spec:
     app.kubernetes.io/name: k8s-ces-setup
 ---
 #
-# The cluster role provides the setup with the permission to get, list and create new namespaces.
-#
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    app: k8s-ces-setup
-    app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    verbs:
-      - get
-      - create
-# Spike! Clean up!
-  - apiGroups:
-      - ""
-    resources:
-      - persistentvolumeclaims
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - persistentvolumes
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - apps
-    resources:
-      - deployments
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - k8s.cloudogu.com
-    resources:
-      - dogus
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - k8s.cloudogu.com
-    resources:
-      - dogus/finalizers
-    verbs:
-      - create
-      - delete
-      - update
-  - apiGroups:
-      - k8s.cloudogu.com
-    resources:
-      - dogus/status
-    verbs:
-      - get
-      - patch
-      - update
----
-#
-# The service account is a token mounted into our setup pod. This token is used as authentication token against the
-# K8s cluster.
-#
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app: k8s-ces-setup
-    app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
-  namespace: default
-automountServiceAccountToken: true
----
-#
-# The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
-# in the cluster role.
-#
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    app: k8s-ces-setup
-    app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: k8s-ces-setup
-subjects:
-  - kind: ServiceAccount
-    name: k8s-ces-setup
-    namespace: default
----
-#
 # The deployment for the setup
 #
 apiVersion: apps/v1
@@ -189,6 +47,10 @@ spec:
             - name: GIN_MODE
               value: release
             - name: CREDENTIAL_SOURCE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
@@ -227,3 +89,59 @@ spec:
       serviceAccountName: k8s-ces-setup
       nodeSelector:
         kubernetes.io/os: linux
+---
+#
+# The role provides the setup with all permissions  to get, list and create new namespaces.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+      - "*"
+    verbs:
+      - "*"
+---
+# TODO: Philipp Pixel: check if a ClusterRole/ClusterRoleBinding is necessary for CRD import during DoguOperator installation
+---
+#
+# The service account is a token mounted into our setup pod. This token is used as authentication token against the
+# K8s cluster.
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+  namespace: default
+automountServiceAccountToken: true
+---
+#
+# The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
+# in the cluster role.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+  name: k8s-ces-setup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: k8s-ces-setup
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ces-setup
+    namespace: default
+# TODO: Philipp Pixel: ref the namespace? How?
+---

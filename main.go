@@ -57,7 +57,13 @@ func createSetupRouter(exiter applicationExiter, configFile string) *gin.Engine 
 	logrus.Print("Starting k8s-ces-setup...")
 
 	logrus.Print("Reading configuration file...")
-	setupContext, err := context.NewSetupContext(Version, configFile)
+	envVar, err := getEnvVar("POD_NAMESPACE")
+	if err != nil {
+		err2 := fmt.Errorf("could not read current namespace: %w", err)
+		exiter.Exit(err2)
+	}
+
+	setupContext, err := context.NewSetupContext(Version, configFile, envVar)
 	if err != nil {
 		exiter.Exit(err)
 	}
@@ -89,4 +95,13 @@ func configureLogger(appConfig context.Config) {
 func setupAPI(router gin.IRoutes, context context.SetupContext) {
 	health.SetupAPI(router, context)
 	setup.SetupAPI(router, context)
+}
+
+// getEnvVar returns an arbitrary environment variable; otherwise it returns an error
+func getEnvVar(name string) (string, error) {
+	ns, found := os.LookupEnv(name)
+	if !found {
+		return "", fmt.Errorf("%s must be set", name)
+	}
+	return ns, nil
 }

@@ -9,7 +9,7 @@ import (
 func TestNewSetupContext(t *testing.T) {
 	t.Run("should return new context", func(t *testing.T) {
 		// when
-		actual, err := NewSetupContext("1.2.3", "./testdata/testConfig.yaml")
+		actual, err := NewSetupContext("1.2.3", "./testdata/testConfig.yaml", "my-test-namespace")
 
 		// then
 		require.NoError(t, err)
@@ -18,7 +18,7 @@ func TestNewSetupContext(t *testing.T) {
 	})
 	t.Run("should error for not found config file", func(t *testing.T) {
 		// when
-		_, err := NewSetupContext("1.2.3", "/nothing/here")
+		_, err := NewSetupContext("1.2.3", "/nothing/here", "my-test-namespace")
 
 		// then
 		require.Error(t, err)

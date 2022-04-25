@@ -5,63 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
-
-func Test_getEnvVar(t *testing.T) {
-	t.Run("successfully query env var namespace", func(t *testing.T) {
-		// given
-		t.Setenv("CREDENTIAL_SOURCE_NAMESPACE", "myTestNamespace")
-
-		// when
-		ns, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
-
-		// then
-		require.NoError(t, err)
-
-		assert.Equal(t, "myTestNamespace", ns)
-	})
-
-	t.Run("failed to query env var namespace", func(t *testing.T) {
-		// when
-		_, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
-
-		// then
-		require.Error(t, err)
-	})
-}
-
-func Test_readCredentialSourceNamespace(t *testing.T) {
-	t.Run("should try to read credential source namespace from env var if original is empty", func(t *testing.T) {
-		t.Setenv("CREDENTIAL_SOURCE_NAMESPACE", "nsfromenvvar")
-
-		// when
-		actual, err := readCredentialSourceNamespace("")
-
-		// then
-		require.NoError(t, err)
-		assert.Equal(t, "nsfromenvvar", actual)
-	})
-	t.Run("should default to given credential source namespace when env var is unset", func(t *testing.T) {
-		// when
-		actual, err := readCredentialSourceNamespace("mynamespace")
-
-		// then
-		require.NoError(t, err)
-		assert.Equal(t, "mynamespace", actual)
-	})
-	t.Run("should error when no namespace can be found either way", func(t *testing.T) {
-		// when
-		_, err := readCredentialSourceNamespace("")
-
-		// then
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to read current namespace")
-	})
-}
 
 func TestSetupAPI(t *testing.T) {
 	t.Run("should fail SetupAPI during namespace creation with connection refused", func(t *testing.T) {
@@ -71,12 +18,11 @@ func TestSetupAPI(t *testing.T) {
 		SetupAPI(router, context.SetupContext{
 			AppVersion: "1.2.3",
 			AppConfig: context.Config{
-				LogLevel:                  logrus.DebugLevel,
-				TargetNamespace:           testTargetNamespaceName,
-				CredentialSourceNamespace: "default",
-				DoguOperatorURL:           "http://example.com/1.yaml",
-				EtcdServerResourceURL:     "http://example.com/2.yaml",
-				EtcdClientImageRepo:       "bitnami/etcd:3.5.2-debian-10-r0",
+				LogLevel:              logrus.DebugLevel,
+				TargetNamespace:       testTargetNamespaceName,
+				DoguOperatorURL:       "http://example.com/1.yaml",
+				EtcdServerResourceURL: "http://example.com/2.yaml",
+				EtcdClientImageRepo:   "bitnami/etcd:3.5.2-debian-10-r0",
 			},
 		})
 		w := httptest.NewRecorder()
@@ -88,6 +34,6 @@ func TestSetupAPI(t *testing.T) {
 		// then
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		// depending on whether a kube config exists (local dev) or not (CI) errors may be returned at different phases
-		assert.Regexp(t, "HTTP 500: An error occurred during this action: (Create new namespace myfavouritenamespace-1|Load cluster configuration)", w.Body.String())
+		assert.Regexp(t, "HTTP 500: An error occurred during this action: (Validate target namespace myfavouritenamespace-1|Load cluster configuration)", w.Body.String())
 	})
 }

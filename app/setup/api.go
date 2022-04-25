@@ -2,19 +2,21 @@ package setup
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const endpointPostStartSetup = "/api/v1/setup"
+
+const (
+	secretNameDoguRegistry  = "k8s-dogu-operator-dogu-registry"
+	secretNameImageRegistry = "k8s-dogu-operator-docker-registry"
+)
 
 type fileClient interface {
 	// Get retrieves a file identified by its URL and returns the contents.
@@ -40,17 +42,20 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 
 		client, err := createKubernetesClient(clusterConfig)
 		if err != nil {
-			handleInternalServerError(context, err, "error while creating kubernetes client for the setup API")
+			handleInternalServerError(context, err, "Error while creating kubernetes client for the setup API")
 			return
 		}
 
 		appConfig := setupContext.AppConfig
-		credentialSourceNamespace, err := readCredentialSourceNamespace(appConfig.CredentialSourceNamespace)
+		// note: with introduction of the setup UI the instance secret may either come into play with a new instance
+		// registration or it may already reside in the current namespace
+		err = newInstanceSecretValidator(client, appConfig.TargetNamespace).validate()
 		if err != nil {
-			handleInternalServerError(context, err, "Fetch credentials")
+			handleInternalServerError(context, err, "Validate target namespace "+appConfig.TargetNamespace)
 			return
 		}
 
+		setupExecutor := NewExecutor(client)
 		etcdSrvInstallerStep, err := newEtcdServerInstallerStep(clusterConfig, setupContext)
 		if err != nil {
 			handleInternalServerError(context, err, "Create registry step")
@@ -62,36 +67,19 @@ func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
 			return
 		}
 
-		setupExecutor := NewExecutor(client)
-		setupExecutor.RegisterSetupStep(newNamespaceCreator(setupExecutor.ClientSet, appConfig.TargetNamespace))
-		// maybe we should even transport the pure credential pair instead of the meta-namespace?
-		setupExecutor.RegisterSetupStep(newSecretCreator(setupExecutor.ClientSet, appConfig.TargetNamespace, credentialSourceNamespace))
 		setupExecutor.RegisterSetupStep(etcdSrvInstallerStep)
 		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, setupContext))
 		setupExecutor.RegisterSetupStep(doguOpInstallerStep)
 
 		err, errCausingAction := setupExecutor.PerformSetup()
 		if err != nil {
-			err2 := errors.Wrap(err, "error while setting up the setup API")
+			err2 := fmt.Errorf("error while initializing namespace for setup: %w", err)
 			handleInternalServerError(context, err2, errCausingAction)
 			return
 		}
 
 		context.Status(http.StatusOK)
 	})
-}
-
-func readCredentialSourceNamespace(credSourceNamespaceFromConfig string) (string, error) {
-	if credSourceNamespaceFromConfig != "" {
-		return credSourceNamespaceFromConfig, nil
-	}
-
-	credentialSourceNamespace, err := getEnvVar("CREDENTIAL_SOURCE_NAMESPACE")
-	if err != nil {
-		return "", errors.Wrap(err, "failed to read current namespace from CREDENTIAL_SOURCE_NAMESPACE")
-	}
-
-	return credentialSourceNamespace, err
 }
 
 func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, error) {
@@ -101,15 +89,6 @@ func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, 
 	}
 
 	return clientSet, nil
-}
-
-// getEnvVar returns the namespace the operator should be watching for changes
-func getEnvVar(name string) (string, error) {
-	ns, found := os.LookupEnv(name)
-	if !found {
-		return "", fmt.Errorf("%s must be set", name)
-	}
-	return ns, nil
 }
 
 func handleInternalServerError(ginCtx *gin.Context, err error, causingAction string) {
