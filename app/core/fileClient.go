@@ -20,7 +20,7 @@ func NewFileClient(appVersion string) *defaultHttpClient {
 	}
 }
 
-// Get retrieves a file over HTTP returns its contents.
+// Get retrieves a file over HTTP and returns its content.
 func (dhc *defaultHttpClient) Get(url string) ([]byte, error) {
 	logrus.Debugf("Getting resource from %s", url)
 
