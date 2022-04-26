@@ -17,7 +17,6 @@ func TestImplementsInterfaces(t *testing.T) {
 		// then
 		require.Implements(t, (*xerrors.Wrapper)(nil), sut)
 	})
-
 }
 
 func TestResourceError_Error(t *testing.T) {

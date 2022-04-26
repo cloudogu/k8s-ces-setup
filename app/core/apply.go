@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,11 +26,11 @@ type k8sApplyClient struct {
 func NewK8sClient(clusterConfig *rest.Config) (*k8sApplyClient, error) {
 	gvrMapper, err := createGVRMapper(clusterConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "error while creating k8s apply client")
+		return nil, fmt.Errorf("error while creating k8s apply client: %w", err)
 	}
 	dynCli, err := createDynamicClient(clusterConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "error while creating k8s apply client")
+		return nil, fmt.Errorf("error while creating k8s apply client: %w", err)
 	}
 
 	return &k8sApplyClient{gvrMapper: gvrMapper, dynClient: dynCli}, nil
