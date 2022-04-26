@@ -86,12 +86,7 @@ func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
 		dr = dkc.dynClient.Resource(gvr.Resource)
 	}
 
-	ctx := context.Background()
-	if err != nil {
-		return err
-	}
-
-	return createOrUpdateResource(ctx, k8sObjects, dr)
+	return createOrUpdateResource(context.Background(), k8sObjects, dr)
 }
 
 func createOrUpdateResource(ctx context.Context, desiredResource *unstructured.Unstructured, dr dynamic.ResourceInterface) error {
