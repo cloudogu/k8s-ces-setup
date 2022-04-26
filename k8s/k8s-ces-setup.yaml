@@ -109,7 +109,6 @@ rules:
       - "*"
 ---
 # TODO: Philipp Pixel: check if a ClusterRole/ClusterRoleBinding is necessary for CRD import during DoguOperator installation
----
 #
 # The service account is a token mounted into our setup pod. This token is used as authentication token against the
 # K8s cluster.
