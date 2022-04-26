@@ -56,24 +56,24 @@ func createDynamicClient(config *rest.Config) (dynamic.Interface, error) {
 	return dyn, nil
 }
 
-// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster.
-func (dkc *k8sApplyClient) Apply(yamlResources []byte, namespace string) error {
-	logrus.Debug("Applying K8s resources")
-	logrus.Debug(string(yamlResources))
+// Apply sends a request to the K8s API with the provided YAML resource in order to apply them to the current cluster.
+func (dkc *k8sApplyClient) Apply(yamlResource []byte, namespace string) error {
+	logrus.Debug("Applying K8s resource")
+	logrus.Debug(string(yamlResource))
 
 	// 3. Decode YAML manifest into unstructured.Unstructured
 	var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	k8sObjects := &unstructured.Unstructured{}
-	_, gvk, err := decUnstructured.Decode(yamlResources, nil, k8sObjects)
+	_, gvk, err := decUnstructured.Decode(yamlResource, nil, k8sObjects)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not decode YAML doccument '%s': %w", string(yamlResource), err)
 	}
 
 	// 4. Map GVK to GVR
 	// a resource can be uniquely identified by GroupVersionResource, but we need the GVK to find the corresponding GVR
 	gvr, err := dkc.gvrMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
-		return err
+		return fmt.Errorf("could find GVK mapper for GroupKind=%v,Version=%s and YAML doccument '%s': %w", gvk.GroupKind(), gvk.Version, string(yamlResource), err)
 	}
 
 	// 5. Obtain REST interface for the GVR
