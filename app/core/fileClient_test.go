@@ -32,7 +32,7 @@ func Test_fileClient_Get(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Regexp(t, regexp.MustCompile("could not find YAML file '.+'"), err.Error())
+		assert.Regexp(t, regexp.MustCompile("response for YAML file '.+' returned with non-200 reply"), err.Error())
 	})
 
 	t.Run("should return file", func(t *testing.T) {

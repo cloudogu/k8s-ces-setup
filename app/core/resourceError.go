@@ -2,7 +2,7 @@ package core
 
 import "fmt"
 
-// ResourceError wraps the original error and takes additional arguments to identify a K8s resource by kind, version and name
+// ResourceError wraps an original, Kubernetes-centric error and takes additional arguments to identify a K8s resource by kind, version and name
 type ResourceError struct {
 	err           error
 	wrapperErrMsg string
@@ -22,6 +22,7 @@ func NewResourceError(err error, wrapperErrMsg, kind, apiVersion, resourceName s
 	}
 }
 
+// Error returns the string representation of this error.
 func (e *ResourceError) Error() string {
 	return fmt.Sprintf("%s (resource %s/%s/%s): %+v", e.wrapperErrMsg, e.kind, e.apiVersion, e.resourceName, e.err)
 }

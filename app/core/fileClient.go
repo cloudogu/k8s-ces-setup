@@ -26,23 +26,23 @@ func (dhc *defaultHttpClient) Get(url string) ([]byte, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create GET request to %s: %w", url, err)
 	}
 
 	req.Header.Set("User-Agent", "Cloudia/"+dhc.version)
 
 	resp, err := dhc.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error during GET request to %s: %w", url, err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("could not find YAML file '%s'", url)
+		return nil, fmt.Errorf("response for YAML file '%s' returned with non-200 reply (HTTP %d): identifying this as an error", url, resp.StatusCode)
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while reading the response body of '%s'", url)
 	}
 	defer resp.Body.Close()
 
