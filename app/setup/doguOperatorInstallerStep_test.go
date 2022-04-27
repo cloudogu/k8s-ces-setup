@@ -14,7 +14,7 @@ const testTargetNamespaceName = "myfavouritenamespace-1"
 
 const doguOperatorURL = "http://url.server.com/dogu/operator.yaml"
 
-var doguOperatorSetupCtx = ctx.SetupContext{
+var doguOperatorSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
 		TargetNamespace: testTargetNamespaceName,

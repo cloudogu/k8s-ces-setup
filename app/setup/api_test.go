@@ -15,7 +15,7 @@ func TestSetupAPI(t *testing.T) {
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
 
-		SetupAPI(router, context.SetupContext{
+		SetupAPI(router, &context.SetupContext{
 			AppVersion: "1.2.3",
 			AppConfig: context.Config{
 				LogLevel:              logrus.DebugLevel,

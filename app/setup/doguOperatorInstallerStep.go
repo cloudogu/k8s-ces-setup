@@ -12,7 +12,7 @@ import (
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
 
-func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx context.SetupContext) (*doguOperatorInstallerStep, error) {
+func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
 	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
 	if err != nil {
 		return nil, err

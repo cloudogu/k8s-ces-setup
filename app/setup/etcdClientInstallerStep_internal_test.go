@@ -13,7 +13,7 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
-var etcdClientSetupCtx = ctx.SetupContext{
+var etcdClientSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
 		TargetNamespace:     testTargetNamespaceName,

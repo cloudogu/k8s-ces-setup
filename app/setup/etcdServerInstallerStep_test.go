@@ -11,7 +11,7 @@ import (
 
 const etcdServerResourceURL = "https://url.server.com/etcd/resource.yaml"
 
-var etcdServerSetupCtx = ctx.SetupContext{
+var etcdServerSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
 		TargetNamespace:       testTargetNamespaceName,

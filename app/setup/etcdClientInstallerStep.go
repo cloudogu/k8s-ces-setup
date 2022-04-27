@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx ctx.SetupContext) *etcdClientInstallerStep {
+func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx *ctx.SetupContext) *etcdClientInstallerStep {
 	etcdServiceUrl := fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupCtx.AppConfig.TargetNamespace)
 
 	return &etcdClientInstallerStep{

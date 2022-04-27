@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testContext = context.SetupContext{
+var testContext = &context.SetupContext{
 	AppVersion: "",
 	AppConfig: context.Config{
 		LogLevel: logrus.DebugLevel,

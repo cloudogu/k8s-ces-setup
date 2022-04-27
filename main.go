@@ -23,12 +23,6 @@ var (
 	Version = "development"
 )
 
-// applicationExiter is responsible for exiting the application correctly.
-type applicationExiter interface {
-	// Exit exits the application and prints the actuator error to the console.
-	Exit(err error)
-}
-
 type osExiter struct {
 }
 
@@ -36,6 +30,7 @@ type osExiter struct {
 func (e *osExiter) Exit(err error) {
 	logrus.Errorf("exiting setup because of error: %s", err.Error())
 	os.Exit(1)
+	return
 }
 
 func main() {
@@ -45,27 +40,23 @@ func main() {
 	if os.Getenv("STAGE") == "development" {
 		configFile = "k8s/dev-resources/k8s-ces-setup.yaml"
 	}
-	router := createSetupRouter(exiter, configFile)
+	router, err := createSetupRouter(configFile)
+	if err != nil {
+		exiter.Exit(err)
+	}
 
-	err := router.Run(fmt.Sprintf(":%d", setupPort))
+	err = router.Run(fmt.Sprintf(":%d", setupPort))
 	if err != nil {
 		exiter.Exit(err)
 	}
 }
 
-func createSetupRouter(exiter applicationExiter, configFile string) *gin.Engine {
+func createSetupRouter(configFile string) (*gin.Engine, error) {
 	logrus.Print("Starting k8s-ces-setup...")
 
-	logrus.Print("Reading configuration file...")
-	envVar, err := getEnvVar("POD_NAMESPACE")
+	setupContext, err := context.NewSetupContext(Version, configFile)
 	if err != nil {
-		err2 := fmt.Errorf("could not read current namespace: %w", err)
-		exiter.Exit(err2)
-	}
-
-	setupContext, err := context.NewSetupContext(Version, configFile, envVar)
-	if err != nil {
-		exiter.Exit(err)
+		return nil, err
 	}
 
 	configureLogger(setupContext.AppConfig)
@@ -73,10 +64,10 @@ func createSetupRouter(exiter applicationExiter, configFile string) *gin.Engine 
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
 	logrus.Debugf("Current context: [%+v]", setupContext)
 
-	return createRouter(setupContext)
+	return createRouter(setupContext), nil
 }
 
-func createRouter(setupContext context.SetupContext) *gin.Engine {
+func createRouter(setupContext *context.SetupContext) *gin.Engine {
 	router := gin.New()
 	router.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
 
@@ -92,16 +83,7 @@ func configureLogger(appConfig context.Config) {
 }
 
 // SetupAPI configures the individual endpoints of the API
-func setupAPI(router gin.IRoutes, context context.SetupContext) {
+func setupAPI(router gin.IRoutes, context *context.SetupContext) {
 	health.SetupAPI(router, context)
 	setup.SetupAPI(router, context)
-}
-
-// getEnvVar returns an arbitrary environment variable; otherwise it returns an error
-func getEnvVar(name string) (string, error) {
-	ns, found := os.LookupEnv(name)
-	if !found {
-		return "", fmt.Errorf("%s must be set", name)
-	}
-	return ns, nil
 }

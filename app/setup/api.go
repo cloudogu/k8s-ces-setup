@@ -29,7 +29,7 @@ type k8sClient interface {
 }
 
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router gin.IRoutes, setupContext context.SetupContext) {
+func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 
