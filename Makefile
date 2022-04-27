@@ -84,8 +84,7 @@ ${K8S_CLUSTER_ROOT}/image.tar: check-k8s-cluster-root-env-var
 	docker save ${IMAGE} -o ${K8S_CLUSTER_ROOT}/image.tar
 
 .PHONY: image-import
-image-import: ${K8S_CLUSTER_ROOT}/image.tar
-    # Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
+image-import: ${K8S_CLUSTER_ROOT}/image.tar ## Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
 	@echo "Import docker image of dogu into all K8s nodes..."
 	@cd ${K8S_CLUSTER_ROOT} && \
 		for node in $$(vagrant status --machine-readable | grep "state,running" | awk -F',' '{print $$2}'); \
