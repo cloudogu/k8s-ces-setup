@@ -30,7 +30,6 @@ type osExiter struct {
 func (e *osExiter) Exit(err error) {
 	logrus.Errorf("exiting setup because of error: %s", err.Error())
 	os.Exit(1)
-	return
 }
 
 func main() {
