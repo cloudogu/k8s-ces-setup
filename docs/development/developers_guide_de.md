@@ -53,6 +53,9 @@ Manchmal ist es notwendig, die Zeit wieder auf Anfang zurückzudrehen, z. B. um 
 kubectl delete ns your-namespace
 # löscht CRD, sodass diese initial mit dem Dogu-Operator eingespielt werden kann
 kubectl delete crd dogus.k8s.cloudogu.com
+# löscht clusterroles/bindings aus setup und installations
+kubectl delete clusterroles k8s-dogu-operator-metrics-reader ingress-nginx k8s-ces-setup-cluster
+kubectl delete clusterrolebindings ingress-nginx k8s-ces-setup-cluster
 # eventuell noch fälschlich ausgebrachte Ressourcen manuell löschen
 ...
 ```

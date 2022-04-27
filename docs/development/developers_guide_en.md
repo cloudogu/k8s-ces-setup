@@ -53,6 +53,9 @@ Sometimes it is necessary to turn the time back to the beginning, e.g. to check 
 kubectl delete ns your-namespace
 # deletes CRD so that it can be initially imported with the dogu operator
 kubectl delete crd dogus.k8s.cloudogu.com
+# deletes clusterroles/bindings from setup and installations
+kubectl delete clusterroles k8s-dogu-operator-metrics-reader ingress-nginx k8s-ces-setup-cluster
+kubectl delete clusterrolebindings ingress-nginx k8s-ces-setup-cluster
 # manually delete resources that may still be deployed incorrectly
 ...
 ```
