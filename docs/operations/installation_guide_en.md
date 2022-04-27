@@ -23,17 +23,21 @@ in the repository under `k8s/k8s-ces-setup.yaml`. The installation looks like th
 ```bash
 kubectl create ns your-target-namespace
 kubectl create secret generic k8s-dogu-operator-dogu-registry \
-  --namespace=your-target-namespace \
-  --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus"
-  --from-literal=username="your-ces-instance-id" \
-  --from-literal=password="your-ces-instance-password"
+    --namespace=your-target-namespace \
+    --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus" \
+    --from-literal=username="your-ces-instance-id" \
+    --from-literal=password="your-ces-instance-password"
 kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
-  --namespace=your-target-namespace \
-  --docker-server="registry.cloudogu.com" \
-  --docker-username="your-ces-instance-id" \
-  --docker-password="your-ces-instance-password"
+    --namespace=your-target-namespace \
+    --docker-server=registry.cloudogu.com \
+    --docker-username="your-ces-instance-id" \
+    --docker-password="your-ces-instance-password"
 
-kubectl apply -f https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+# note: the setup resource must be modified with your-target-namespace
+wget https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
+
+kubectl apply -f k8s-ces-setup.patched.yaml
 ```
 
 The k8s-ces-setup should now have started successfully in the cluster. The setup should now be reachable via the IP of the machine at

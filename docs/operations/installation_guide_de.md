@@ -27,9 +27,17 @@ kubectl create secret generic k8s-dogu-operator-dogu-registry \
     --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus" \
     --from-literal=username="your-ces-instance-id" \
     --from-literal=password="your-ces-instance-password"
-kubectl create secret docker-registry k8s-dogu-operator-docker-registry --namespace=ecosystem --docker-server=registry.cloudogu.com --docker-username="your-ces-instance-id" --docker-password="your-ces-instance-password"
+kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
+    --namespace=your-target-namespace \
+    --docker-server=registry.cloudogu.com \
+    --docker-username="your-ces-instance-id" \
+    --docker-password="your-ces-instance-password"
 
-kubectl apply -f https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+# Hinweis: Die setup-Ressource muss mit dem passenden Namespace (hier: your-target-namespace) angepasst werden
+wget https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
+
+kubectl apply -f k8s-ces-setup.patched.yaml
 ```
 
 Das k8s-ces-setup sollte nun erfolgreich im Cluster gestartet sein. Das Setup sollte nun über die IP der Maschine unter
