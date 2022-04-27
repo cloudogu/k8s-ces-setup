@@ -120,7 +120,6 @@ metadata:
     app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
   name: k8s-ces-setup
-  namespace: default
 automountServiceAccountToken: true
 ---
 #
@@ -141,5 +140,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
-    namespace: default
 # TODO: Philipp Pixel: ref the namespace? How?
