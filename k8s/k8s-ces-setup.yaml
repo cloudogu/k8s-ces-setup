@@ -118,14 +118,25 @@ metadata:
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
 rules:
+# allow to install the dogu CRD from the dogu operator
   - apiGroups:
-      - "k8s.cloudogu.com"
+      - apiextensions.k8s.io
     resources:
-      - "dogus"
+      - customresourcedefinitions
     verbs:
-      - "patch"
-      - "get"
-      - "list"
+      - create
+      - patch
+      - update
+# allow to install a metrics cluster role of the dogu operator
+# it would be more secure if this rule would be delegated from setup/dogu operator to the initial setup process
+  - apiGroups:
+    - rbac.authorization.k8s.io
+    resources:
+      - clusterroles
+    verbs:
+      - create
+      - patch
+      - update
 ---
 # The service account is a token mounted into our setup pod. This token is used as authentication token against the
 # K8s cluster.
@@ -176,4 +187,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
-    namespace: default
+    namespace: your-namespace-here
