@@ -26,10 +26,10 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: k8s-ces-setup
   labels:
     app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
 spec:
   selector:
     matchLabels:
@@ -46,10 +46,6 @@ spec:
           env:
             - name: GIN_MODE
               value: release
-            - name: CREDENTIAL_SOURCE_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -96,10 +92,10 @@ spec:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  name: k8s-ces-setup
   labels:
     app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
 rules:
   - apiGroups:
       - "*"
@@ -108,31 +104,52 @@ rules:
     verbs:
       - "*"
 ---
-# TODO: Philipp Pixel: check if a ClusterRole/ClusterRoleBinding is necessary for CRD import during DoguOperator installation
 #
+# The cluster role helps the setup to provide the dogu operator with the dogu CRD
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-ces-setup-cluster
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+    # Specify these labels to grant permissions to the admin default role
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+  - apiGroups:
+      - "k8s.cloudogu.com"
+    resources:
+      - "dogus"
+    verbs:
+      - "patch"
+      - "get"
+      - "list"
+---
 # The service account is a token mounted into our setup pod. This token is used as authentication token against the
 # K8s cluster.
 #
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: k8s-ces-setup
   labels:
     app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
 automountServiceAccountToken: true
 ---
 #
-# The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
-# in the cluster role.
+# The role binding binds our role to our service account, and, thus, gives him all permission defined
+# in that role.
 #
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  name: k8s-ces-setup
   labels:
     app: k8s-ces-setup
     app.kubernetes.io/name: k8s-ces-setup
-  name: k8s-ces-setup
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -140,4 +157,23 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
-# TODO: Philipp Pixel: ref the namespace? How?
+---
+#
+# The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
+# in the cluster role.
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-ces-setup-cluster
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-ces-setup-cluster
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ces-setup
+    namespace: default
