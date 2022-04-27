@@ -49,13 +49,15 @@ curl -I --request POST --url http://192.168.56.2:30080/api/v1/setup
 Manchmal ist es notwendig, die Zeit wieder auf Anfang zurückzudrehen, z. B. um Installationsroutinen zu überprüfen. Dies lässt sich mit den folgenden Befehlen erreichen (auf den **aktuellen Namespace** achten):
 
 ```bash
+# delete the resources directly created by the setup
+make k8s-delete
 # löscht Zielnamespace und alle darin Namespaced Ressourcen (pods, deployments, secrets, usw.)
 kubectl delete ns your-namespace
 # löscht CRD, sodass diese initial mit dem Dogu-Operator eingespielt werden kann
 kubectl delete crd dogus.k8s.cloudogu.com
-# löscht clusterroles/bindings aus setup und installations
-kubectl delete clusterroles k8s-dogu-operator-metrics-reader ingress-nginx k8s-ces-setup-cluster
-kubectl delete clusterrolebindings ingress-nginx k8s-ces-setup-cluster
+# löscht clusterroles/bindings aus setup-Installationen
+kubectl delete clusterroles k8s-dogu-operator-metrics-reader ingress-nginx
+kubectl delete clusterrolebindings ingress-nginx
 # eventuell noch fälschlich ausgebrachte Ressourcen manuell löschen
 ...
 ```
