@@ -22,7 +22,11 @@ im Repository unter `k8s/k8s-ces-setup.yaml`. Die Installation sieht mit `kubect
 
 ```bash
 kubectl create ns your-target-namespace
-kubectl create secret generic k8s-dogu-operator-dogu-registry --namespace=ecosystem --from-literal=username="your-ces-instance-id" --from-literal=password="your-ces-instance-password"
+kubectl create secret generic k8s-dogu-operator-dogu-registry \
+    --namespace=your-target-namespace \
+    --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus" \
+    --from-literal=username="your-ces-instance-id" \
+    --from-literal=password="your-ces-instance-password"
 kubectl create secret docker-registry k8s-dogu-operator-docker-registry --namespace=ecosystem --docker-server=registry.cloudogu.com --docker-username="your-ces-instance-id" --docker-password="your-ces-instance-password"
 
 kubectl apply -f https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
