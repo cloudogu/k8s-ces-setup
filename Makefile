@@ -12,6 +12,7 @@ K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
 K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
+K8S_CURRENT_NAMESPACE=$(shell kubectl config view --minify -o jsonpath='{..namespace}')
 
 LOCAL_HTTP_SERVER_PORT=9876
 LOCAL_HTTP_DIR=k8s/dev-resources
@@ -62,7 +63,7 @@ serve-local-yaml:
 build-setup: ${SRC} compile ## Builds the setup Go binary.
 
 .PHONY: run
-run: vet ## Run a controller from your host.
+run: vet ## Run a setup from your host.
 	go run ./main.go
 
 ##@ Release
@@ -108,14 +109,14 @@ ifndef ignore-not-found
 endif
 
 .PHONY: k8s-apply
-k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy setup to the K8s cluster specified in ~/.kube/config.
 	@echo "Apply all k8s-ces-setup resources to the K8s-EcoSystem..."
 	kubectl apply -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
 	kubectl apply -f ${K8S_SETUP_DEV_RESOURCE_YAML}
 	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 .PHONY: k8s-delete
-k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy setup from the K8s cluster specified in ~/.kube/config.
 	@echo "Delete all k8s-ces-setup resources from the K8s-EcoSystem..."
 	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
 	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_DEV_RESOURCE_YAML}
@@ -123,4 +124,6 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
-	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
+	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > $@.tmp
+	@yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"${K8S_CURRENT_NAMESPACE}\"" $@.tmp > $@
+	@rm $@.tmp
