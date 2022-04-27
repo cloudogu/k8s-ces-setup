@@ -24,6 +24,7 @@ in the repository under `k8s/k8s-ces-setup.yaml`. The installation looks like th
 kubectl create ns your-target-namespace
 kubectl create secret generic k8s-dogu-operator-dogu-registry \
   --namespace=your-target-namespace \
+  --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus"
   --from-literal=username="your-ces-instance-id" \
   --from-literal=password="your-ces-instance-password"
 kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
