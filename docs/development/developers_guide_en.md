@@ -43,3 +43,16 @@ curl --request GET --url http://192.168.56.2:30080/api/v1/health
 # Create a namespace according the Setup configuration map
 curl -I --request POST --url http://192.168.56.2:30080/api/v1/setup
 ```
+
+## Restore pre-setup state
+
+Sometimes it is necessary to turn the time back to the beginning, e.g. to check installation routines. This can be done with the following commands (pay attention to your **current namespace**):
+
+```bash
+# deletes target namespace and all namespaced resources in it (pods, deployments, secrets, etc.)
+kubectl delete ns your-namespace
+# deletes CRD so that it can be initially imported with the dogu operator
+kubectl delete crd dogus.k8s.cloudogu.com
+# manually delete resources that may still be deployed incorrectly
+...
+```

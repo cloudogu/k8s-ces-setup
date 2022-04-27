@@ -43,3 +43,16 @@ curl --request GET --url http://192.168.56.2:30080/api/v1/health
 # Namespace laut Setup configuration map anlegen
 curl -I --request POST --url http://192.168.56.2:30080/api/v1/setup
 ```
+
+## Pre-Setup-Zustang herstellen
+
+Manchmal ist es notwendig, die Zeit wieder auf Anfang zurückzudrehen, z. B. um Installationsroutinen zu überprüfen. Dies lässt sich mit den folgenden Befehlen erreichen (auf den **aktuellen Namespace** achten):
+
+```bash
+# löscht Zielnamespace und alle darin Namespaced Ressourcen (pods, deployments, secrets, usw.)
+kubectl delete ns your-namespace
+# löscht CRD, sodass diese initial mit dem Dogu-Operator eingespielt werden kann
+kubectl delete crd dogus.k8s.cloudogu.com
+# eventuell noch fälschlich ausgebrachte Ressourcen manuell löschen
+...
+```
