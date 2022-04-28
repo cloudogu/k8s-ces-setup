@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.1.0"
+          image: "cloudogu/k8s-ces-setup:0.2.0"
           env:
             - name: GIN_MODE
               value: release
@@ -118,7 +118,7 @@ metadata:
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
 rules:
-# allow to install the dogu CRD from the dogu operator
+  # allow to install the dogu CRD from the dogu operator
   - apiGroups:
       - apiextensions.k8s.io
     resources:
@@ -148,8 +148,8 @@ metadata:
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
 rules:
-# allow to install a metrics cluster role of the dogu operator
-# it would be more secure if this rule would be delegated from setup/dogu operator to the initial setup process
+  # allow to install a metrics cluster role of the dogu operator
+  # it would be more secure if this rule would be delegated from setup/dogu operator to the initial setup process
   - nonResourceURLs:
       - /metrics
     verbs:
