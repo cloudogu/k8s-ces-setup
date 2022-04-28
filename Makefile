@@ -1,6 +1,7 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.1.0
+VERSION=0.2.0
+
 GOTAG?=1.17.7
 MAKEFILES_VERSION=5.0.0
 
@@ -11,7 +12,10 @@ K8S_RESOURCE_DIR=${WORKDIR}/k8s
 K8S_SETUP_CONFIG_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup-config.yaml
 K8S_SETUP_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup.yaml
 K8S_SETUP_DEV_RESOURCE_YAML=${K8S_RESOURCE_DIR}/k8s-ces-setup_dev.yaml
-K8S_CLUSTER_ROOT=/home/jsprey/Documents/GIT/k3ces
+K8S_CURRENT_NAMESPACE=$(shell kubectl config view --minify -o jsonpath='{..namespace}')
+
+LOCAL_HTTP_SERVER_PORT=9876
+LOCAL_HTTP_DIR=k8s/dev-resources
 
 include build/make/variables.mk
 
@@ -46,15 +50,20 @@ vet: ${STATIC_ANALYSIS_DIR}/report-govet.out ## Run go vet against code.
 ${STATIC_ANALYSIS_DIR}/report-govet.out: ${SRC} $(STATIC_ANALYSIS_DIR)
 	@go vet ./... | tee $@
 
+.PHONY: serve-local-yaml
+serve-local-yaml:
+	@echo "Starting to server ${WORKDIR}/${LOCAL_HTTP_DIR}"
+	@echo "Press Ctrl+C to exit"
+	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
+	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
+
 ##@ Build
 
 .PHONY: build-setup
-build-setup: ## Builds the setup Go binary.
-# pseudo target to support make help for compile target
-	@make compile
+build-setup: ${SRC} compile ## Builds the setup Go binary.
 
 .PHONY: run
-run: vet ## Run a controller from your host.
+run: vet ## Run a setup from your host.
 	go run ./main.go
 
 ##@ Release
@@ -67,21 +76,31 @@ setup-release: ## Interactively starts the release workflow.
 ##@ Docker
 
 .PHONY: docker-build
-docker-build: ## Builds the docker image of the k8s-ces-setup `cloudogu/k8s-ces-setup:version`.
+docker-build: ${SRC} compile ## Builds the docker image of the k8s-ces-setup `cloudogu/k8s-ces-setup:version`.
 	@echo "Building docker image of dogu..."
 	docker build . -t ${IMAGE}
 
-${K8S_CLUSTER_ROOT}/image.tar:
+${K8S_CLUSTER_ROOT}/image.tar: check-k8s-cluster-root-env-var
 	# Saves the `cloudogu/k8s-ces-setup:version` image into a file into the K8s root path to be available on all nodes.
 	docker save ${IMAGE} -o ${K8S_CLUSTER_ROOT}/image.tar
 
 .PHONY: image-import
-image-import: ${K8S_CLUSTER_ROOT}/image.tar
-    # Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
+image-import: ${K8S_CLUSTER_ROOT}/image.tar ## Imports the currently available image `cloudogu/k8s-ces-setup:version` into the K8s cluster for all nodes.
 	@echo "Import docker image of dogu into all K8s nodes..."
-	cd ${K8S_CLUSTER_ROOT} && vagrant ssh main -- -t "sudo k3s ctr images import /vagrant/image.tar"
-	cd ${K8S_CLUSTER_ROOT} && vagrant ssh worker-0 -- -t "sudo k3s ctr images import /vagrant/image.tar"
+	@cd ${K8S_CLUSTER_ROOT} && \
+		for node in $$(vagrant status --machine-readable | grep "state,running" | awk -F',' '{print $$2}'); \
+		do  \
+			echo "...$${node}"; \
+			vagrant ssh $${node} -- -t "sudo k3s ctr images import /vagrant/image.tar"; \
+		done;
+	@echo "Done."
 	rm ${K8S_CLUSTER_ROOT}/image.tar
+
+.PHONY: check-k8s-cluster-root-env-var
+check-k8s-cluster-root-env-var:
+	@echo "Checking if env var K8S_CLUSTER_ROOT is set..."
+	@bash -c export -p | grep K8S_CLUSTER_ROOT
+	@echo "Done."
 
 ##@ Deployment
 
@@ -90,14 +109,14 @@ ifndef ignore-not-found
 endif
 
 .PHONY: k8s-apply
-k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+k8s-apply: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Deploy setup to the K8s cluster specified in ~/.kube/config.
 	@echo "Apply all k8s-ces-setup resources to the K8s-EcoSystem..."
 	kubectl apply -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
 	kubectl apply -f ${K8S_SETUP_DEV_RESOURCE_YAML}
 	@rm ${K8S_SETUP_DEV_RESOURCE_YAML}
 
 .PHONY: k8s-delete
-k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy setup from the K8s cluster specified in ~/.kube/config.
 	@echo "Delete all k8s-ces-setup resources from the K8s-EcoSystem..."
 	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_CONFIG_RESOURCE_YAML}
 	kubectl delete --ignore-not-found=true -f ${K8S_SETUP_DEV_RESOURCE_YAML}
@@ -105,4 +124,6 @@ k8s-delete: ${K8S_SETUP_DEV_RESOURCE_YAML} ## Undeploy controller from the K8s c
 
 ${K8S_SETUP_DEV_RESOURCE_YAML}:
 	# Templates the deployment yaml with the latest image.
-	@yq e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > ${K8S_SETUP_DEV_RESOURCE_YAML}
+	@yq "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${IMAGE}\"" ${K8S_SETUP_RESOURCE_YAML} > $@.tmp
+	@yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"${K8S_CURRENT_NAMESPACE}\"" $@.tmp > $@
+	@rm $@.tmp
