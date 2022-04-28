@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [v0.2.0] - 2022-04-28
-## [Unreleased]
 ### Added
 - Setup installs vital Cloudogu EcoSystem (CES) K8s components to prepare namespace for setup and regular operation:
     - `etcd` (along with a development client)
