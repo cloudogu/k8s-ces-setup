@@ -56,6 +56,7 @@ node('docker') {
 
                             stage('Unit Tests') {
                                 make 'unit-test'
+                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
                             }
 
                             stage('Vet') {

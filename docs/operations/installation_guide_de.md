@@ -13,16 +13,38 @@ Dieses Dokument beschreibt alle notwendigen Schritte um das `k8s-ces-setup` zu i
 
 Das `k8s-ces-setup` benötigt eine Konfiguration für die Installation. Diese muss in Form einer ConfigMap vor der 
 Installation des `k8s-ces-setup` ausgebracht werden. Mehr Information zur Ausbringung und zu den einzelnen 
-Konfigurationsoptionen wird [hier](configuration_guide_de.md) beschrieben.
+Konfigurationsoptionen wird [im Configuration-Guide](configuration_guide_de.md) beschrieben.
 
 ### Setup ausbringen
 
 Die Installation von GitHub erfordert die Installations-YAML, die alle benötigten K8s-Ressourcen enthält. Diese liegt
 im Repository unter `k8s/k8s-ces-setup.yaml`. Die Installation sieht mit `kubectl` folgendermaßen aus:
 
-```
-kubectl apply -f https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+```bash
+kubectl create ns your-target-namespace
+kubectl create secret generic k8s-dogu-operator-dogu-registry \
+    --namespace=your-target-namespace \
+    --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus" \
+    --from-literal=username="your-ces-instance-id" \
+    --from-literal=password="your-ces-instance-password"
+kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
+    --namespace=your-target-namespace \
+    --docker-server=registry.cloudogu.com \
+    --docker-username="your-ces-instance-id" \
+    --docker-password="your-ces-instance-password"
+
+# Hinweis: Die setup-Ressource muss mit dem passenden Namespace (hier: your-target-namespace) angepasst werden
+wget https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
+
+kubectl --namespace your-target-namespace apply -f k8s-ces-setup.patched.yaml
 ```
 
 Das k8s-ces-setup sollte nun erfolgreich im Cluster gestartet sein. Das Setup sollte nun über die IP der Maschine unter
 dem Port `30080` erreichbar sein.
+
+### Setup ausführen
+
+```bash
+curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
+```

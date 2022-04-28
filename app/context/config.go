@@ -14,12 +14,14 @@ import (
 type Config struct {
 	// LogLevel sets the log level for the app
 	LogLevel logrus.Level `yaml:"log_level"`
-	// Namespace represents the namespace that is created for the ecosystem
-	Namespace string `yaml:"namespace"`
-	// DoguOperatorVersion contains the link to the installed dogu operator version
-	DoguOperatorVersion string `yaml:"dogu_operator_version"`
-	// EtcdServerVersion contains the link to the installed etcd server version
-	EtcdServerVersion string `yaml:"etcd_server_version"`
+	// TargetNamespace represents the namespace that is created for the ecosystem
+	TargetNamespace string `yaml:"target_namespace"`
+	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
+	DoguOperatorURL string `yaml:"dogu_operator_url"`
+	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
+	EtcdServerResourceURL string `yaml:"etcd_server_url"`
+	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
+	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.

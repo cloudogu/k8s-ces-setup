@@ -37,7 +37,7 @@ Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` 
 * YAML-Key: `namespace`
 * Typ: `String`
 * Notwendig Konfiguration
-* Beschreibung: Der Namespace definiert den Ziel-Namespace für das zu erstellende Cloudogu EcoSystem. Dieser kann zu
+* Beschreibung: Der Namespace definiert den Zielnamespace für das zu erstellende Cloudogu EcoSystem. Dieser kann zu
   einem beliebigen Wert geändert werden. Der Namespace und alle notwendigen Komponenten werden im Verlauf des Setups
   angelegt.
 
