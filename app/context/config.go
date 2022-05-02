@@ -18,6 +18,8 @@ type Config struct {
 	TargetNamespace string `yaml:"target_namespace"`
 	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
 	DoguOperatorURL string `yaml:"dogu_operator_url"`
+	// ServiceDiscoveryURL sets the K8s resource URL which controls the installation of the service discovery into the current cluster.
+	ServiceDiscoveryURL string `yaml:"service_discovery_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdServerResourceURL string `yaml:"etcd_server_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
