@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.2.0
 
 GOTAG?=1.17.7
-MAKEFILES_VERSION=5.0.0
+MAKEFILES_VERSION=5.1.0
 
 # Image URL to use all building/pushing image targets
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
