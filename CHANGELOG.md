@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.3.0] - 2022-05-03
 ### Added
 - [#8] Setup installs `k8s-service-discovery` when performing a setup. Please see
   the [Configuration](docs/operations/configuration_guide_en.md) for more information
