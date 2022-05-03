@@ -1,13 +1,14 @@
 package setup
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestSetupAPI(t *testing.T) {
@@ -19,7 +20,7 @@ func TestSetupAPI(t *testing.T) {
 			AppVersion: "1.2.3",
 			AppConfig: context.Config{
 				LogLevel:              logrus.DebugLevel,
-				TargetNamespace:       testTargetNamespaceName,
+				TargetNamespace:       "testTargetNamespaceName",
 				DoguOperatorURL:       "http://example.com/1.yaml",
 				EtcdServerResourceURL: "http://example.com/2.yaml",
 				EtcdClientImageRepo:   "bitnami/etcd:3.5.2-debian-10-r0",

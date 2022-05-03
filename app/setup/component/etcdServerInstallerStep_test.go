@@ -1,4 +1,4 @@
-package setup
+package component
 
 import (
 	"fmt"
@@ -7,45 +7,43 @@ import (
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"k8s.io/client-go/rest"
 )
 
-const serviceDiscoveryResourceURL = "https://url.server.com/service-discovery/resource.yaml"
+const etcdServerResourceURL = "https://url.server.com/etcd/resource.yaml"
 
-var serviceDiscoverySetupCtx = &ctx.SetupContext{
+var etcdServerSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: ctx.Config{
-		TargetNamespace:     testTargetNamespaceName,
-		ServiceDiscoveryURL: serviceDiscoveryResourceURL,
+		TargetNamespace:       testTargetNamespaceName,
+		EtcdServerResourceURL: etcdServerResourceURL,
 	},
 }
 
-func TestNewServiceDiscoveryInstallerStep(t *testing.T) {
+func TestNewEtcdServerInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual, _ := newServiceDiscoveryInstallerStep(&rest.Config{}, serviceDiscoverySetupCtx)
+	actual, _ := NewEtcdServerInstallerStep(&rest.Config{}, etcdServerSetupCtx)
 
 	// then
 	assert.NotNil(t, actual)
-	require.Implements(t, (*ExecutorStep)(nil), actual)
 }
 
-func TestServiceDiscoveryInstallerStep_GetStepDescription(t *testing.T) {
+func TestEtcdServerInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer, _ := newServiceDiscoveryInstallerStep(&rest.Config{}, serviceDiscoverySetupCtx)
+	installer, _ := NewEtcdServerInstallerStep(&rest.Config{}, etcdServerSetupCtx)
 
 	// when
 	description := installer.GetStepDescription()
 
 	// then
-	assert.Equal(t, "Install service discovery from https://url.server.com/service-discovery/resource.yaml", description)
+	assert.Equal(t, "Install etcd server from https://url.server.com/etcd/resource.yaml", description)
 }
 
-func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
+func TestEtcdServerInstallerStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should perform an installation without resource modification", func(t *testing.T) {
@@ -53,16 +51,16 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 		yamlBytes := []byte("yaml result goes here")
 
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", serviceDiscoveryResourceURL).Return(yamlBytes, nil)
+		mockedFileClient.On("Get", etcdServerResourceURL).Return(yamlBytes, nil)
 		mockedFileModder := &mockFileModder{}
 		mockedFileModder.On("replaceNamespacedResources", yamlBytes, testTargetNamespaceName)
 		mockedFileModder.On("removeLegacyNamespaceFromResources", yamlBytes)
 		mockedK8sClient := &mockK8sClient{}
 		mockedK8sClient.On("Apply", yamlBytes, testTargetNamespaceName).Return(nil)
 
-		installer := serviceDiscoveryInstallerStep{
+		installer := etcdServerInstallerStep{
 			namespace:              testTargetNamespaceName,
-			resourceURL:            serviceDiscoveryResourceURL,
+			resourceURL:            etcdServerResourceURL,
 			fileClient:             mockedFileClient,
 			k8sClient:              mockedK8sClient,
 			fileContentModificator: mockedFileModder,
@@ -91,7 +89,7 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 `, yamlDoc1, yamlDoc2))
 
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", serviceDiscoveryResourceURL).Return(yamlBytes, nil)
+		mockedFileClient.On("Get", etcdServerResourceURL).Return(yamlBytes, nil)
 		mockedFileModder := &mockFileModder{}
 		mockedFileModder.On("replaceNamespacedResources", yamlBytes, testTargetNamespaceName)
 		mockedFileModder.On("removeLegacyNamespaceFromResources", yamlBytes)
@@ -99,9 +97,9 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 		mockedK8sClient.On("Apply", []byte(yamlDoc1+"\n"), testTargetNamespaceName).Return(nil)
 		mockedK8sClient.On("Apply", []byte(yamlDoc2+"\n"), testTargetNamespaceName).Return(nil)
 
-		installer := serviceDiscoveryInstallerStep{
+		installer := etcdServerInstallerStep{
 			namespace:              testTargetNamespaceName,
-			resourceURL:            serviceDiscoveryResourceURL,
+			resourceURL:            etcdServerResourceURL,
 			fileClient:             mockedFileClient,
 			k8sClient:              mockedK8sClient,
 			fileContentModificator: mockedFileModder,
@@ -129,7 +127,7 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 `, yamlDoc1, yamlDoc2))
 
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", serviceDiscoveryResourceURL).Return(yamlBytes, nil)
+		mockedFileClient.On("Get", etcdServerResourceURL).Return(yamlBytes, nil)
 		mockedFileModder := &mockFileModder{}
 		mockedFileModder.On("replaceNamespacedResources", yamlBytes, testTargetNamespaceName)
 		mockedFileModder.On("removeLegacyNamespaceFromResources", yamlBytes)
@@ -137,9 +135,9 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 		mockedK8sClient.On("Apply", []byte(yamlDoc1+"\n"), testTargetNamespaceName).Return(nil)
 		mockedK8sClient.On("Apply", []byte(yamlDoc2+"\n"), testTargetNamespaceName).Return(assert.AnError)
 
-		installer := serviceDiscoveryInstallerStep{
+		installer := etcdServerInstallerStep{
 			namespace:              testTargetNamespaceName,
-			resourceURL:            serviceDiscoveryResourceURL,
+			resourceURL:            etcdServerResourceURL,
 			fileClient:             mockedFileClient,
 			k8sClient:              mockedK8sClient,
 			fileContentModificator: mockedFileModder,

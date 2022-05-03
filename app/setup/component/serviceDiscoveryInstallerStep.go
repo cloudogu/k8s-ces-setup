@@ -1,4 +1,4 @@
-package setup
+package component
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func newServiceDiscoveryInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*serviceDiscoveryInstallerStep, error) {
+func NewServiceDiscoveryInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*serviceDiscoveryInstallerStep, error) {
 	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
 	if err != nil {
 		return nil, err

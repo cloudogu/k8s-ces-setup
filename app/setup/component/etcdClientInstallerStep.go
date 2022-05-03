@@ -1,15 +1,16 @@
-package setup
+package component
 
 import (
 	"context"
 	"fmt"
+
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
-func newEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx *ctx.SetupContext) *etcdClientInstallerStep {
+func NewEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx *ctx.SetupContext) *etcdClientInstallerStep {
 	etcdServiceUrl := fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupCtx.AppConfig.TargetNamespace)
 
 	return &etcdClientInstallerStep{

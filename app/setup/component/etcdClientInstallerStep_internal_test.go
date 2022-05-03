@@ -1,11 +1,12 @@
-package setup
+package component
 
 import (
 	"context"
-	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
-	v1 "k8s.io/api/core/v1"
 	"strings"
 	"testing"
+
+	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestNewEtcdClientInstallerStep(t *testing.T) {
 	clientSetMock := testclient.NewSimpleClientset()
 
 	// when
-	creator := newEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
+	creator := NewEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
 
 	// then
 	assert.NotNil(t, creator)
@@ -40,7 +41,7 @@ func TestEtcdClientInstallerStep_GetStepDescription(t *testing.T) {
 
 	// given
 	clientSetMock := testclient.NewSimpleClientset()
-	creator := newEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
+	creator := NewEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
 
 	// when
 	description := creator.GetStepDescription()
@@ -55,7 +56,7 @@ func TestEtcdClientInstallerStep_PerformSetupStep(t *testing.T) {
 	t.Run("Setup step runs without any problems", func(t *testing.T) {
 		// given
 		clientSetMock := testclient.NewSimpleClientset()
-		creator := newEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
+		creator := NewEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
 
 		// when
 		err := creator.PerformSetupStep()

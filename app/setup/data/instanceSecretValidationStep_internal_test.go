@@ -1,4 +1,4 @@
-package setup
+package data
 
 import (
 	"testing"
@@ -10,6 +10,8 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
+const testTargetNamespaceName = "myfavouritenamespace-1"
+
 func TestNewNamespaceCreator(t *testing.T) {
 	t.Parallel()
 
@@ -17,7 +19,7 @@ func TestNewNamespaceCreator(t *testing.T) {
 	clientSetMock := testclient.NewSimpleClientset()
 
 	// when
-	creator := newInstanceSecretValidator(clientSetMock, "namespace")
+	creator := NewInstanceSecretValidatorStep(clientSetMock, "namespace")
 
 	// then
 	assert.NotNil(t, creator)
@@ -35,10 +37,10 @@ func TestNamespaceCreator_validate(t *testing.T) {
 			Status:     v1.NamespaceStatus{},
 		}
 		clientSetMock := testclient.NewSimpleClientset(&namespace)
-		creator := newInstanceSecretValidator(clientSetMock, testTargetNamespaceName)
+		creator := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := creator.validate()
+		err := creator.PerformSetupStep()
 
 		// then
 		require.Error(t, err)
@@ -54,10 +56,10 @@ func TestNamespaceCreator_validate(t *testing.T) {
 			},
 		}
 		clientSetMock := testclient.NewSimpleClientset(doguSecret)
-		creator := newInstanceSecretValidator(clientSetMock, testTargetNamespaceName)
+		creator := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := creator.validate()
+		err := creator.PerformSetupStep()
 
 		// then
 		require.Error(t, err)
@@ -80,10 +82,10 @@ func TestNamespaceCreator_validate(t *testing.T) {
 			Type: v1.SecretTypeDockercfg,
 		}
 		clientSetMock := testclient.NewSimpleClientset(doguSecret, imageSecret)
-		sut := newInstanceSecretValidator(clientSetMock, testTargetNamespaceName)
+		sut := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := sut.validate()
+		err := sut.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)

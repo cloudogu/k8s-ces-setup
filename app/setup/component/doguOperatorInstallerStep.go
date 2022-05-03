@@ -1,18 +1,37 @@
-package setup
+package component
 
 import (
 	"bytes"
 	"fmt"
+	"regexp"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 	"k8s.io/client-go/rest"
-	"regexp"
 )
 
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
 
-func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
+type fileClient interface {
+	// Get retrieves a file identified by its URL and returns the contents.
+	Get(url string) ([]byte, error)
+}
+
+type k8sClient interface {
+	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster's namespace.
+	Apply(yamlResources []byte, namespace string) error
+}
+
+type doguOperatorInstallerStep struct {
+	namespace              string
+	resourceURL            string
+	fileClient             fileClient
+	fileContentModificator fileContentModificator
+	k8sClient              k8sClient
+}
+
+func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
 	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
 	if err != nil {
 		return nil, err
@@ -25,14 +44,6 @@ func newDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.
 		k8sClient:              k8sApplyClient,
 		fileContentModificator: &defaultFileContentModificator{},
 	}, nil
-}
-
-type doguOperatorInstallerStep struct {
-	namespace              string
-	resourceURL            string
-	fileClient             fileClient
-	fileContentModificator fileContentModificator
-	k8sClient              k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the dogu operator installation step.

@@ -1,13 +1,14 @@
-package setup
+package component
 
 import (
 	"fmt"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 	"k8s.io/client-go/rest"
 )
 
-func newEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*etcdServerInstallerStep, error) {
+func NewEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*etcdServerInstallerStep, error) {
 	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
 	if err != nil {
 		return nil, err

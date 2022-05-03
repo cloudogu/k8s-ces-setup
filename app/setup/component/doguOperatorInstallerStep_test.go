@@ -1,17 +1,17 @@
-package setup
+package component
 
 import (
 	"fmt"
+	"testing"
+
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"k8s.io/client-go/rest"
-	"testing"
 )
 
 const testTargetNamespaceName = "myfavouritenamespace-1"
-
 const doguOperatorURL = "http://url.server.com/dogu/operator.yaml"
 
 var doguOperatorSetupCtx = &ctx.SetupContext{
@@ -186,18 +186,17 @@ func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual, _ := newDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
+	actual, _ := NewDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
 
 	// then
 	assert.NotNil(t, actual)
-	require.Implements(t, (*ExecutorStep)(nil), actual)
 }
 
 func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer, _ := newDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
+	installer, _ := NewDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
 
 	// when
 	description := installer.GetStepDescription()
