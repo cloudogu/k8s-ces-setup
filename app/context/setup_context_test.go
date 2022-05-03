@@ -1,9 +1,11 @@
 package context
 
 import (
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewSetupContext(t *testing.T) {
@@ -29,6 +31,8 @@ func TestNewSetupContext(t *testing.T) {
 }
 
 func Test_getEnvVar(t *testing.T) {
+	_ = os.Unsetenv("POD_NAMESPACE")
+
 	t.Run("successfully query env var namespace", func(t *testing.T) {
 		// given
 		t.Setenv("POD_NAMESPACE", "myTestNamespace")

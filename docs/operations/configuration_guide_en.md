@@ -22,24 +22,16 @@ metadata:
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
-    namespace: "ecosystem-0"
-    logLevel: "debug"
-    doguOperatorVersion: "0.0.0"
-    etcdServerVersion: "0.0.0"
+    log_level: "DEBUG"
+    dogu_operator_url: https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml
+    service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml
+    etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
+    etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 
 ## Explanation of the configuration values
-
-### namespace
-
-* YAML key: `namespace`
-* type: `string`
-* Required configuration
-* Description: The namespace defines the target namespace for the Cloudogu EcoSystem to be created. This can be changed to
-  be changed to any value. The namespace and all necessary components are created during the setup process.
-  created.
 
 ### log_level
 
@@ -47,27 +39,38 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Type: one of the following values `ERROR, WARN, INFO, DEBUG`
 * Necessary configuration
 * Description: Sets the log level of the `k8s-ces-setup` and thus how accurate the log output of the application should be.
-  should be.
 
 ### dogu_operator_version
 
 * YAML key: `dogu_operator_version`
 * Type: `String` as link to the desired [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator) version
 * Necessary configuration
-* Description: The Dogu Operator is a central component in the EcoSystem and must be installed. The given
-  link points to the version of the Dogu Operator to be installed. The link must point to a valid K8s YAML resource of the
-  `k8s-dogu-operator`. This will be appended to the release of the `k8s-dogu-operator` on each release.
-* Example: `TODO: Add first link when the first release is done`
+* Description: The Dogu Operator is a central component in the EcoSystem and must be installed. The given link points to the version of the Dogu Operator to be installed. The link must point to a valid K8s YAML resource of the `k8s-dogu-operator`. This will be appended to the release of the `k8s-dogu-operator` on each release.
+* Example: `https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
+
+### service_discovery_url
+
+* YAML key: `service_discovery_url`
+* Type: `String` as link to the desired [Service Discovery](http://github.com/cloudogu/k8s-service-discovery) version.
+* Necessary configuration
+* Description: Service Discovery is a central component in EcoSystem and must be installed. The specified link points to the version of Service Discovery to be installed. The link must point to a valid K8s YAML resource of the `k8s-service-discovery`. This will be appended to the release of the `k8s-service-discovery` on each release.
+* Example: `https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml`
 
 ### etcd_server_version
 
 * YAML key: `etcd_server_version`
 * Type: `String` as link to the desired [Etcd](http://github.com/cloudogu/k8s-etcd) version
 * Necessary configuration
-* Description: The Etcd is a central component in the EcoSystem and must be installed. The specified link
-  points to the version of the EcoSystem Etcd to be installed. The link must point to a valid K8s YAML resource of the
-  `k8s-etcd`. This is located directly in the repository under the path `manifests/etcd.yaml`.
+* Description: The Etcd is a central component in the EcoSystem and must be installed. The specified link points to the version of the EcoSystem Etcd to be installed. The link must point to a valid K8s YAML resource of the `k8s-etcd`. This is located directly in the repository under the path `manifests/etcd.yaml`.
 * Example: `https://github.com/cloudogu/k8s-etcd/blob/develop/manifests/etcd.yaml`
+
+### etcd_client_image_repo
+
+* YAML key: `etcd_client_image_repo`
+* Type: `String` as name to desired [Etcd-Client](https://artifacthub.io/packages/helm/bitnami/etcd) image.
+* Necessary configuration
+* Description: The Etcd-Client is a component in the EcoSystem which simplifies the communication with the Etcd-Server. The entry must be on a valid image of `bitnami/etcd`.
+* Example: `bitnami/etcd:3.5.2-debian-10-r0`
 
 ## Deploy configuration
 

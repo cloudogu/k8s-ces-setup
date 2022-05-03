@@ -14,6 +14,7 @@ func TestReadConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "ecosystem", c.TargetNamespace)
 	assert.Equal(t, "https://dop.yaml", c.DoguOperatorURL)
+	assert.Equal(t, "https://sd.yaml", c.ServiceDiscoveryURL)
 	assert.Equal(t, "https://etcds.yaml", c.EtcdServerResourceURL)
 	assert.Equal(t, "https://etcdc.yaml", c.EtcdClientImageRepo)
 	assert.Equal(t, logrus.DebugLevel, c.LogLevel)
