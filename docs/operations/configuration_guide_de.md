@@ -46,7 +46,7 @@ Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` 
 * Typ: `String` als Link zu der gewünschten [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator) Version
 * Notwendig Konfiguration
 * Beschreibung: Der Dogu Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Der angegebene Link zeigt auf die zu installierende Version des Dogu Operators. Der Link muss auf eine valide K8s-YAML-Ressource des `k8s-dogu-operator` zeigen. Diese wird bei jeder Veröffentlichung an das Release des `k8s-dogu-operator` gehängt.
-* Beispiel: `Thttps://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
+* Beispiel: `https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
 
 ### service_discovery_url
 

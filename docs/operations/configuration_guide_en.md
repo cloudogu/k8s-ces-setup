@@ -38,7 +38,7 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * YAML key: `log_level`
 * Type: one of the following values `ERROR, WARN, INFO, DEBUG`
 * Necessary configuration
-* Description: Sets the log level of the `k8s-ces-setup` and thus how accurate the log output of the application should be. should be.
+* Description: Sets the log level of the `k8s-ces-setup` and thus how accurate the log output of the application should be.
 
 ### dogu_operator_version
 
@@ -46,7 +46,7 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Type: `String` as link to the desired [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator) version
 * Necessary configuration
 * Description: The Dogu Operator is a central component in the EcoSystem and must be installed. The given link points to the version of the Dogu Operator to be installed. The link must point to a valid K8s YAML resource of the `k8s-dogu-operator`. This will be appended to the release of the `k8s-dogu-operator` on each release.
-* Example: `Thttps://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
+* Example: `https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
 
 ### service_discovery_url
 
