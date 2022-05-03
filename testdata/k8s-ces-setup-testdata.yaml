@@ -1,5 +1,6 @@
 target_namespace: test
 log_level: DEBUG
 dogu_operator_url: http://dop.yaml
+service_discovery_url: https://sd.yaml
 etcd_server_url: https://etcds.yaml
 etcd_client_image_repo: http://etcdc.yaml

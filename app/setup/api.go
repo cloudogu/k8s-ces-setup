@@ -2,12 +2,13 @@ package setup
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -66,10 +67,16 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 			handleInternalServerError(context, err, "Create dogu operator step")
 			return
 		}
+		serviceDisInstallerStep, err := newServiceDiscoveryInstallerStep(clusterConfig, setupContext)
+		if err != nil {
+			handleInternalServerError(context, err, "Create service discovery step")
+			return
+		}
 
 		setupExecutor.RegisterSetupStep(etcdSrvInstallerStep)
 		setupExecutor.RegisterSetupStep(newEtcdClientInstallerStep(setupExecutor.ClientSet, setupContext))
 		setupExecutor.RegisterSetupStep(doguOpInstallerStep)
+		setupExecutor.RegisterSetupStep(serviceDisInstallerStep)
 
 		err, errCausingAction := setupExecutor.PerformSetup()
 		if err != nil {

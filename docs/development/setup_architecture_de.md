@@ -37,6 +37,7 @@ Vorbereitung (Deployment des Setups):
 4. etcd-Server in den neuen Namespace installieren
 5. etcd-Client in den neuen Namespace installieren
 6. Dogu-Operator in den neuen Namespace installieren
+6. Service Discovery in den neuen Namespace installieren
 7. (noch nicht umgesetzt) Dogus (gemäß `setup.json` installieren)
 
 ## Benötigte Berechtigungen zur Ausführung des Setups

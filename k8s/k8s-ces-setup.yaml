@@ -1,4 +1,3 @@
----
 #
 # The service makes the setup available via port 30080. We should switch to a LoadBalancer if we figure out how to
 # solve out external IP assignment
@@ -42,7 +41,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.2.0"
+          image: "cloudogu/k8s-ces-setup:0.3.0"
           env:
             - name: GIN_MODE
               value: release
@@ -136,6 +135,15 @@ rules:
       - create
       - patch
       - update
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingressclasses
+    verbs:
+      - get
+      - create
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -207,7 +215,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
-    namespace: your-namespace-here
+    namespace: '{{ .Namespace }}'
 ---
 #
 # The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined
@@ -227,4 +235,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
-    namespace: your-namespace-here
+    namespace: '{{ .Namespace }}'

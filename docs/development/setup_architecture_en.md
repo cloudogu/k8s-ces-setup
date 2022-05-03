@@ -36,6 +36,7 @@ Preparation (deployment of the setup):
 4. install etcd server into the new namespace
 5. install etcd client into the new namespace
 6. install dogu-operator into the new namespace
+6. install service-discovery into the new namespace
 7. install (not yet implemented) Dogus (according to `setup.json`)
 
 ## Necessary permissions to run the setup
