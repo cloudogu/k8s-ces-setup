@@ -2,6 +2,9 @@ package setup
 
 import (
 	"fmt"
+	"github.com/cloudogu/cesapp/v4/core"
+	"github.com/cloudogu/cesapp/v4/registry"
+	"time"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 
@@ -97,13 +100,15 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create new service discovery installer step: %w", err)
 	}
 
-	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create node master file creation step: %w", err)
 	}
 
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(etcdSrvInstallerStep)
+	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, time.Second*300))
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	e.RegisterSetupStep(doguOpInstallerStep)
 	e.RegisterSetupStep(serviceDisInstallerStep)
@@ -115,7 +120,19 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 func (e *Executor) RegisterDataSetupSteps() error {
 	// note: with introduction of the setup UI the instance secret may either come into play with a new instance
 	// registration or it may already reside in the current namespace
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, namespace))
+
+	etcdRegistry, err := registry.New(core.Registry{
+		Type:      "etcd",
+		Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", namespace)},
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to create regsitry: %w", err)
+	}
+
+	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
 
 	return nil
 }

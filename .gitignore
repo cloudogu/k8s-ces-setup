@@ -27,3 +27,7 @@ tmp
 
 # Ignore go utility binaries
 .bin
+
+k8s/dev-resources/*
+
+.netrc

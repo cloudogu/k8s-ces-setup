@@ -30,15 +30,15 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 			return
 		}
 
-		err = setupExecutor.RegisterDataSetupSteps()
-		if err != nil {
-			handleInternalServerError(context, err, "Register data setup steps")
-			return
-		}
-
 		err = setupExecutor.RegisterComponentSetupSteps()
 		if err != nil {
 			handleInternalServerError(context, err, "Register component setup steps")
+			return
+		}
+
+		err = setupExecutor.RegisterDataSetupSteps()
+		if err != nil {
+			handleInternalServerError(context, err, "Register data setup steps")
 			return
 		}
 

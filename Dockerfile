@@ -3,6 +3,9 @@ FROM golang:1.17 as builder
 
 WORKDIR /workspace
 
+# set auth credentials via .netrc for private cesapp repository
+COPY .netrc /root/.netrc
+
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
