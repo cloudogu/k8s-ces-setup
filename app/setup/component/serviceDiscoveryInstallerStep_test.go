@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -72,9 +74,7 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mockedFileClient.AssertExpectations(t)
-		mockedK8sClient.AssertExpectations(t)
-		mockedFileModder.AssertExpectations(t)
+		mock.AssertExpectationsForObjects(t, mockedFileClient, mockedK8sClient, mockedFileModder)
 	})
 
 	t.Run("should split yaml file into two parts and apply them each", func(t *testing.T) {
@@ -111,9 +111,7 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mockedFileClient.AssertExpectations(t)
-		mockedK8sClient.AssertExpectations(t)
-		mockedFileModder.AssertExpectations(t)
+		mock.AssertExpectationsForObjects(t, mockedFileClient, mockedK8sClient, mockedFileModder)
 	})
 	t.Run("should fail on second apply", func(t *testing.T) {
 		// given
@@ -149,8 +147,6 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		mockedFileClient.AssertExpectations(t)
-		mockedK8sClient.AssertExpectations(t)
-		mockedFileModder.AssertExpectations(t)
+		mock.AssertExpectationsForObjects(t, mockedFileClient, mockedK8sClient, mockedFileModder)
 	})
 }

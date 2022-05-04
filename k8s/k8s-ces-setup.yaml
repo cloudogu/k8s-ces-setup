@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.2.0"
+          image: "cloudogu/k8s-ces-setup:0.3.0"
           env:
             - name: GIN_MODE
               value: release
@@ -136,7 +136,7 @@ rules:
       - patch
       - update
   - apiGroups:
-      - "*"
+      - networking.k8s.io
     resources:
       - ingressclasses
     verbs:
