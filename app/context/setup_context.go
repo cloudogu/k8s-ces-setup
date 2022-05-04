@@ -2,14 +2,18 @@ package context
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
+
+const defaultSetupConfigJson = "/setup.json"
 
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
-	AppVersion string `yaml:"app_version"`
-	AppConfig  Config `yaml:"app_config"`
+	AppVersion           string             `yaml:"app_version"`
+	AppConfig            Config             `yaml:"app_config"`
+	StartupConfiguration SetupConfiguration `json:"startup_configuration"`
 }
 
 // NewSetupContext creates a new setup context.
@@ -29,9 +33,19 @@ func NewSetupContext(version string, configPath string) (*SetupContext, error) {
 
 	config.TargetNamespace = targetNamespace
 
+	setupJsonPath := defaultSetupConfigJson
+	if os.Getenv("STAGE") == "development" {
+		setupJsonPath = "k8s/dev-resources/setup.json"
+	}
+	setupJson, err := ReadSetupConfig(setupJsonPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get setup configuration: %w", err)
+	}
+
 	return &SetupContext{
-		AppVersion: version,
-		AppConfig:  config,
+		AppVersion:           version,
+		AppConfig:            config,
+		StartupConfiguration: setupJson,
 	}, nil
 }
 

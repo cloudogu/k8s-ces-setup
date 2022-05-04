@@ -1,0 +1,61 @@
+{
+  "token": {
+    "id": "",
+    "secret": "",
+    "Completed": false
+  },
+  "naming": {
+    "fqdn": "192.168.56.2",
+    "hostname": "ces.local",
+    "domain": "192.168.56.2",
+    "certificateType": "",
+    "certificate": "",
+    "certificateKey": "",
+    "relayHost": "",
+    "mailAddress": "",
+    "completed": false,
+    "useInternalIp": false,
+    "internalIp": ""
+  },
+  "dogus": {
+    "defaultDogu": "",
+    "install": null,
+    "completed": false
+  },
+  "admin": {
+    "username": "",
+    "mail": "",
+    "password": "",
+    "adminGroup": "",
+    "completed": false,
+    "adminMember": false,
+    "sendWelcomeMail": false
+  },
+  "userBackend": {
+    "dsType": "",
+    "server": "",
+    "attributeID": "",
+    "attributeGivenName": "",
+    "attributeSurname": "",
+    "attributeFullname": "",
+    "attributeMail": "",
+    "attributeGroup": "",
+    "baseDN": "",
+    "searchFilter": "",
+    "connectionDN": "",
+    "password": "",
+    "host": "",
+    "port": "",
+    "loginID": "",
+    "loginPassword": "",
+    "encryption": "",
+    "completed": false,
+    "groupBaseDN": "",
+    "groupSearchFilter": "",
+    "groupAttributeName": "",
+    "groupAttributeDescription": "",
+    "groupAttributeMember": ""
+  },
+  "registryConfig": null,
+  "registryConfigEncrypted": null
+}
