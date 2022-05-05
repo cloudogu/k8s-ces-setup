@@ -9,31 +9,40 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	dsTypeEmbedded = "embedded"
+	dsTypeExternal = "external"
+)
+
 type validator struct {
 	configuration SetupConfiguration
 }
 
+// NewStartupConfigurationValidator creates a new setup json validator
 func NewStartupConfigurationValidator(configuration SetupConfiguration) *validator {
 	return &validator{configuration: configuration}
 }
 
+// ValidateConfiguration checks the section naming, user backend and user from the setup.json configuration
+// see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
 func (v *validator) ValidateConfiguration() error {
-	err := v.validateNaming(v.configuration.Naming)
-	if err != nil {
+	//TODO Dogu Deps
+	naming := v.configuration.Naming
+	err := v.validateNaming(naming)
+	if err != nil && naming.Completed {
 		return fmt.Errorf("failed to validate naming section: %w", err)
 	}
 
 	userBackend := v.configuration.UserBackend
 	err = v.validateUserBackend(userBackend)
-	if err != nil {
+	if err != nil && userBackend.Completed {
 		return fmt.Errorf("failed to validate user userBackend section: %w", err)
 	}
 
-	if userBackend.DsType == "embedded" {
-		err = v.validateAdminUser(v.configuration.Admin)
-		if err != nil {
-			return fmt.Errorf("failed to validate admin user section: %w", err)
-		}
+	admin := v.configuration.Admin
+	err = v.validateAdminUser(admin, userBackend.DsType)
+	if err != nil && admin.Completed {
+		return fmt.Errorf("failed to validate admin user section: %w", err)
 	}
 
 	return nil
@@ -41,7 +50,7 @@ func (v *validator) ValidateConfiguration() error {
 
 func (v *validator) validateUserBackend(backend UserBackend) error {
 	dsType := backend.DsType
-	if dsType != "embedded" && dsType != "external" {
+	if dsType != dsTypeEmbedded && dsType != dsTypeExternal {
 		return fmt.Errorf("invalid user backend type %s valid options are embedded or external", dsType)
 	}
 
@@ -50,10 +59,10 @@ func (v *validator) validateUserBackend(backend UserBackend) error {
 	if server == "activeDirectory" {
 		result = v.validateActiveDirectoryServer(backend)
 	}
-	if dsType == "external" {
+	if dsType == dsTypeExternal {
 		result = v.validateExternalBackend(backend)
 	}
-	if dsType == "embedded" {
+	if dsType == dsTypeEmbedded {
 		result = v.validateEmbeddedBackend(backend)
 	}
 
@@ -68,19 +77,19 @@ func (v *validator) validateActiveDirectoryServer(backend UserBackend) error {
 	searchFilter := backend.SearchFilter
 
 	if id != "sAMAccountName" {
-		return fmt.Errorf("invalid uid %s valid option is sAMAccountName", id)
+		return v.getInvalidOptionError("attributeID", "sAMAccountName")
 	}
 	if fullName != "cn" {
-		return fmt.Errorf("invalid attributeFullName %s valid option is cn", fullName)
+		return v.getInvalidOptionError("attributeFullName", "cn")
 	}
 	if mail != "mail" {
-		return fmt.Errorf("invalid atrtibuteMail %s valid option is mail", mail)
+		return v.getInvalidOptionError("attributeMail", "mail")
 	}
 	if group != "memberOf" {
-		return fmt.Errorf("invalid attributeGroup %s valid option is memberOf", group)
+		return v.getInvalidOptionError("attributeGroup", "memberOf")
 	}
 	if searchFilter != "(objectClass=person)" {
-		return fmt.Errorf("invalid searchFilter %s valid option is (objectClass=person)", searchFilter)
+		return v.getInvalidOptionError("searchFilter", "(objectClass=person)")
 	}
 
 	return nil
@@ -92,47 +101,47 @@ func (v *validator) validateExternalBackend(backend UserBackend) error {
 	server := backend.Server
 
 	if server != "activeDirectory" && server != "custom" {
-		return fmt.Errorf("invalid user backend server %s valid options are activeDirectory or custom", server)
+		return v.getInvalidOptionError("server", "activeDirectory", "custom")
 	}
 	if backend.AttributeGivenName == "" {
-		return fmt.Errorf("no attributeGivenName set")
+		return v.getPropertyNotSetError("attributeGivenName")
 	}
 	if backend.AttributeSurname == "" {
-		return fmt.Errorf("no attributeSurName set")
+		return v.getPropertyNotSetError("attributeSurName")
 	}
 	if backend.BaseDN == "" {
-		return fmt.Errorf("no baseDn set")
+		return v.getPropertyNotSetError("baseDn")
 	}
 	if backend.ConnectionDN == "" {
-		return fmt.Errorf("no connectionDn set")
+		return v.getPropertyNotSetError("connectionDn")
 	}
 	if backend.Password == "" {
-		return fmt.Errorf("no password set")
+		return v.getPropertyNotSetError("password")
 	}
 	if host == "" {
-		return fmt.Errorf("no host set")
+		return v.getPropertyNotSetError("host")
 	}
 	if port == "" {
-		return fmt.Errorf("no port set")
+		return v.getPropertyNotSetError("port")
 	}
 	encryption := backend.Encryption
 	if encryption != "none" && encryption != "ssl" && encryption != "sslAny" && encryption != "startTLS" && encryption != "startTLSAny" {
-		return fmt.Errorf("invalid encryption %s valid options are none, ssl, sslAny, startTLS or startTLSAny", encryption)
+		return v.getInvalidOptionError("encryption", "none", "ssl", "sslAny", "startTLS", "startTLSAny")
 	}
 	if backend.GroupBaseDN == "" {
-		return fmt.Errorf("no groupBaseDN set")
+		return v.getPropertyNotSetError("groupBaseDN")
 	}
 	if backend.GroupSearchFilter == "" {
-		return fmt.Errorf("no groupSearchFilter set")
+		return v.getPropertyNotSetError("groupSearchFilter")
 	}
 	if backend.GroupAttributeName == "" {
-		return fmt.Errorf("no groupAttributeName set")
+		return v.getPropertyNotSetError("groupAttributeName")
 	}
-	if backend.GroupSearchFilter == "" {
-		return fmt.Errorf("no groupAttributeDescription set")
+	if backend.GroupAttributeDescription == "" {
+		return v.getPropertyNotSetError("groupAttributeDescription")
 	}
 	if backend.GroupAttributeMember == "" {
-		return fmt.Errorf("no groupAttributeMember set")
+		return v.getPropertyNotSetError("groupAttributeMember")
 	}
 
 	return nil
@@ -148,25 +157,25 @@ func (v *validator) validateEmbeddedBackend(backend UserBackend) error {
 	port := backend.Port
 
 	if id != "uid" {
-		return fmt.Errorf("invalid uid %s valid option is uid", id)
+		return v.getInvalidOptionError("attributeID", "uid")
 	}
 	if fullName != "cn" {
-		return fmt.Errorf("invalid attributeFullName %s valid option is cn", fullName)
+		return v.getInvalidOptionError("attributeFullName", "cn")
 	}
 	if mail != "mail" {
-		return fmt.Errorf("invalid atrtibuteMail %s valid option is mail", fullName)
+		return v.getInvalidOptionError("attributeMail", "mail")
 	}
 	if group != "memberOf" {
-		return fmt.Errorf("invalid attributeGroup %s valid option is memberOf", group)
+		return v.getInvalidOptionError("attributeGroup", "memberOf")
 	}
 	if searchFilter != "(objectClass=person)" {
-		return fmt.Errorf("invalid searchFilter %s valid option is (objectClass=person)", searchFilter)
+		return v.getInvalidOptionError("searchFilter", "(objectClass=person)")
 	}
 	if host != "ldap" {
-		return fmt.Errorf("invalid host %s valid option is ldap", searchFilter)
+		return v.getInvalidOptionError("host", "ldap")
 	}
 	if port != "389" {
-		return fmt.Errorf("invalid port %s valid option is 389", port)
+		return v.getInvalidOptionError("port", "389")
 	}
 
 	return nil
@@ -174,43 +183,36 @@ func (v *validator) validateEmbeddedBackend(backend UserBackend) error {
 
 func (v *validator) validateNaming(naming Naming) error {
 	ip := net.ParseIP(naming.Fqdn)
-	if ip == nil {
+	domain := checkDomain(naming.Fqdn)
+	if ip == nil && domain != nil {
 		return fmt.Errorf("failed to parse fqdn: %s", naming.Fqdn)
 	}
-
 	err := checkDomain(naming.Domain)
 	if err != nil {
 		return fmt.Errorf("failed to validate domain: %w", err)
 	}
-
 	certificateType := naming.CertificateType
 	if certificateType != "selfsigned" && certificateType != "external" {
-		return fmt.Errorf("invalid certification type %s valid options are selfsigned or external", certificateType)
+		return v.getInvalidOptionError("certificateType", "selfsigned", "external")
 	}
-
 	if certificateType == "external" {
 		block, _ := pem.Decode([]byte(naming.Certificate))
 		if block == nil {
 			return fmt.Errorf("failed to parse certificate PEM")
 		}
-		cert, err := x509.ParseCertificate(block.Bytes)
+		_, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse certificate: %w", err)
 		}
-		_, err = cert.Verify(x509.VerifyOptions{})
-		if err != nil {
-			return fmt.Errorf("failed to verfiy certificate: %w", err)
-		}
-		if naming.CertificateKey == "" {
-			return fmt.Errorf("no certificate key")
+		keyBlock, _ := pem.Decode([]byte(naming.CertificateKey))
+		if keyBlock == nil {
+			return fmt.Errorf("failed to parse private key PEM")
 		}
 	}
-
 	err = checkDomain(naming.RelayHost)
 	if err != nil {
 		return fmt.Errorf("failed to validate mail relay host: %w", err)
 	}
-
 	address := naming.MailAddress
 	if address != "" {
 		_, err = mail.ParseAddress(address)
@@ -218,7 +220,6 @@ func (v *validator) validateNaming(naming Naming) error {
 			return fmt.Errorf("failed to validate mail address: %w", err)
 		}
 	}
-
 	if naming.UseInternalIp {
 		internalIP := naming.InternalIp
 		ip = net.ParseIP(internalIP)
@@ -230,9 +231,39 @@ func (v *validator) validateNaming(naming Naming) error {
 	return nil
 }
 
-func (v *validator) validateAdminUser(admin User) error {
-	// TODO
+func (v *validator) validateAdminUser(admin User, dsType string) error {
+	if admin.AdminGroup == "" {
+		return v.getPropertyNotSetError("admin group")
+	}
+	if dsType == dsTypeExternal {
+		return nil
+	}
+	address := admin.Mail
+	if address == "" {
+		return v.getPropertyNotSetError("admin mail")
+	}
+
+	_, err := mail.ParseAddress(address)
+	if err != nil {
+		return fmt.Errorf("invalid admin mail")
+	}
+
+	if admin.Username == "" {
+		return v.getPropertyNotSetError("admin username")
+	}
+	if admin.Password == "" {
+		return v.getPropertyNotSetError("admin password")
+	}
+
 	return nil
+}
+
+func (v *validator) getInvalidOptionError(property string, validOptions ...string) error {
+	return fmt.Errorf("invalid %s valid options are %s", property, validOptions)
+}
+
+func (v *validator) getPropertyNotSetError(property string) error {
+	return fmt.Errorf("no %s set", property)
 }
 
 // https://gist.github.com/chmike/d4126a3247a6d9a70922fc0e8b4f4013
@@ -240,6 +271,10 @@ func (v *validator) validateAdminUser(admin User) error {
 // See https://tools.ietf.org/html/rfc1034#section-3.5 and
 // https://tools.ietf.org/html/rfc1123#section-2.
 func checkDomain(name string) error {
+	if name == "" {
+		return fmt.Errorf("domain is empty")
+	}
+
 	switch {
 	case len(name) == 0:
 		return nil // an empty domain name will result in a cookie without a domain restriction
