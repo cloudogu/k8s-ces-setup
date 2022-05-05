@@ -3,7 +3,7 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.17
 
 require (
-	github.com/cloudogu/cesapp-lib v0.0.0-20220505081119-c08efb5dbafe
+	github.com/cloudogu/cesapp-lib v0.0.0-20220505132258-1c44e6506f52
 	github.com/gin-gonic/gin v1.7.7
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
@@ -40,6 +40,8 @@ require (
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
