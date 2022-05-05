@@ -2,9 +2,10 @@ package setup
 
 import (
 	"fmt"
-	"github.com/cloudogu/cesapp/v4/core"
-	"github.com/cloudogu/cesapp/v4/registry"
 	"time"
+
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/cesapp-lib/registry"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 

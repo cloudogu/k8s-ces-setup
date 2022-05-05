@@ -2,11 +2,12 @@ package data
 
 import (
 	"fmt"
-	"github.com/cloudogu/cesapp/v4/registry/mocks"
+	"testing"
+
+	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewKeyProviderStep(t *testing.T) {

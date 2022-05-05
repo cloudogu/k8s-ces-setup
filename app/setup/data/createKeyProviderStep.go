@@ -2,7 +2,8 @@ package data
 
 import (
 	"fmt"
-	"github.com/cloudogu/cesapp/v4/registry"
+
+	"github.com/cloudogu/cesapp-lib/registry"
 )
 
 const (
