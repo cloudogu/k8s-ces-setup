@@ -29,5 +29,3 @@ tmp
 .bin
 
 k8s/dev-resources/*
-
-.netrc
