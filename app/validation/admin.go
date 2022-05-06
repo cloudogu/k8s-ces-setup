@@ -2,8 +2,9 @@ package validation
 
 import (
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"net/mail"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 type adminValidator struct {
@@ -20,14 +21,15 @@ func (av *adminValidator) ValidateAdmin(admin context.User, dsType string) error
 	if admin.AdminGroup == "" {
 		return GetPropertyNotSetError("admin group")
 	}
+
 	if dsType == dsTypeExternal {
 		return nil
 	}
-	address := admin.Mail
-	if address == "" {
+
+	if admin.Mail == "" {
 		return GetPropertyNotSetError("admin mail")
 	}
-	_, err := mail.ParseAddress(address)
+	_, err := mail.ParseAddress(admin.Mail)
 	if err != nil {
 		return fmt.Errorf("invalid admin mail")
 	}

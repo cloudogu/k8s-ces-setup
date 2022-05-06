@@ -1,6 +1,6 @@
 module github.com/cloudogu/k8s-ces-setup
 
-go 1.17
+go 1.18
 
 require (
 	github.com/cloudogu/cesapp-lib v0.0.0-20220505132258-1c44e6506f52
@@ -19,7 +19,6 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/cloudogu/cesapp/v4 v4.2.2 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

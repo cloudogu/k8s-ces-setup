@@ -2,6 +2,8 @@ package validation
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
@@ -23,14 +25,10 @@ func NewUserBackendValidator() *userBackendValidator {
 func (ubv *userBackendValidator) ValidateUserBackend(backend context.UserBackend) error {
 	dsType := backend.DsType
 	if dsType != dsTypeEmbedded && dsType != dsTypeExternal {
-		return fmt.Errorf("invalid user backend type %s valid options are embedded or external", dsType)
+		return GetInvalidOptionError("dsType", dsTypeEmbedded, dsTypeExternal)
 	}
 
 	var result error
-	server := backend.Server
-	if server == "activeDirectory" {
-		result = ubv.validateActiveDirectoryServer(backend)
-	}
 	if dsType == dsTypeExternal {
 		result = ubv.validateExternalBackend(backend)
 	}
@@ -42,25 +40,19 @@ func (ubv *userBackendValidator) ValidateUserBackend(backend context.UserBackend
 }
 
 func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.UserBackend) error {
-	id := backend.AttributeID
-	fullName := backend.AttributeFullname
-	mail := backend.AttributeMail
-	group := backend.AttributeGroup
-	searchFilter := backend.SearchFilter
-
-	if id != "sAMAccountName" {
+	if backend.AttributeID != "sAMAccountName" {
 		return GetInvalidOptionError("attributeID", "sAMAccountName")
 	}
-	if fullName != "cn" {
+	if backend.AttributeFullname != "cn" {
 		return GetInvalidOptionError("attributeFullName", "cn")
 	}
-	if mail != "mail" {
+	if backend.AttributeMail != "mail" {
 		return GetInvalidOptionError("attributeMail", "mail")
 	}
-	if group != "memberOf" {
+	if backend.AttributeGroup != "memberOf" {
 		return GetInvalidOptionError("attributeGroup", "memberOf")
 	}
-	if searchFilter != "(objectClass=person)" {
+	if backend.SearchFilter != "(objectClass=person)" {
 		return GetInvalidOptionError("searchFilter", "(objectClass=person)")
 	}
 
@@ -68,12 +60,14 @@ func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.U
 }
 
 func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBackend) error {
-	host := backend.Host
-	port := backend.Port
-	server := backend.Server
-
-	if server != "activeDirectory" && server != "custom" {
+	if backend.Server != "activeDirectory" && backend.Server != "custom" {
 		return GetInvalidOptionError("server", "activeDirectory", "custom")
+	}
+	if backend.Server == "activeDirectory" {
+		err := ubv.validateActiveDirectoryServer(backend)
+		if err != nil {
+			return err
+		}
 	}
 	if backend.AttributeGivenName == "" {
 		return GetPropertyNotSetError("attributeGivenName")
@@ -90,14 +84,16 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 	if backend.Password == "" {
 		return GetPropertyNotSetError("password")
 	}
-	if host == "" {
+	if backend.Host == "" {
 		return GetPropertyNotSetError("host")
 	}
-	if port == "" {
+	if backend.Port == "" {
 		return GetPropertyNotSetError("port")
 	}
-	encryption := backend.Encryption
-	if encryption != "none" && encryption != "ssl" && encryption != "sslAny" && encryption != "startTLS" && encryption != "startTLSAny" {
+	if _, err := strconv.Atoi(backend.Port); err != nil {
+		return fmt.Errorf("failed to validate property port: the given value is not a number")
+	}
+	if backend.Encryption != "none" && backend.Encryption != "ssl" && backend.Encryption != "sslAny" && backend.Encryption != "startTLS" && backend.Encryption != "startTLSAny" {
 		return GetInvalidOptionError("encryption", "none", "ssl", "sslAny", "startTLS", "startTLSAny")
 	}
 	if backend.GroupBaseDN == "" {
@@ -120,33 +116,25 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 }
 
 func (ubv *userBackendValidator) validateEmbeddedBackend(backend context.UserBackend) error {
-	id := backend.AttributeID
-	fullName := backend.AttributeFullname
-	mail := backend.AttributeMail
-	group := backend.AttributeGroup
-	searchFilter := backend.SearchFilter
-	host := backend.Host
-	port := backend.Port
-
-	if id != "uid" {
+	if backend.AttributeID != "uid" {
 		return GetInvalidOptionError("attributeID", "uid")
 	}
-	if fullName != "cn" {
+	if backend.AttributeFullname != "cn" {
 		return GetInvalidOptionError("attributeFullName", "cn")
 	}
-	if mail != "mail" {
+	if backend.AttributeMail != "mail" {
 		return GetInvalidOptionError("attributeMail", "mail")
 	}
-	if group != "memberOf" {
+	if backend.AttributeGroup != "memberOf" {
 		return GetInvalidOptionError("attributeGroup", "memberOf")
 	}
-	if searchFilter != "(objectClass=person)" {
+	if backend.SearchFilter != "(objectClass=person)" {
 		return GetInvalidOptionError("searchFilter", "(objectClass=person)")
 	}
-	if host != "ldap" {
+	if backend.Host != "ldap" {
 		return GetInvalidOptionError("host", "ldap")
 	}
-	if port != "389" {
+	if backend.Port != "389" {
 		return GetInvalidOptionError("port", "389")
 	}
 

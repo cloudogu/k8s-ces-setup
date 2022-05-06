@@ -210,8 +210,6 @@ github.com/cloudogu/cesapp-lib v0.0.0-20220505081119-c08efb5dbafe h1:GRW4pc8+JC8
 github.com/cloudogu/cesapp-lib v0.0.0-20220505081119-c08efb5dbafe/go.mod h1:fkgngALzj8x/tEmSZVvig3jMU3STydguyb3EDkiFWUs=
 github.com/cloudogu/cesapp-lib v0.0.0-20220505132258-1c44e6506f52 h1:CpbS3UcHtYzAyE2j34apJtbPHIJti1FxhxIKGU2q2z8=
 github.com/cloudogu/cesapp-lib v0.0.0-20220505132258-1c44e6506f52/go.mod h1:0MyWjwl7lkhvAfOOyC/PDrhnS73q6r+BPYNDhGMLkok=
-github.com/cloudogu/cesapp/v4 v4.2.2 h1:R2VzUed26JmsVc6wjjk0XZuFUkAZIisFv+YobTGM1WQ=
-github.com/cloudogu/cesapp/v4 v4.2.2/go.mod h1:Ltq7x6xC0CmmhvfwGz1uPjmAVqkycZevE6T3iONxb6U=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=

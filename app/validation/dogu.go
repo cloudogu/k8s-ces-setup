@@ -13,20 +13,25 @@ import (
 )
 
 type doguValidator struct {
-	dogus    context.Dogus
 	secret   corev1.Secret
 	Registry remote.Registry
 }
 
-func NewDoguValidator(doguRegistrySecret *corev1.Secret, dogus context.Dogus) (*doguValidator, error) {
+// NewDoguValidator creates a new validator for the dogu region of the setup configuration.
+func NewDoguValidator(doguRegistrySecret *corev1.Secret) (*doguValidator, error) {
 	credentials := &core.Credentials{
 		Username: doguRegistrySecret.StringData["username"],
 		Password: doguRegistrySecret.StringData["password"],
 	}
 
+	endpoint := doguRegistrySecret.StringData["endpoint"]
+	endpoint = strings.TrimSuffix(endpoint, "/")
+	endpoint = strings.TrimSuffix(endpoint, "dogus")
+	endpoint = strings.TrimSuffix(endpoint, "/")
+
 	// TODO ConfigMap für URlSchema (default oder mirrored)
 	remoteConfig := &core.Remote{
-		Endpoint:  doguRegistrySecret.StringData["endpoint"],
+		Endpoint:  endpoint,
 		URLSchema: "",
 		CacheDir:  "/tmp",
 	}
@@ -36,7 +41,26 @@ func NewDoguValidator(doguRegistrySecret *corev1.Secret, dogus context.Dogus) (*
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
 
-	return &doguValidator{Registry: registry, dogus: dogus}, nil
+	return &doguValidator{Registry: registry}, nil
+}
+
+// ValidateDogus check whether the configured dogu has no invalid or unmet dependencies.
+func (dv *doguValidator) ValidateDogus(dogus context.Dogus) error {
+	//todo validate default dogu
+
+	doguList, err := dv.parseDoguStrToDoguList(dogus.Install)
+	if err != nil {
+		return err
+	}
+
+	for _, installDogu := range doguList {
+		err = dv.validateDoguDependencies(doguList, installDogu.GetDependenciesOfType("dogu"))
+		if err != nil {
+			return fmt.Errorf("failed to validate dependencies for dogu %s: %w", installDogu.Name, err)
+		}
+	}
+
+	return nil
 }
 
 func (dv *doguValidator) parseDoguStrToDoguList(dogus []string) ([]*core.Dogu, error) {
@@ -51,22 +75,6 @@ func (dv *doguValidator) parseDoguStrToDoguList(dogus []string) ([]*core.Dogu, e
 	}
 
 	return doguList, nil
-}
-
-func (dv *doguValidator) ValidateDogus() error {
-	doguList, err := dv.parseDoguStrToDoguList(dv.dogus.Install)
-	if err != nil {
-		return err
-	}
-
-	for _, installDogu := range doguList {
-		err = dv.validateDoguDependencies(doguList, installDogu.GetDependenciesOfType("dogu"))
-		if err != nil {
-			return fmt.Errorf("failed to validate dependencies for dogu %s: %w", installDogu.Name, err)
-		}
-	}
-
-	return nil
 }
 
 func (dv *doguValidator) validateDoguDependencies(dogus []*core.Dogu, dependencies []core.Dependency) error {

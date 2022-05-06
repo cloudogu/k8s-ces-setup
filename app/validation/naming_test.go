@@ -1,10 +1,11 @@
 package validation
 
 import (
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewNamingValidator(t *testing.T) {
@@ -26,13 +27,13 @@ func Test_namingValidator_ValidateNaming(t *testing.T) {
 		wantErr          assert.ErrorAssertionFunc
 		wantErrMsg       assert.ComparisonAssertionFunc
 	}{
-		{"invalid fqdn", context.Naming{Fqdn: "1.2"}, "failed to parse fqdn", assert.Error, assert.Contains},
-		{"invalid domain", context.Naming{Fqdn: "192.168.56.2"}, "failed to validate domain", assert.Error, assert.Contains},
+		{"invalid fqdn", context.Naming{}, "no fqdn set", assert.Error, assert.Contains},
+		{"invalid domain", context.Naming{Fqdn: "192.168.56.2"}, "no domain set", assert.Error, assert.Contains},
 		{"invalid certificateType", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com"}, "invalid certificateType valid options are", assert.Error, assert.Contains},
-		{"invalid relayhost", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "selfsigned", RelayHost: "@_"}, "failed to validate mail relay host", assert.Error, assert.Contains},
+		{"invalid relayhost", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "selfsigned"}, "no relayHost set", assert.Error, assert.Contains},
 		{"invalid mail address", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "selfsigned", RelayHost: "relay", MailAddress: "a@b@a"}, "failed to validate mail address", assert.Error, assert.Contains},
 		{"invalid internal ip", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "selfsigned", RelayHost: "relay", MailAddress: "a@b.de", UseInternalIp: true, InternalIp: "1234.123"}, "failed to parse internal ip", assert.Error, assert.Contains},
-		{"invalid external cert", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "external", Certificate: invalidCert}, "failed to parse certificate PEM", assert.Error, assert.Contains},
+		{"invalid external cert", context.Naming{Fqdn: "192.168.56.2", Domain: "cloudogu.com", CertificateType: "external", Certificate: invalidCert}, "failed to decode 0-th certificate in [certificate] property", assert.Error, assert.Contains},
 	}
 
 	for _, tt := range tests {

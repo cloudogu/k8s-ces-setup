@@ -17,39 +17,45 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 
-	router.POST(endpointPostStartSetup, func(context *gin.Context) {
+	router.POST(endpointPostStartSetup, func(ctx *gin.Context) {
 		clusterConfig, err := ctrl.GetConfig()
 		if err != nil {
-			handleInternalServerError(context, err, "Load cluster configuration")
+			handleInternalServerError(ctx, err, "Load cluster configuration")
 			return
 		}
 
 		setupExecutor, err := NewExecutor(clusterConfig, setupContext)
 		if err != nil {
-			handleInternalServerError(context, err, "Creating setup executor")
+			handleInternalServerError(ctx, err, "Creating setup executor")
+			return
+		}
+
+		err = setupExecutor.RegisterValidationStep()
+		if err != nil {
+			handleInternalServerError(ctx, err, "Register validation setup steps")
 			return
 		}
 
 		err = setupExecutor.RegisterComponentSetupSteps()
 		if err != nil {
-			handleInternalServerError(context, err, "Register component setup steps")
+			handleInternalServerError(ctx, err, "Register component setup steps")
 			return
 		}
 
 		err = setupExecutor.RegisterDataSetupSteps()
 		if err != nil {
-			handleInternalServerError(context, err, "Register data setup steps")
+			handleInternalServerError(ctx, err, "Register data setup steps")
 			return
 		}
 
 		err, errCausingAction := setupExecutor.PerformSetup()
 		if err != nil {
 			err2 := fmt.Errorf("error while initializing namespace for setup: %w", err)
-			handleInternalServerError(context, err2, errCausingAction)
+			handleInternalServerError(ctx, err2, errCausingAction)
 			return
 		}
 
-		context.Status(http.StatusOK)
+		ctx.Status(http.StatusOK)
 	})
 }
 

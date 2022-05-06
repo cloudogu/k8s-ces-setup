@@ -137,3 +137,13 @@ func (e *Executor) RegisterDataSetupSteps() error {
 
 	return nil
 }
+
+func (e *Executor) RegisterValidationStep() error {
+	setupValidator, err := NewValidatorStep(e.ClientSet, e.SetupContext)
+	if err != nil {
+		return fmt.Errorf("failed to create new validation step: %w", err)
+	}
+
+	e.RegisterSetupStep(setupValidator)
+	return nil
+}

@@ -7,6 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const SecretDoguRegistry = "k8s-dogu-operator-dogu-registry"
+const SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
+
 const defaultSetupConfigJson = "/setup.json"
 
 // SetupContext contains all context information provided by the setup.

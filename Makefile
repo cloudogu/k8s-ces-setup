@@ -2,7 +2,7 @@
 ARTIFACT_ID=k8s-ces-setup
 VERSION=0.3.0
 
-GOTAG?=1.17.7
+GOTAG?=1.18.1
 MAKEFILES_VERSION=5.1.0
 
 # Image URL to use all building/pushing image targets

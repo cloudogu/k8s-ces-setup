@@ -31,10 +31,9 @@ func TestNewDoguValidator(t *testing.T) {
 				"endpoint": "myTestPassword",
 			},
 		}
-		dogus := context.Dogus{Install: []string{"testing/dogu1", "testing/dogu2", "testing/dogu3"}}
 
 		// when
-		validator, err := validation.NewDoguValidator(secret, dogus)
+		validator, err := validation.NewDoguValidator(secret)
 
 		// then
 		require.NoError(t, err)
@@ -74,12 +73,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		mockRegistry.On("GetVersion", "official/cas", "2.0.0-3").Return(casDogu, nil)
 		mockRegistry.On("GetVersion", "official/redmine", "3.1.2-1").Return(redmineDogu, nil)
 		mockRegistry.On("Get", "official/postfix").Return(postfixDogu, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 		doguValidator.Registry = mockRegistry
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.NoError(t, err)
@@ -115,12 +114,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		mockRegistry.On("GetVersion", "official/cas", "2.0.0-3").Return(casDogu, nil)
 		mockRegistry.On("GetVersion", "official/redmine", "3.1.2-1").Return(redmineDogu, nil)
 		mockRegistry.On("GetVersion", "official/postfix", "0.0.1-1").Return(postfixDogu, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 		doguValidator.Registry = mockRegistry
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -135,12 +134,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		dogus := context.Dogus{Install: doguList}
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-2").Return(nil, assert.AnError)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 		doguValidator.Registry = mockRegistry
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -155,12 +154,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		dogus := context.Dogus{Install: doguList}
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("Get", "official/ldap").Return(nil, assert.AnError)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 		doguValidator.Registry = mockRegistry
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -173,11 +172,11 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguA := "official/ldap:1.1.asd.1-2"
 		doguList := []string{doguA}
 		dogus := context.Dogus{Install: doguList}
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -197,12 +196,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		dogus := context.Dogus{Install: doguList}
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("GetVersion", "official/cas", "2.0.0-3").Return(casDogu, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		require.NoError(t, err)
 		doguValidator.Registry = mockRegistry
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -227,12 +226,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		doguValidator.Registry = mockRegistry
 		require.NoError(t, err)
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -257,12 +256,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		doguValidator.Registry = mockRegistry
 		require.NoError(t, err)
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)
@@ -287,12 +286,12 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		mockRegistry := &remoteMocks.Registry{}
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
-		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{}, dogus)
+		doguValidator, err := validation.NewDoguValidator(&corev1.Secret{})
 		doguValidator.Registry = mockRegistry
 		require.NoError(t, err)
 
 		// when
-		err = doguValidator.ValidateDogus()
+		err = doguValidator.ValidateDogus(dogus)
 
 		// then
 		require.Error(t, err)

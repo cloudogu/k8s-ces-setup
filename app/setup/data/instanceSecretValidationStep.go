@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	context2 "github.com/cloudogu/k8s-ces-setup/app/context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-)
-
-const (
-	secretNameDoguRegistry  = "k8s-dogu-operator-dogu-registry"
-	secretNameImageRegistry = "k8s-dogu-operator-docker-registry"
 )
 
 // instanceSecretValidatorStep validates whether the target namespace contains necessary structure or data.
@@ -35,11 +32,11 @@ func (isv *instanceSecretValidatorStep) GetStepDescription() string {
 
 // PerformSetupStep validates the current instance secrets.
 func (isv *instanceSecretValidatorStep) PerformSetupStep() error {
-	_, err := isv.clientSet.CoreV1().Secrets(isv.targetNamespace).Get(context.Background(), secretNameDoguRegistry, metav1.GetOptions{})
+	_, err := isv.clientSet.CoreV1().Secrets(isv.targetNamespace).Get(context.Background(), context2.SecretDoguRegistry, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("instance secret validation error: cannot read secret from target namespace %s: %w", isv.targetNamespace, err)
 	}
-	_, err = isv.clientSet.CoreV1().Secrets(isv.targetNamespace).Get(context.Background(), secretNameImageRegistry, metav1.GetOptions{})
+	_, err = isv.clientSet.CoreV1().Secrets(isv.targetNamespace).Get(context.Background(), context2.SecretDockerRegistry, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("instance secret validation error: cannot read secret from target namespace %s: %w", isv.targetNamespace, err)
 	}
