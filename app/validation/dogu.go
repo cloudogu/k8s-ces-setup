@@ -2,17 +2,20 @@ package validation
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/pkg/errors"
+
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/remote"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	corev1 "k8s.io/api/core/v1"
-	"strings"
 )
 
 type doguValidator struct {
 	dogus    context.Dogus
 	secret   corev1.Secret
-	registry remote.Registry
+	Registry remote.Registry
 }
 
 func NewDoguValidator(doguRegistrySecret *corev1.Secret, dogus context.Dogus) (*doguValidator, error) {
@@ -30,62 +33,85 @@ func NewDoguValidator(doguRegistrySecret *corev1.Secret, dogus context.Dogus) (*
 
 	registry, err := remote.New(remoteConfig, credentials)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create remote registry: %w", err)
+		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
 
-	return &doguValidator{registry: registry, dogus: dogus}, nil
+	return &doguValidator{Registry: registry, dogus: dogus}, nil
+}
+
+func (dv *doguValidator) parseDoguStrToDoguList(dogus []string) ([]*core.Dogu, error) {
+	var doguList = make([]*core.Dogu, len(dogus))
+	for i, doguStr := range dogus {
+		dogu, err := dv.getDoguFromVersionStr(doguStr)
+		if err != nil {
+			return nil, err
+		}
+
+		doguList[i] = dogu
+	}
+
+	return doguList, nil
 }
 
 func (dv *doguValidator) ValidateDogus() error {
-	for _, installDogu := range dv.dogus.Install {
-		dogu, err := dv.getDogu(installDogu)
-		if err != nil {
-			return err
-		}
+	doguList, err := dv.parseDoguStrToDoguList(dv.dogus.Install)
+	if err != nil {
+		return err
+	}
 
-		err = dv.validateDoguDependencies(dogu.GetDependenciesOfType("dogu"))
+	for _, installDogu := range doguList {
+		err = dv.validateDoguDependencies(doguList, installDogu.GetDependenciesOfType("dogu"))
 		if err != nil {
-			return fmt.Errorf("failed to validate dependencies for dogu %s: %w", installDogu, err)
+			return fmt.Errorf("failed to validate dependencies for dogu %s: %w", installDogu.Name, err)
 		}
 	}
 
 	return nil
 }
 
-func (dv *doguValidator) validateDoguDependencies(dependencies []core.Dependency) error {
+func (dv *doguValidator) validateDoguDependencies(dogus []*core.Dogu, dependencies []core.Dependency) error {
 	for _, dependency := range dependencies {
-		if dependency.Type != "dogu" {
-			continue
-		}
-
 		depName := dependency.Name
-		_, err := dv.getDoguFromSelection(depName)
+		dependentDogu, err := dv.getDoguFromSelection(dogus, depName)
 		if err != nil {
 			return fmt.Errorf("dogu dependency %s ist not selected", depName)
 		}
 
-		_, err = core.ParseVersion(dependency.Version)
-		if err != nil {
-			return fmt.Errorf("failed to parse version from dependency %s: %w", depName, err)
-		}
+		if dependency.Version != "" {
+			doguVersion, err := core.ParseVersion(dependentDogu.Version)
+			if err != nil {
+				return errors.Wrapf(err, "failed to parse version of dependency %s", dependency.Name)
+			}
 
+			comparator, err := core.ParseVersionComparator(dependency.Version)
+			if err != nil {
+				return errors.Wrapf(err, "failed to parse ParseVersionComparator of version %s for doguDependency %s", dependency.Version, dependency.Name)
+			}
+
+			allows, err := comparator.Allows(doguVersion)
+			if err != nil {
+				return errors.Wrapf(err, "An error occurred when comparing the versions")
+			}
+			if !allows {
+				return errors.Errorf("%s parsed Version does not fulfill version requirement of %s dogu %s", dependentDogu.Version, dependency.Version, dependency.Name)
+			}
+		}
 	}
 
 	return nil
 }
 
-func (dv *doguValidator) getDoguFromSelection(dogu string) (string, error) {
-	for _, installDogu := range dv.dogus.Install {
-		// Works with version?
-		if core.GetSimpleDoguName(installDogu) == core.GetSimpleDoguName(dogu) {
+func (dv *doguValidator) getDoguFromSelection(dogus []*core.Dogu, doguName string) (*core.Dogu, error) {
+	for _, installDogu := range dogus {
+		if installDogu.GetSimpleName() == doguName {
 			return installDogu, nil
 		}
 	}
 
-	return "", fmt.Errorf("dogu not found")
+	return nil, fmt.Errorf("dogu not found")
 }
 
-func (dv *doguValidator) getDogu(doguStr string) (*core.Dogu, error) {
+func (dv *doguValidator) getDoguFromVersionStr(doguStr string) (*core.Dogu, error) {
 	namespacedName, version, found := strings.Cut(doguStr, ":")
 	var dogu *core.Dogu
 	var err error
@@ -94,9 +120,9 @@ func (dv *doguValidator) getDogu(doguStr string) (*core.Dogu, error) {
 		if vErr != nil {
 			return nil, fmt.Errorf("failed to parse dogu version %s: %w", version, err)
 		}
-		dogu, err = dv.registry.GetVersion(namespacedName, v.Raw)
+		dogu, err = dv.Registry.GetVersion(namespacedName, v.Raw)
 	} else {
-		dogu, err = dv.registry.Get(namespacedName)
+		dogu, err = dv.Registry.Get(namespacedName)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dogu %s: %w", doguStr, err)
