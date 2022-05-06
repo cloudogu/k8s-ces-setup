@@ -40,7 +40,7 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 			return GetPropertyNotSetError("certificate")
 		}
 
-		certs := nv.splitPemCertificates(cert)
+		certs := SplitPemCertificates(cert)
 		for i, cert := range certs {
 			block, _ := pem.Decode([]byte(cert))
 			if block == nil {
@@ -86,7 +86,7 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 	return nil
 }
 
-func (nv *namingValidator) splitPemCertificates(chain string) []string {
+func SplitPemCertificates(chain string) []string {
 	sep := "-----BEGIN CERTIFICATE-----\n"
 	result := []string{}
 	split := strings.Split(chain, sep)

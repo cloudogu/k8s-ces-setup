@@ -11,8 +11,8 @@ type writeSSLStep struct {
 	globalConfig registry.ConfigurationContext
 }
 
-// NewWriteSSL create a new setup step which on writes the certificate to the global config
-func NewWriteSSL(config *context.SetupConfiguration, globalConfig registry.ConfigurationContext) *writeSSLStep {
+// NewWriteSSLStep create a new setup step which on writes the certificate to the global config
+func NewWriteSSLStep(config *context.SetupConfiguration, globalConfig registry.ConfigurationContext) *writeSSLStep {
 	return &writeSSLStep{config: config, globalConfig: globalConfig}
 }
 

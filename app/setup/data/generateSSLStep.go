@@ -22,8 +22,8 @@ type generateSSLStep struct {
 	config *context.SetupConfiguration
 }
 
-// NewGenerateSSL create a new setup step which on generates ssl certificates
-func NewGenerateSSL(config *context.SetupConfiguration) *generateSSLStep {
+// NewGenerateSSLStep create a new setup step which on generates ssl certificates
+func NewGenerateSSLStep(config *context.SetupConfiguration) *generateSSLStep {
 	return &generateSSLStep{config: config}
 }
 

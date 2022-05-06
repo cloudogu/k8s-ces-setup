@@ -136,7 +136,7 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	configurationSetupStep := data.NewWriteConfigToRegistryStep(etcdRegistry, &e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(configurationSetupStep)
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
-	e.RegisterSetupStep(data.NewWriteSSL(&e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
+	e.RegisterSetupStep(data.NewWriteSSLStep(&e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
 
 	return nil
 }
@@ -152,7 +152,7 @@ func (e *Executor) RegisterValidationStep() error {
 }
 
 func (e *Executor) RegisterSSLGenerationStep() error {
-	generationStep := data.NewGenerateSSL(&e.SetupContext.StartupConfiguration)
+	generationStep := data.NewGenerateSSLStep(&e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(generationStep)
 
 	return nil
