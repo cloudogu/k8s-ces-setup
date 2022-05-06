@@ -130,12 +130,12 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to create regsitry: %w", err)
+		return fmt.Errorf("failed to create registry: %w", err)
 	}
 
 	configurationSetupStep := data.NewWriteConfigToRegistryStep(etcdRegistry, &e.SetupContext.StartupConfiguration)
-
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
+	e.RegisterSetupStep(data.NeWriteSSL(e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
 	e.RegisterSetupStep(configurationSetupStep)
 
 	return nil
@@ -148,5 +148,12 @@ func (e *Executor) RegisterValidationStep() error {
 	}
 
 	e.RegisterSetupStep(setupValidator)
+	return nil
+}
+
+func (e *Executor) RegisterSSLGenerationStep() error {
+	generationStep := data.NewGenerateSSL(&e.SetupContext.StartupConfiguration)
+	e.RegisterSetupStep(generationStep)
+
 	return nil
 }
