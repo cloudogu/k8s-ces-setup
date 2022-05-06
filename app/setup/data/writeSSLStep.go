@@ -7,12 +7,12 @@ import (
 )
 
 type writeSSLStep struct {
-	config       context.SetupConfiguration
+	config       *context.SetupConfiguration
 	globalConfig registry.ConfigurationContext
 }
 
-// NeWriteSSL create a new setup step which on writes the certificate to the global config
-func NeWriteSSL(config context.SetupConfiguration, globalConfig registry.ConfigurationContext) *writeSSLStep {
+// NewWriteSSL create a new setup step which on writes the certificate to the global config
+func NewWriteSSL(config *context.SetupConfiguration, globalConfig registry.ConfigurationContext) *writeSSLStep {
 	return &writeSSLStep{config: config, globalConfig: globalConfig}
 }
 

@@ -46,6 +46,10 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 		return fmt.Errorf("failed to create ca cert: %w", err)
 	}
 	gss.appendCaTemplate(ca)
+	caCertBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, &caPrivateKey.PublicKey, caPrivateKey)
+	if err != nil {
+		return err
+	}
 
 	// create x509 certificate and key
 	cert, certPrivKey, err := gss.createCertTemplateWithKey(certExpireDays)
@@ -68,6 +72,15 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 		return fmt.Errorf("failed to encode certificate: %w", err)
 	}
 
+	caCertPEM := new(bytes.Buffer)
+	err = pem.Encode(caCertPEM, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caCertBytes,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to encode certificate: %w", err)
+	}
+
 	certPrivKeyPEM := new(bytes.Buffer)
 	err = pem.Encode(certPrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -77,7 +90,7 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 		return fmt.Errorf("failed to encode certificate: %w", err)
 	}
 
-	gss.config.Naming.Certificate = certPEM.String()
+	gss.config.Naming.Certificate = fmt.Sprintf("%s%s", caCertPEM.String(), certPEM.String())
 	gss.config.Naming.CertificateKey = certPrivKeyPEM.String()
 
 	return nil

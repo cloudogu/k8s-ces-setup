@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,7 +52,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		// given
 		doguSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretNameDoguRegistry,
+				Name:      context.SecretDoguRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 		}
@@ -70,13 +71,13 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		// given
 		doguSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretNameDoguRegistry,
+				Name:      context.SecretDoguRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 		}
 		imageSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretNameImageRegistry,
+				Name:      context.SecretDockerRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 			Type: v1.SecretTypeDockercfg,
