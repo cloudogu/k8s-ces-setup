@@ -133,7 +133,10 @@ func (e *Executor) RegisterDataSetupSteps() error {
 		return fmt.Errorf("failed to create regsitry: %w", err)
 	}
 
+	configurationSetupStep := data.NewWriteConfigToRegistryStep(etcdRegistry, &e.SetupContext.StartupConfiguration)
+
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
+	e.RegisterSetupStep(configurationSetupStep)
 
 	return nil
 }

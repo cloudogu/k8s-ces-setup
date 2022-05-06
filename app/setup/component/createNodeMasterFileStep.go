@@ -42,7 +42,7 @@ func (nmcs *nodeMasterCreationStep) GetStepDescription() string {
 
 // PerformSetupStep creates a config map containing the node master address.
 func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
-	nodeMasterFileContent := fmt.Sprintf("etcd.%s.svc.cluster.local", nmcs.TargetNamespace)
+	nodeMasterFileContent := GetNodeMasterFileContent(nmcs.TargetNamespace)
 
 	configMap, err := nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Get(context.Background(), nodeMasterFileConfigMapName, metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
@@ -74,4 +74,8 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 	}
 
 	return nil
+}
+
+func GetNodeMasterFileContent(namespace string) string {
+	return fmt.Sprintf("etcd.%s.svc.cluster.local", namespace)
 }
