@@ -5,8 +5,6 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-
-	"github.com/sirupsen/logrus"
 )
 
 type writeNamingConfigStep struct {
@@ -25,8 +23,6 @@ func (wncs *writeNamingConfigStep) GetStepDescription() string {
 }
 
 func (wncs *writeNamingConfigStep) PerformSetupStep() error {
-	logrus.Info("Write naming configuration into registry")
-
 	globalMap := map[string]string{
 		"fqdn":                   wncs.Configuration.Naming.Fqdn,
 		"domain":                 wncs.Configuration.Naming.Domain,

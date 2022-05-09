@@ -14,7 +14,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 )
 
-func TestWriteNamingConfigStep(t *testing.T) {
+func TestNewWriteNamingConfigStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successfully create new naming config step", func(t *testing.T) {
@@ -31,7 +31,7 @@ func TestWriteNamingConfigStep(t *testing.T) {
 	})
 }
 
-func TestWriteNamingConfigStep_GetStepDescription(t *testing.T) {
+func Test_writeNamingConfigStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successfully get naming config step description", func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestWriteNamingConfigStep_GetStepDescription(t *testing.T) {
 	})
 }
 
-func Test_writeConfigToRegistryStep_writeNamingSection(t *testing.T) {
+func Test_writeNamingConfigStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("fail on writing anything in the global scope", func(t *testing.T) {

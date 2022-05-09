@@ -41,11 +41,6 @@ func (wctrs *writeConfigToRegistryStep) PerformSetupStep() error {
 
 func (wctrs *writeConfigToRegistryStep) writeDoguSection() error {
 
-	//err = reg.GlobalConfig().Set("default_dogu", conf.Dogus.DefaultDogu)
-	//if err != nil {
-	//	return errors.Wrap(err, "could not set default dogu")
-	//}
-
 	return nil
 }
 

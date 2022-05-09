@@ -10,7 +10,6 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type writeAdminConfigStep struct {
@@ -29,8 +28,6 @@ func (wctrs *writeAdminConfigStep) GetStepDescription() string {
 }
 
 func (wctrs *writeAdminConfigStep) PerformSetupStep() error {
-	logrus.Info("Write admin configuration into registry")
-
 	err := wctrs.Registry.GlobalConfig().Set("admin_group", wctrs.Configuration.Admin.AdminGroup)
 	if err != nil {
 		return errors.Wrap(err, "could not set admin group")

@@ -16,7 +16,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 )
 
-func TestWriteAdminConfigStep(t *testing.T) {
+func TestNewWriteAdminConfigStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successfully create new admin config step", func(t *testing.T) {
@@ -33,7 +33,7 @@ func TestWriteAdminConfigStep(t *testing.T) {
 	})
 }
 
-func TestWriteAdminConfigStep_GetStepDescription(t *testing.T) {
+func Test_writeAdminConfigStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	t.Run("successfully get admin config step description", func(t *testing.T) {
@@ -51,7 +51,7 @@ func TestWriteAdminConfigStep_GetStepDescription(t *testing.T) {
 	})
 }
 
-func Test_writeConfigToRegistryStep_writeAdminSection(t *testing.T) {
+func Test_writeAdminConfigStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("fail on setting admin_group in global config", func(t *testing.T) {

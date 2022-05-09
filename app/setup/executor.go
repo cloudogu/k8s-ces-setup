@@ -137,6 +137,7 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	e.RegisterSetupStep(configurationSetupStep)
 	e.RegisterSetupStep(data.NewWriteAdminConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteNamingConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteDoguConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
 
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
 
