@@ -4,38 +4,35 @@ import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/ssl"
 )
 
-type writeSSLStep struct {
-	config       *context.SetupConfiguration
-	globalConfig registry.ConfigurationContext
+type WriteSSLStep struct {
+	Config    *context.SetupConfiguration
+	SSLWriter SSLWriter
 }
 
-// NewWriteSSLStep create a new setup step which on writes the certificate to the global config
-func NewWriteSSLStep(config *context.SetupConfiguration, globalConfig registry.ConfigurationContext) *writeSSLStep {
-	return &writeSSLStep{config: config, globalConfig: globalConfig}
+type SSLWriter interface {
+	WriteCertificate(certType string, cert string, key string) error
+}
+
+// NewWriteSSLStep creates a new setup step which on writes the certificate to the global Config
+func NewWriteSSLStep(config *context.SetupConfiguration, globalConfig registry.ConfigurationContext) *WriteSSLStep {
+	sslWriter := ssl.NewSSLWriter(globalConfig)
+	return &WriteSSLStep{Config: config, SSLWriter: sslWriter}
 }
 
 // GetStepDescription return the human-readable description of the step
-func (gss *writeSSLStep) GetStepDescription() string {
+func (gss *WriteSSLStep) GetStepDescription() string {
 	return fmt.Sprintf("Write SSL certificate and key")
 }
 
 // PerformSetupStep writes the certificate from startup config to the global config
-func (gss *writeSSLStep) PerformSetupStep() error {
-	err := gss.globalConfig.Set("certificate/type", gss.config.Naming.CertificateType)
+func (gss *WriteSSLStep) PerformSetupStep() error {
+	naming := gss.Config.Naming
+	err := gss.SSLWriter.WriteCertificate(naming.CertificateType, naming.Certificate, naming.CertificateKey)
 	if err != nil {
-		return fmt.Errorf("failed to set certificate type: %w", err)
-	}
-
-	err = gss.globalConfig.Set("certificate/server.crt", gss.config.Naming.Certificate)
-	if err != nil {
-		return fmt.Errorf("failed to set certificate: %w", err)
-	}
-
-	err = gss.globalConfig.Set("certificate/server.key", gss.config.Naming.CertificateKey)
-	if err != nil {
-		return fmt.Errorf("failed to set certificate key: %w", err)
+		return err
 	}
 
 	return nil

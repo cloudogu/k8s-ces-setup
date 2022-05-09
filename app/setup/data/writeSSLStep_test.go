@@ -1,9 +1,9 @@
 package data_test
 
 import (
-	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -34,67 +34,36 @@ func Test_writeSSLStep_PerformSetupStep(t *testing.T) {
 
 	naming := context.Naming{CertificateType: "selfsigned", Certificate: "cert", CertificateKey: "key"}
 	config := &context.SetupConfiguration{Naming: naming}
+
 	t.Run("success", func(t *testing.T) {
 		// given
-		globalConfig := &mocks.ConfigurationContext{}
-		globalConfig.On("Set", "certificate/type", naming.CertificateType).Return(nil)
-		globalConfig.On("Set", "certificate/server.crt", naming.Certificate).Return(nil)
-		globalConfig.On("Set", "certificate/server.key", naming.CertificateKey).Return(nil)
-		step := data.NewWriteSSLStep(config, globalConfig)
+		writerMock := &mocks.SSLWriter{}
+		writerMock.On("WriteCertificate", naming.CertificateType, naming.Certificate, naming.CertificateKey).Return(nil)
+		step := &data.WriteSSLStep{}
+		step.SSLWriter = writerMock
+		step.Config = config
 
 		// when
 		err := step.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, globalConfig)
-	})
-
-	t.Run("failed to write type", func(t *testing.T) {
-		// given
-		globalConfig := &mocks.ConfigurationContext{}
-		globalConfig.On("Set", "certificate/type", naming.CertificateType).Return(assert.AnError)
-		step := data.NewWriteSSLStep(config, globalConfig)
-
-		// when
-		err := step.PerformSetupStep()
-
-		// then
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to set certificate type")
-		mock.AssertExpectationsForObjects(t, globalConfig)
+		mock.AssertExpectationsForObjects(t, writerMock)
 	})
 
 	t.Run("failed to write certificate", func(t *testing.T) {
 		// given
-		globalConfig := &mocks.ConfigurationContext{}
-		globalConfig.On("Set", "certificate/type", naming.CertificateType).Return(nil)
-		globalConfig.On("Set", "certificate/server.crt", naming.Certificate).Return(assert.AnError)
-		step := data.NewWriteSSLStep(config, globalConfig)
+		writerMock := &mocks.SSLWriter{}
+		writerMock.On("WriteCertificate", naming.CertificateType, naming.Certificate, naming.CertificateKey).Return(assert.AnError)
+		step := &data.WriteSSLStep{}
+		step.SSLWriter = writerMock
+		step.Config = config
 
 		// when
 		err := step.PerformSetupStep()
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to set certificate")
-		mock.AssertExpectationsForObjects(t, globalConfig)
-	})
-
-	t.Run("failed to write certificate key", func(t *testing.T) {
-		// given
-		globalConfig := &mocks.ConfigurationContext{}
-		globalConfig.On("Set", "certificate/type", naming.CertificateType).Return(nil)
-		globalConfig.On("Set", "certificate/server.crt", naming.Certificate).Return(nil)
-		globalConfig.On("Set", "certificate/server.key", naming.CertificateKey).Return(assert.AnError)
-		step := data.NewWriteSSLStep(config, globalConfig)
-
-		// when
-		err := step.PerformSetupStep()
-
-		// then
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to set certificate key")
-		mock.AssertExpectationsForObjects(t, globalConfig)
+		mock.AssertExpectationsForObjects(t, writerMock)
 	})
 }
