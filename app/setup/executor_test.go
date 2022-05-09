@@ -2,6 +2,7 @@ package setup_test
 
 import (
 	"errors"
+	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -45,11 +46,12 @@ func TestNewExecutor(t *testing.T) {
 	t.Parallel()
 
 	// given
-	clientSetMock := &rest.Config{}
-	testContext := &context.SetupContext{}
+	restConfigMock := &rest.Config{}
+	clientSetMock := &fake.Clientset{}
+	testContext := &context.SetupContext{AppConfig: context.Config{TargetNamespace: "test"}}
 
 	// when
-	executor, err := setup.NewExecutor(clientSetMock, testContext)
+	executor, err := setup.NewExecutor(restConfigMock, clientSetMock, testContext)
 
 	// then
 	require.Nil(t, err)

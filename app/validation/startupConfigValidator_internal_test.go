@@ -5,6 +5,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
+	remoteMocks "github.com/cloudogu/cesapp-lib/remote/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/validation/mocks"
 	"github.com/stretchr/testify/assert"
@@ -20,10 +21,10 @@ func TestNewStartupConfigurationValidator(t *testing.T) {
 		secret.StringData["username"] = "user"
 		secret.StringData["password"] = "password"
 		secret.StringData["endpoint"] = "endpoint"
-		validator, err := NewStartupConfigurationValidator(secret)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 
 		// then
-		require.NoError(t, err)
 		require.NotNil(t, validator)
 	})
 }
@@ -48,15 +49,15 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
 		adminValidatorMock := &mocks.AdminValidator{}
 		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(nil)
-		validator, err := NewStartupConfigurationValidator(secret)
-		require.NoError(t, err)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 		validator.namingValidator = namingValidatorMock
 		validator.userBackenValidator = userBackendValidatorMock
 		validator.adminValidator = adminValidatorMock
 
 		// when
-		err = validator.ValidateConfiguration(configuration)
+		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.NoError(t, err)
@@ -68,12 +69,12 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		configuration := &context.SetupConfiguration{Dogus: context.Dogus{Completed: true}}
 		doguValidatorMock := &mocks.DoguValidator{}
 		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(assert.AnError)
-		validator, err := NewStartupConfigurationValidator(secret)
-		require.NoError(t, err)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 
 		// when
-		err = validator.ValidateConfiguration(configuration)
+		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.Error(t, err)
@@ -88,13 +89,13 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		doguValidatorMock := &mocks.DoguValidator{}
 		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
 		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(assert.AnError)
-		validator, err := NewStartupConfigurationValidator(secret)
-		require.NoError(t, err)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 		validator.namingValidator = namingValidatorMock
 
 		// when
-		err = validator.ValidateConfiguration(configuration)
+		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.Error(t, err)
@@ -111,14 +112,14 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
 		userBackendValidatorMock := &mocks.UserBackendValidator{}
 		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(assert.AnError)
-		validator, err := NewStartupConfigurationValidator(secret)
-		require.NoError(t, err)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 		validator.namingValidator = namingValidatorMock
 		validator.userBackenValidator = userBackendValidatorMock
 
 		// when
-		err = validator.ValidateConfiguration(configuration)
+		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.Error(t, err)
@@ -137,15 +138,15 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
 		adminValidatorMock := &mocks.AdminValidator{}
 		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(assert.AnError)
-		validator, err := NewStartupConfigurationValidator(secret)
-		require.NoError(t, err)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 		validator.namingValidator = namingValidatorMock
 		validator.userBackenValidator = userBackendValidatorMock
 		validator.adminValidator = adminValidatorMock
 
 		// when
-		err = validator.ValidateConfiguration(configuration)
+		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.Error(t, err)
