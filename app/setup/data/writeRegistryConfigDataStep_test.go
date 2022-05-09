@@ -15,16 +15,16 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 )
 
-func TestNewWriteNamingDataStep(t *testing.T) {
+func TestNewWriteRegistryConfigDataStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully create new naming data step", func(t *testing.T) {
+	t.Run("successfully create new registry config data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
 
 		// when
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
 		// then
 		assert.NotNil(t, myStep)
@@ -32,25 +32,25 @@ func TestNewWriteNamingDataStep(t *testing.T) {
 	})
 }
 
-func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
+func Test_writeRegistryConfigDataStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully get naming data step description", func(t *testing.T) {
+	t.Run("successfully get registry config data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		description := myStep.GetStepDescription()
 
 		// then
-		assert.Equal(t, "Write naming data to the registry", description)
+		assert.Equal(t, "Write registry config data to the registry", description)
 		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
-func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
+func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
@@ -69,18 +69,8 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
-	t.Run("successfully apply all naming entries", func(t *testing.T) {
+	t.Run("successfully apply all registry config entries", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Naming: context.Naming{
-			Fqdn:            "myFqdn",
-			Domain:          "myDomain",
-			MailAddress:     "my@mail.address",
-			CertificateType: "self-signed",
-			Certificate:     "myCertificate",
-			CertificateKey:  "myCertificateKey",
-			RelayHost:       "myRelayHost",
-		}}
-
 		registryConfig := context.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"fqdn":                   "myFqdn",
@@ -94,19 +84,17 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 				"relayhost": "myRelayHost",
 			},
 		}
+		testConfig := &context.SetupConfiguration{RegistryConfig: registryConfig}
 
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
-
-	// TODO add tests for internal ip when addressed
 }

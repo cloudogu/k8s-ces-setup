@@ -9,86 +9,87 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 )
 
-func TestNewWriteDoguConfigStep(t *testing.T) {
+func TestNewWriteDoguDataStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully create new dogu config step", func(t *testing.T) {
+	t.Run("successfully create new dogu data step", func(t *testing.T) {
 		// given
-		mockRegistry := &mocks.Registry{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
 
 		// when
-		myStep := data.NewWriteDoguConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
 
 		// then
 		assert.NotNil(t, myStep)
-		mock.AssertExpectationsForObjects(t, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
-func Test_writeDoguConfigStep_GetStepDescription(t *testing.T) {
+func Test_writeDoguDataStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully get dogu config step description", func(t *testing.T) {
+	t.Run("successfully get dogu data step description", func(t *testing.T) {
 		// given
-		mockRegistry := &mocks.Registry{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteDoguConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		description := myStep.GetStepDescription()
 
 		// then
-		assert.Equal(t, "Write dogu configuration to the registry", description)
-		mock.AssertExpectationsForObjects(t, mockRegistry)
+		assert.Equal(t, "Write dogu data to the registry", description)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
-func Test_writeDoguConfigStep_PerformSetupStep(t *testing.T) {
+func Test_writeDoguDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("fail on setting default dogu in global config", func(t *testing.T) {
+	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Dogus: context.Dogus{DefaultDogu: "myDefaultDogu"}}
+		testConfig := &context.SetupConfiguration{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
 
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "default_dogu", "myDefaultDogu").Return(assert.AnError)
-
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
-
-		myStep := data.NewWriteDoguConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, globalRegistryMock, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
-	t.Run("fail to set a value in the ldap dogu context", func(t *testing.T) {
+	t.Run("successfully write all dogu data to the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Dogus: context.Dogus{DefaultDogu: "myDefaultDogu"}}
+		testConfig := &context.SetupConfiguration{Dogus: context.Dogus{
+			DefaultDogu: "myDefaultDogu",
+		}}
 
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "default_dogu", "myDefaultDogu").Return(nil)
+		registryConfig := context.CustomKeyValue{
+			"_global": map[string]interface{}{
+				"default_dogu": "myDefaultDogu",
+			},
+		}
 
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
+		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteDoguConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, globalRegistryMock, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }

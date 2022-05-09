@@ -11,97 +11,92 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 )
 
-func TestNewWriteAdminConfigStep(t *testing.T) {
+func TestNewWriteAdminDataStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully create new admin config step", func(t *testing.T) {
+	t.Run("successfully create new admin data step", func(t *testing.T) {
 		// given
-		mockRegistry := &mocks.Registry{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
 
 		// when
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// then
 		assert.NotNil(t, myStep)
-		mock.AssertExpectationsForObjects(t, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
-func Test_writeAdminConfigStep_GetStepDescription(t *testing.T) {
+func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
-	t.Run("successfully get admin config step description", func(t *testing.T) {
+	t.Run("successfully get admin data step description", func(t *testing.T) {
 		// given
-		mockRegistry := &mocks.Registry{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		description := myStep.GetStepDescription()
 
 		// then
-		assert.Equal(t, "Write admin configuration to the registry", description)
-		mock.AssertExpectationsForObjects(t, mockRegistry)
+		assert.Equal(t, "Write admin data to the registry", description)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
-func Test_writeAdminConfigStep_PerformSetupStep(t *testing.T) {
+func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("fail on setting admin_group in global config", func(t *testing.T) {
+	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Admin: context.User{
-			AdminGroup: "myAdminTestGroup",
-		}}
+		testConfig := &context.SetupConfiguration{}
+		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
 
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "admin_group", "myAdminTestGroup").Return(assert.AnError)
-
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
-
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, globalRegistryMock, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
-	t.Run("successfully set values for external configuration", func(t *testing.T) {
+	t.Run("successfully set values for external ldap data", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{
-			Admin: context.User{
-				AdminGroup: "myAdminTestGroup",
-			},
 			UserBackend: context.UserBackend{DsType: validation.DsTypeExternal},
+			Admin:       context.User{AdminGroup: "myTestAdminGroup"},
 		}
 
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "admin_group", "myAdminTestGroup").Return(nil)
+		registryConfig := context.CustomKeyValue{
+			"_global": map[string]interface{}{
+				"admin_group": "myTestAdminGroup",
+			},
+		}
 
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
+		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, globalRegistryMock, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
-	t.Run("fail to set a value in the ldap dogu context", func(t *testing.T) {
+	t.Run("successfully set values for embedded ldap data", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{
 			Admin: context.User{
@@ -113,57 +108,27 @@ func Test_writeAdminConfigStep_PerformSetupStep(t *testing.T) {
 			UserBackend: context.UserBackend{DsType: validation.DsTypeEmbedded},
 		}
 
-		doguLdapContextMock := &mocks.ConfigurationContext{}
-		doguLdapContextMock.On("Set", mock.Anything, mock.Anything).Return(assert.AnError)
-
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "admin_group", "myAdminTestGroup").Return(nil)
-
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
-		mockRegistry.On("DoguConfig", "ldap").Return(doguLdapContextMock)
-
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
-
-		// when
-		err := myStep.PerformSetupStep()
-
-		// then
-		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, doguLdapContextMock, globalRegistryMock, mockRegistry)
-	})
-
-	t.Run("fail to set a value in the ldap dogu context", func(t *testing.T) {
-		// given
-		testConfig := &context.SetupConfiguration{
-			Admin: context.User{
-				AdminGroup:  "myAdminTestGroup",
-				Mail:        "myAdminMail",
-				Username:    "myAdminUsername",
-				AdminMember: true,
+		registryConfig := context.CustomKeyValue{
+			"_global": map[string]interface{}{
+				"admin_group": "myAdminTestGroup",
 			},
-			UserBackend: context.UserBackend{DsType: validation.DsTypeEmbedded},
+			"ldap": map[string]interface{}{
+				"admin_mail":     "myAdminMail",
+				"admin_username": "myAdminUsername",
+				"admin_member":   "true",
+			},
 		}
 
-		doguLdapContextMock := &mocks.ConfigurationContext{}
-		doguLdapContextMock.On("Set", "admin_mail", "myAdminMail").Return(nil)
-		doguLdapContextMock.On("Set", "admin_username", "myAdminUsername").Return(nil)
-		doguLdapContextMock.On("Set", "admin_member", "true").Return(nil)
+		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "admin_group", "myAdminTestGroup").Return(nil)
-
-		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("GlobalConfig").Return(globalRegistryMock)
-		mockRegistry.On("DoguConfig", "ldap").Return(doguLdapContextMock)
-
-		myStep := data.NewWriteAdminConfigStep(mockRegistry, testConfig)
+		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, doguLdapContextMock, globalRegistryMock, mockRegistry)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }

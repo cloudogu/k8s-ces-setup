@@ -3,29 +3,34 @@ package data
 import (
 	"fmt"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
-type writeDoguConfigStep struct {
-	Registry      registry.Registry
+type writeDoguDataStep struct {
+	Writer        RegistryWriter
 	Configuration *context.SetupConfiguration
 }
 
-// NewWriteDoguConfigStep create a new setup step which writes the dogu configuration into the registry.
-func NewWriteDoguConfigStep(registry registry.Registry, configuration *context.SetupConfiguration) *writeDoguConfigStep {
-	return &writeDoguConfigStep{Registry: registry, Configuration: configuration}
+// NewWriteDoguDataStep create a new setup step which writes the dogu data into the registry.
+func NewWriteDoguDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeDoguDataStep {
+	return &writeDoguDataStep{Writer: writer, Configuration: configuration}
 }
 
 // GetStepDescription return the human-readable description of the step.
-func (wdcs *writeDoguConfigStep) GetStepDescription() string {
-	return "Write dogu configuration to the registry"
+func (wdds *writeDoguDataStep) GetStepDescription() string {
+	return "Write dogu data to the registry"
 }
 
-func (wdcs *writeDoguConfigStep) PerformSetupStep() error {
-	err := wdcs.Registry.GlobalConfig().Set("default_dogu", wdcs.Configuration.Dogus.DefaultDogu)
+func (wdds *writeDoguDataStep) PerformSetupStep() error {
+	registryConfig := context.CustomKeyValue{
+		"_global": map[string]interface{}{
+			"default_dogu": wdds.Configuration.Dogus.DefaultDogu,
+		},
+	}
+
+	err := wdds.Writer.WriteConfigToRegistry(registryConfig)
 	if err != nil {
-		return fmt.Errorf("could not set default dogu: %w", err)
+		return fmt.Errorf("failed to write dogu data to registry: %w", err)
 	}
 
 	return nil

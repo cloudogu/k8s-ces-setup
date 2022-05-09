@@ -3,43 +3,42 @@ package data
 import (
 	"fmt"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
-type writeNamingConfigStep struct {
-	Registry      registry.Registry
+type writeNamingDataStep struct {
+	Writer        RegistryWriter
 	Configuration *context.SetupConfiguration
 }
 
-// NewWriteNamingConfigStep create a new setup step which writes the naming configuration into the registry.
-func NewWriteNamingConfigStep(registry registry.Registry, configuration *context.SetupConfiguration) *writeNamingConfigStep {
-	return &writeNamingConfigStep{Registry: registry, Configuration: configuration}
+// NewWriteNamingDataStep create a new setup step which writes the naming data into the registry.
+func NewWriteNamingDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeNamingDataStep {
+	return &writeNamingDataStep{Writer: writer, Configuration: configuration}
 }
 
 // GetStepDescription return the human-readable description of the step.
-func (wncs *writeNamingConfigStep) GetStepDescription() string {
-	return "Write naming configuration to the registry"
+func (wnds *writeNamingDataStep) GetStepDescription() string {
+	return "Write naming data to the registry"
 }
 
-func (wncs *writeNamingConfigStep) PerformSetupStep() error {
-	globalMap := map[string]string{
-		"fqdn":                   wncs.Configuration.Naming.Fqdn,
-		"domain":                 wncs.Configuration.Naming.Domain,
-		"certificate/type":       wncs.Configuration.Naming.CertificateType,
-		"certificate/server.crt": wncs.Configuration.Naming.Certificate,
-		"certificate/server.key": wncs.Configuration.Naming.CertificateKey,
-		"mail_address":           wncs.Configuration.Naming.MailAddress,
+func (wnds *writeNamingDataStep) PerformSetupStep() error {
+	registryConfig := context.CustomKeyValue{
+		"_global": map[string]interface{}{
+			"fqdn":                   wnds.Configuration.Naming.Fqdn,
+			"domain":                 wnds.Configuration.Naming.Domain,
+			"certificate/type":       wnds.Configuration.Naming.CertificateType,
+			"certificate/server.crt": wnds.Configuration.Naming.Certificate,
+			"certificate/server.key": wnds.Configuration.Naming.CertificateKey,
+			"mail_address":           wnds.Configuration.Naming.MailAddress,
+		},
+		"postfix": map[string]interface{}{
+			"relayhost": wnds.Configuration.Naming.RelayHost,
+		},
 	}
 
-	err := writeMapToContext(wncs.Registry.GlobalConfig(), "_global", globalMap)
+	err := wnds.Writer.WriteConfigToRegistry(registryConfig)
 	if err != nil {
-		return err
-	}
-
-	err = wncs.Registry.DoguConfig("postfix").Set("relayhost", wncs.Configuration.Naming.RelayHost)
-	if err != nil {
-		return fmt.Errorf("could not set relayhost dogu: %w", err)
+		return fmt.Errorf("failed to write naming data to registry: %w", err)
 	}
 
 	return nil

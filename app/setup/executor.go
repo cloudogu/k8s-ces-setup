@@ -122,23 +122,26 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	// note: with introduction of the setup UI the instance secret may either come into play with a new instance
 	// registration or it may already reside in the current namespace
 	namespace := e.SetupContext.AppConfig.TargetNamespace
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, namespace))
 
-	etcdRegistry, err := registry.New(core.Registry{
+	registryInformation := core.Registry{
 		Type:      "etcd",
 		Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", namespace)},
-	})
+	}
 
+	etcdRegistry, err := registry.New(registryInformation)
 	if err != nil {
 		return fmt.Errorf("failed to create registry: %w", err)
 	}
 
-	configurationSetupStep := data.NewWriteConfigToRegistryStep(etcdRegistry, &e.SetupContext.StartupConfiguration)
-	e.RegisterSetupStep(configurationSetupStep)
-	e.RegisterSetupStep(data.NewWriteAdminConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
+	configWriter := data.NewGenericConfigurationWriter(etcdRegistry)
 
+	// register steps
+	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, namespace))
+	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteLdapDataStep(etcdRegistry, configWriter, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
 
 	return nil

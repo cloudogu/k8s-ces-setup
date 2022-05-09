@@ -24,6 +24,7 @@ func (kps *keyProviderSetterStep) GetStepDescription() string {
 	return fmt.Sprintf("Set key provider %s", keyProvider)
 }
 
+// todo this should be configurable in the setup config?
 // PerformSetupStep sets the key provider in the global config
 func (kps *keyProviderSetterStep) PerformSetupStep() error {
 	err := kps.globalConfig.Set("key_provider", keyProvider)

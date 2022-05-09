@@ -4,46 +4,38 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
-
-	"github.com/pkg/errors"
 )
 
-type writeAdminConfigStep struct {
-	Registry      registry.Registry
+type writeAdminDataStep struct {
+	Writer        RegistryWriter
 	Configuration *context.SetupConfiguration
 }
 
-// NewWriteAdminConfigStep create a new setup step which writes the admin configuration into the registry.
-func NewWriteAdminConfigStep(registry registry.Registry, configuration *context.SetupConfiguration) *writeAdminConfigStep {
-	return &writeAdminConfigStep{Registry: registry, Configuration: configuration}
+// NewWriteAdminDataStep create a new setup step which writes the admin data into the registry.
+func NewWriteAdminDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeAdminDataStep {
+	return &writeAdminDataStep{Writer: writer, Configuration: configuration}
 }
 
 // GetStepDescription return the human-readable description of the step.
-func (wctrs *writeAdminConfigStep) GetStepDescription() string {
-	return "Write admin configuration to the registry"
+func (wacs *writeAdminDataStep) GetStepDescription() string {
+	return "Write admin data to the registry"
 }
 
-func (wctrs *writeAdminConfigStep) PerformSetupStep() error {
-	err := wctrs.Registry.GlobalConfig().Set("admin_group", wctrs.Configuration.Admin.AdminGroup)
-	if err != nil {
-		return errors.Wrap(err, "could not set admin group")
+func (wacs *writeAdminDataStep) PerformSetupStep() error {
+	registryConfig := context.CustomKeyValue{
+		"_global": map[string]interface{}{
+			"admin_group": wacs.Configuration.Admin.AdminGroup,
+		},
 	}
 
-	if wctrs.Configuration.UserBackend.DsType == validation.DsTypeEmbedded {
-
-		ldapConfig := map[string]string{
-			"admin_username": wctrs.Configuration.Admin.Username,
-			"admin_mail":     wctrs.Configuration.Admin.Mail,
-			"admin_member":   strconv.FormatBool(wctrs.Configuration.Admin.AdminMember),
-		}
-
-		err = writeMapToContext(wctrs.Registry.DoguConfig("ldap"), "ldap/config", ldapConfig)
-		if err != nil {
-			return err
+	if wacs.Configuration.UserBackend.DsType == validation.DsTypeEmbedded {
+		registryConfig["ldap"] = map[string]interface{}{
+			"admin_username": wacs.Configuration.Admin.Username,
+			"admin_mail":     wacs.Configuration.Admin.Mail,
+			"admin_member":   strconv.FormatBool(wacs.Configuration.Admin.AdminMember),
 		}
 
 		// TODO: Currently it is not possible to save encrypted values for the dogus. Should be addressed ASAP
@@ -63,7 +55,7 @@ func (wctrs *writeAdminConfigStep) PerformSetupStep() error {
 		//	return errors.Wrap(err, "could not get public key from public.pem")
 		//}
 		//
-		//passwordEnc, err := ldapPublicKey.Encrypt(wctrs.Configuration.Admin.Password)
+		//passwordEnc, err := ldapPublicKey.Encrypt(wacs.Configuration.Admin.Password)
 		//if err != nil {
 		//	return errors.Wrap(err, "could not encrypt password")
 		//}
@@ -74,15 +66,9 @@ func (wctrs *writeAdminConfigStep) PerformSetupStep() error {
 		//}
 	}
 
-	return nil
-}
-
-func writeMapToContext(context registry.ConfigurationContext, scope string, configMap map[string]string) error {
-	for key, value := range configMap {
-		err := context.Set(key, value)
-		if err != nil {
-			return fmt.Errorf("could not write [%s] into etcd registry: %w", key, err)
-		}
+	err := wacs.Writer.WriteConfigToRegistry(registryConfig)
+	if err != nil {
+		return fmt.Errorf("failed to write admin data to registry: %w", err)
 	}
 
 	return nil
