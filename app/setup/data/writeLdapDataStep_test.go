@@ -5,8 +5,6 @@ import (
 
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 
-	mocks2 "github.com/cloudogu/cesapp-lib/registry/mocks"
-
 	"github.com/stretchr/testify/mock"
 
 	"github.com/stretchr/testify/require"
@@ -24,11 +22,10 @@ func TestNewWriteLdapDataStep(t *testing.T) {
 	t.Run("successfully create new dogu data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistry := &mocks2.Registry{}
 		testConfig := &context.SetupConfiguration{}
 
 		// when
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// then
 		assert.NotNil(t, myStep)
@@ -42,9 +39,8 @@ func Test_writeLdapDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get dogu data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistry := &mocks2.Registry{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		description := myStep.GetStepDescription()
@@ -58,44 +54,21 @@ func Test_writeLdapDataStep_GetStepDescription(t *testing.T) {
 func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
-	t.Run("failed to check if ldap-mapper is enabled", func(t *testing.T) {
-		// given
-		testConfig := &context.SetupConfiguration{}
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(false, assert.AnError)
-
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
-
-		// when
-		err := myStep.PerformSetupStep()
-
-		// then
-		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
-	})
-
 	t.Run("failed to write to the registry", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{}
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(false, nil)
 
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
 
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	ldapConfiguration := context.UserBackend{
@@ -149,22 +122,17 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 					"server":               "myServer"}},
 		}
 
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(false, nil)
-
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully write all dogu data to the registry with: embedded ldap, with encryption and no ldap-mapper enabled", func(t *testing.T) {
@@ -194,27 +162,24 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 					"server":               "myServer"}},
 		}
 
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(false, nil)
-
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully write all dogu data to the registry with: embedded ldap, with encryption and ldap-mapper enabled", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{UserBackend: ldapConfiguration}
+		testConfig := &context.SetupConfiguration{
+			Dogus:       context.Dogus{Install: []string{"official/ldap-mapper:1.0.0"}},
+			UserBackend: ldapConfiguration}
 		testConfig.UserBackend.DsType = validation.DsTypeExternal
 		testConfig.UserBackend.Encryption = "myEncryption"
 
@@ -269,27 +234,24 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 			},
 		}
 
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(true, nil)
-
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully write all dogu data to the registry with: external ldap, with encryption and ldap-mapper enabled", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{UserBackend: ldapConfiguration}
+		testConfig := &context.SetupConfiguration{
+			Dogus:       context.Dogus{Install: []string{"official/ldap-mapper:1.0.0"}},
+			UserBackend: ldapConfiguration}
 		testConfig.UserBackend.DsType = validation.DsTypeEmbedded
 		testConfig.UserBackend.Encryption = "myEncryption"
 
@@ -321,21 +283,16 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 			},
 		}
 
-		mockRegistry := &mocks2.Registry{}
-		mockDoguRegistry := &mocks2.DoguRegistry{}
-		mockRegistry.On("DoguRegistry").Return(mockDoguRegistry)
-		mockDoguRegistry.On("IsEnabled", "ldap-mapper").Return(true, nil)
-
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteLdapDataStep(mockRegistry, mockRegistryWriter, testConfig)
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
 		err := myStep.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistry, mockDoguRegistry, mockRegistryWriter)
+		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }

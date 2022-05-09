@@ -140,7 +140,7 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(etcdRegistry, configWriter, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
 

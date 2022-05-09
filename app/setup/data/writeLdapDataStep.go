@@ -2,23 +2,21 @@ package data
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
-
-	"github.com/cloudogu/cesapp-lib/registry"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 type writeLdapDataStep struct {
-	Registry      registry.Registry
 	Writer        RegistryWriter
 	Configuration *context.SetupConfiguration
 }
 
 // NewWriteLdapDataStep create a new setup step which writes the naming configuration into the registry.
-func NewWriteLdapDataStep(registry registry.Registry, writer RegistryWriter, configuration *context.SetupConfiguration) *writeLdapDataStep {
-	return &writeLdapDataStep{Registry: registry, Writer: writer, Configuration: configuration}
+func NewWriteLdapDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeLdapDataStep {
+	return &writeLdapDataStep{Writer: writer, Configuration: configuration}
 }
 
 // GetStepDescription return the human-readable description of the step.
@@ -30,16 +28,11 @@ func (wlds *writeLdapDataStep) PerformSetupStep() error {
 	registryConfig := context.CustomKeyValue{}
 	registryConfig["cas"] = wlds.getCasEntriesAsMap()
 
-	enabled, err := wlds.Registry.DoguRegistry().IsEnabled("ldap-mapper")
-	if err != nil {
-		return fmt.Errorf("failed to check if ldap-mapper is enabled: %w", err)
-	}
-
-	if enabled {
+	if isDoguInstalled(wlds.Configuration.Dogus.Install, "ldap-mapper") {
 		registryConfig["ldap-mapper"] = wlds.getLdapMapperEntriesAsMap()
 	}
 
-	err = wlds.Writer.WriteConfigToRegistry(registryConfig)
+	err := wlds.Writer.WriteConfigToRegistry(registryConfig)
 	if err != nil {
 		return fmt.Errorf("failed to write ldap data to registry: %w", err)
 	}
@@ -172,4 +165,13 @@ func (wlds *writeLdapDataStep) getLdapMapperEntriesAsMap() map[string]interface{
 	//	}
 
 	return ldapMapperRegistryConfig
+}
+
+func isDoguInstalled(dogus []string, doguName string) bool {
+	for _, doguNameWithVersion := range dogus {
+		if strings.Contains(doguNameWithVersion, doguName) {
+			return true
+		}
+	}
+	return false
 }
