@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	dsTypeEmbedded = "embedded"
-	dsTypeExternal = "external"
+	DsTypeEmbedded = "embedded"
+	DsTypeExternal = "external"
 )
 
 type userBackendValidator struct {
@@ -24,15 +24,15 @@ func NewUserBackendValidator() *userBackendValidator {
 // see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
 func (ubv *userBackendValidator) ValidateUserBackend(backend context.UserBackend) error {
 	dsType := backend.DsType
-	if dsType != dsTypeEmbedded && dsType != dsTypeExternal {
-		return GetInvalidOptionError("dsType", dsTypeEmbedded, dsTypeExternal)
+	if dsType != DsTypeEmbedded && dsType != DsTypeExternal {
+		return GetInvalidOptionError("dsType", DsTypeEmbedded, DsTypeExternal)
 	}
 
 	var result error
-	if dsType == dsTypeExternal {
+	if dsType == DsTypeExternal {
 		result = ubv.validateExternalBackend(backend)
 	}
-	if dsType == dsTypeEmbedded {
+	if dsType == DsTypeEmbedded {
 		result = ubv.validateEmbeddedBackend(backend)
 	}
 

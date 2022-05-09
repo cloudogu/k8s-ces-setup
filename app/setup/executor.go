@@ -135,8 +135,10 @@ func (e *Executor) RegisterDataSetupSteps() error {
 
 	configurationSetupStep := data.NewWriteConfigToRegistryStep(etcdRegistry, &e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(configurationSetupStep)
+	e.RegisterSetupStep(data.NewWriteAdminConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteNamingConfigStep(etcdRegistry, &e.SetupContext.StartupConfiguration))
+
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
-	e.RegisterSetupStep(data.NewWriteSSLStep(&e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
 
 	return nil
 }

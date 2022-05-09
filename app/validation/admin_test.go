@@ -1,10 +1,11 @@
 package validation
 
 import (
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewAdminValidator(t *testing.T) {
@@ -25,10 +26,10 @@ func Test_adminValidator_ValidateAdmin(t *testing.T) {
 		wantErrMsg       assert.ComparisonAssertionFunc
 	}{
 		{"no admin group set", context.User{}, "", "no admin group set", assert.Error, assert.Contains},
-		{"no admin mail set", context.User{AdminGroup: "group"}, dsTypeEmbedded, "no admin mail set", assert.Error, assert.Contains},
-		{"invalid admin mail set", context.User{AdminGroup: "group", Mail: "t"}, dsTypeEmbedded, "invalid admin mail", assert.Error, assert.Contains},
-		{"no admin username set", context.User{AdminGroup: "group", Mail: "test@test.de"}, dsTypeEmbedded, "no admin username set", assert.Error, assert.Contains},
-		{"no admin password set", context.User{AdminGroup: "group", Mail: "test@test.de", Username: "name"}, dsTypeEmbedded, "no admin password set", assert.Error, assert.Contains},
+		{"no admin mail set", context.User{AdminGroup: "group"}, DsTypeEmbedded, "no admin mail set", assert.Error, assert.Contains},
+		{"invalid admin mail set", context.User{AdminGroup: "group", Mail: "t"}, DsTypeEmbedded, "invalid admin mail", assert.Error, assert.Contains},
+		{"no admin username set", context.User{AdminGroup: "group", Mail: "test@test.de"}, DsTypeEmbedded, "no admin username set", assert.Error, assert.Contains},
+		{"no admin password set", context.User{AdminGroup: "group", Mail: "test@test.de", Username: "name"}, DsTypeEmbedded, "no admin password set", assert.Error, assert.Contains},
 	}
 
 	for _, tt := range tests {
@@ -51,7 +52,7 @@ func Test_adminValidator_ValidateAdmin(t *testing.T) {
 		validator := &adminValidator{}
 
 		// when
-		result := validator.ValidateAdmin(adminUser, dsTypeEmbedded)
+		result := validator.ValidateAdmin(adminUser, DsTypeEmbedded)
 
 		// then
 		require.NoError(t, result)

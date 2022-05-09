@@ -22,7 +22,7 @@ func (av *adminValidator) ValidateAdmin(admin context.User, dsType string) error
 		return GetPropertyNotSetError("admin group")
 	}
 
-	if dsType == dsTypeExternal {
+	if dsType == DsTypeExternal {
 		return nil
 	}
 
