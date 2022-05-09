@@ -50,34 +50,54 @@ kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --
 Nun kann das Setup ausgebracht werden. Für mehr Informationen zur Ausbringung des Setup sind
 [hier](installation_guide_de.md) beschreiben.
 
-## Ausführliche Beschreibung aller Regionen der Setup-Konfiguration
+## Beschreibung der Unterschiede aller Regionen der Setup-Konfiguration im Gegensatz zum `ces-setup`
+In diesem Kapitel werden Unterschiede der `setup.json` zum "alten" `ces-setup` festgehalten.
+Die grundlegende Beschreibung ist [hier](https://github.com/cloudogu/ces-setup/blob/develop/docs/operations/setup-json_de.md) zu finden.
 
 ### Region Token
 
-TODO
+Da das `k8s-ces-setup` keine VM's mehr konfigurieren kann entfällt dieser Abschnitt komplett.
+Eigenschaften wie `locale`, `timezone` und `keyboardLayout` müssen bei der Initialisierung des Kubernetes-Cluster geschehen.
 
-### Region Naming
+
+### Bereich "Naming"
 
 Die Region `Naming` enthält Konfigurationen, die das gesamte System betreffen. Darunter fallen FQDN, Domäne, SSL-Zertifikate und mehr.
 
-TODO
+Objektname: _naming_
+Eigenschaften:
 
-### Region UserBackend
+#### useInternalIp
+* Optional
+* Datentyp: boolean
+* Inhalt: Dieser Schalter gibt an, ob eine spezifische IP-Adresse für eine interne DNS-Auflösung des Hosts verwendet werden soll. Wenn dieser Schalter auf `true` gesetzt wird, dann erzwingt dies, einen gültigen Wert im Feld `internalIp`. Wenn dieses Feld nicht gesetzt wurde, dann wird es mit `false` interpretiert und ignoriert.
+* Beispiel: `"useInternalIp": true`
 
-TODO
+#### internalIp
+* Optional
+* Datentyp: String
+* Inhalt: Wenn und nur wenn `userInternalIp` wahr ist, wird die hier hinterlegte IP-Adresse für eine interne DNS-Auflösung des Hosts verwendet. Ansonsten wird dieses Feld ignoriert. Dies ist besonders für Installationen mit einer Split-DNS-Konfiguration interessant, d. h. wenn die Instanz von außen mit einer anderen IP-Adresse erreichbar ist, als von innen.
+* Beispiel: `"internalIp": "10.0.2.15"`
+
+Die interne IP wird im `ces-setup` dazu verwendet um einen zusätzlichen Eintrag in `etc/hosts` zu schreiben.
+Im Kubernetes-Umfeld ist dies so nicht möglich und zurzeit nicht implementiert.
+
+### Bereich "UserBackend"
+
+Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 
 ### Region AdminUser
 
-TODO
+Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 
 ### Region Dogus
 
-TODO
+Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 
 ### Region RegistryConfig
 
-TODO
+Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 
 ### Region RegistryConfigEncrypted
 
-TODO
+Eigenschaften besitzen keine Unterschiede zum `ces-setup`
