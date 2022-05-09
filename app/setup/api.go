@@ -2,8 +2,9 @@ package setup
 
 import (
 	"fmt"
-	"k8s.io/client-go/kubernetes"
 	"net/http"
+
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,12 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 		err = setupExecutor.RegisterDataSetupSteps()
 		if err != nil {
 			handleInternalServerError(ctx, err, "Register data setup steps")
+			return
+		}
+
+		err = setupExecutor.RegisterDoguInstallationSteps()
+		if err != nil {
+			handleInternalServerError(ctx, err, "Register dogu installation steps")
 			return
 		}
 

@@ -3,11 +3,12 @@ package setup
 import (
 	gocontext "context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cloudogu/cesapp-lib/remote"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
-	"time"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
@@ -58,7 +59,7 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		Password: string(doguRegistrySecret.Data["password"]),
 	}
 
-	registry, err := remote.New(getRemoteConfig(doguRegistrySecret), credentials)
+	doguRegistry, err := remote.New(getRemoteConfig(doguRegistrySecret), credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
@@ -67,7 +68,7 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		SetupContext:  setupCtx,
 		ClientSet:     k8sClient,
 		ClusterConfig: clusterConfig,
-		Registry:      registry,
+		Registry:      doguRegistry,
 	}, nil
 }
 
@@ -166,11 +167,25 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
-	installDogusStep, err := data.NewInstallDogusStep(e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, namespace)
+
+	return nil
+}
+
+func (e *Executor) RegisterDoguInstallationSteps() error {
+	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
-		return fmt.Errorf("failed to create install dogus step: %w", err)
+		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
-	e.RegisterSetupStep(installDogusStep)
+
+	doguSteps, err := doguStepGenerator.GenerateSteps()
+	if err != nil {
+		return fmt.Errorf("failed when generating steps for dogus: %w", err)
+	}
+
+	for _, step := range doguSteps {
+		e.RegisterSetupStep(step)
+	}
+
 	return nil
 }
 
