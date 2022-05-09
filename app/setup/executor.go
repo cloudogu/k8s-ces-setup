@@ -166,7 +166,6 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	e.RegisterSetupStep(data.NewWriteLdapDataStep(etcdRegistry, configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
-	e.RegisterSetupStep(data.NewWriteSSLStep(&e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
 	installDogusStep, err := data.NewInstallDogusStep(e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create install dogus step: %w", err)
