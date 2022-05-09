@@ -12,8 +12,13 @@
     "internalIp": ""
   },
   "dogus": {
-    "defaultDogu": "",
-    "install": null,
+    "defaultDogu": "official/cockpit",
+    "install": [
+      "official/ldap:2.4.58-2",
+      "official/cas",
+      "official/postgresql:12.10-1",
+      "official/postfix"
+    ],
     "completed": false
   },
   "admin": {

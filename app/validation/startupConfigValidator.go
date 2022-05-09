@@ -2,8 +2,7 @@ package validation
 
 import (
 	"fmt"
-
-	v1 "k8s.io/api/core/v1"
+	"github.com/cloudogu/cesapp-lib/remote"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
@@ -36,18 +35,15 @@ type DoguValidator interface {
 }
 
 // NewStartupConfigurationValidator creates a new setup json validator
-func NewStartupConfigurationValidator(secret *v1.Secret) (*validator, error) {
-	doguValidator, err := NewDoguValidator(secret)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create dogu validator: %w", err)
-	}
+func NewStartupConfigurationValidator(registry remote.Registry) *validator {
+	doguValidator := NewDoguValidator(registry)
 
 	return &validator{
 		namingValidator:     NewNamingValidator(),
 		userBackenValidator: NewUserBackendValidator(),
 		adminValidator:      NewAdminValidator(),
 		doguValidator:       doguValidator,
-	}, nil
+	}
 }
 
 // ValidateConfiguration checks the section naming, user backend and user from the setup.json configuration

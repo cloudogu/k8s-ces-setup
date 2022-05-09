@@ -1,7 +1,12 @@
 package setup
 
 import (
+	gocontext "context"
 	"fmt"
+	"github.com/cloudogu/cesapp-lib/remote"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 	"time"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -37,29 +42,47 @@ type Executor struct {
 	ClusterConfig *rest.Config `json:"cluster_config"`
 	// Steps contains all necessary steps for the setup
 	Steps []ExecutorStep `json:"steps"`
+	// Registry is the dogu registry
+	Registry remote.Registry `json:"registry"`
 }
 
 // NewExecutor creates a new setup executor with the given app configuration.
-func NewExecutor(clusterConfig *rest.Config, context *context.SetupContext) (*Executor, error) {
-	k8sClient, err := createKubernetesClient(clusterConfig)
+func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *context.SetupContext) (*Executor, error) {
+	doguRegistrySecret, err := k8sClient.CoreV1().Secrets(setupCtx.AppConfig.TargetNamespace).Get(gocontext.Background(), context.SecretDoguRegistry, v1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
+		return nil, fmt.Errorf("failed to get secret [%s]: %w", context.SecretDoguRegistry, err)
+	}
+
+	credentials := &core.Credentials{
+		Username: string(doguRegistrySecret.Data["username"]),
+		Password: string(doguRegistrySecret.Data["password"]),
+	}
+
+	registry, err := remote.New(getRemoteConfig(doguRegistrySecret), credentials)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
 
 	return &Executor{
-		SetupContext:  context,
+		SetupContext:  setupCtx,
 		ClientSet:     k8sClient,
 		ClusterConfig: clusterConfig,
+		Registry:      registry,
 	}, nil
 }
 
-func createKubernetesClient(clusterConfig *rest.Config) (*kubernetes.Clientset, error) {
-	clientSet, err := kubernetes.NewForConfig(clusterConfig)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create kubernetes client: %w", err)
-	}
+func getRemoteConfig(doguRegistrySecret *corev1.Secret) *core.Remote {
+	endpoint := string(doguRegistrySecret.Data["endpoint"])
+	endpoint = strings.TrimSuffix(endpoint, "/")
+	endpoint = strings.TrimSuffix(endpoint, "dogus")
+	endpoint = strings.TrimSuffix(endpoint, "/")
 
-	return clientSet, nil
+	// TODO ConfigMap für URlSchema (default oder mirrored)
+	return &core.Remote{
+		Endpoint:  endpoint,
+		URLSchema: "",
+		CacheDir:  "/tmp",
+	}
 }
 
 // RegisterSetupStep adds a new step to the setup
@@ -143,23 +166,22 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	e.RegisterSetupStep(data.NewWriteLdapDataStep(etcdRegistry, configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
-
+	e.RegisterSetupStep(data.NewWriteSSLStep(&e.SetupContext.StartupConfiguration, etcdRegistry.GlobalConfig()))
+	installDogusStep, err := data.NewInstallDogusStep(e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to create install dogus step: %w", err)
+	}
+	e.RegisterSetupStep(installDogusStep)
 	return nil
 }
 
 func (e *Executor) RegisterValidationStep() error {
-	setupValidator, err := NewValidatorStep(e.ClientSet, e.SetupContext)
-	if err != nil {
-		return fmt.Errorf("failed to create new validation step: %w", err)
-	}
-
-	e.RegisterSetupStep(setupValidator)
+	e.RegisterSetupStep(NewValidatorStep(e.Registry, e.SetupContext))
 	return nil
 }
 
 func (e *Executor) RegisterSSLGenerationStep() error {
 	generationStep := data.NewGenerateSSLStep(&e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(generationStep)
-
 	return nil
 }

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"k8s.io/client-go/kubernetes"
 	"net/http"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -24,7 +25,13 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 			return
 		}
 
-		setupExecutor, err := NewExecutor(clusterConfig, setupContext)
+		clientSet, err := kubernetes.NewForConfig(clusterConfig)
+		if err != nil {
+			handleInternalServerError(ctx, err, "Cannot create kubernetes client")
+			return
+		}
+
+		setupExecutor, err := NewExecutor(clusterConfig, clientSet, setupContext)
 		if err != nil {
 			handleInternalServerError(ctx, err, "Creating setup executor")
 			return

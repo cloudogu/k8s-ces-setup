@@ -1,15 +1,9 @@
 package setup
 
 import (
-	"fmt"
-
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	gocontext "context"
-
+	"github.com/cloudogu/cesapp-lib/remote"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
-	"k8s.io/client-go/kubernetes"
 )
 
 type setupValidatorStep struct {
@@ -25,18 +19,10 @@ type ConfigurationValidator interface {
 }
 
 // NewValidatorStep creates a new setup step to validate the setup configuration.
-func NewValidatorStep(client kubernetes.Interface, setupCtx *context.SetupContext) (*setupValidatorStep, error) {
-	registrySecret, err := client.CoreV1().Secrets(setupCtx.AppConfig.TargetNamespace).Get(gocontext.Background(), context.SecretDoguRegistry, v1.GetOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get secret [%s]: %w", context.SecretDoguRegistry, err)
-	}
+func NewValidatorStep(registry remote.Registry, setupCtx *context.SetupContext) *setupValidatorStep {
+	validator := validation.NewStartupConfigurationValidator(registry)
 
-	validator, err := validation.NewStartupConfigurationValidator(registrySecret)
-	if err != nil {
-		return nil, err
-	}
-
-	return &setupValidatorStep{Validator: validator, Configuration: &setupCtx.StartupConfiguration}, nil
+	return &setupValidatorStep{Validator: validator, Configuration: &setupCtx.StartupConfiguration}
 }
 
 // GetStepDescription return the human-readable description of the step.
