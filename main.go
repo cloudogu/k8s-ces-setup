@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cloudogu/k8s-ces-setup/app/ssl"
 	"os"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -85,4 +86,5 @@ func configureLogger(appConfig context.Config) {
 func setupAPI(router gin.IRoutes, context *context.SetupContext) {
 	health.SetupAPI(router, context)
 	setup.SetupAPI(router, context)
+	ssl.SetupAPI(router, context)
 }

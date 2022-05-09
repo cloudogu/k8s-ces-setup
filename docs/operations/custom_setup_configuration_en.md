@@ -49,34 +49,54 @@ kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --
 Now the setup can be deployed. For more information about deploying the setup
 [here](installation_guide_en.md) describe.
 
-## Detailed description of all regions of the setup configuration
+## Description of differences of all regions of the setup configuration in contrast to `ces-setup`.
+This chapter records differences of `setup.json` from the "old" `ces-setup`.
+The basic description can be found [here](https://github.com/cloudogu/ces-setup/blob/develop/docs/operations/setup-json_de.md).
 
-### Region Token
+### Region tokens
 
-TODO
+Since the `k8s-ces-setup` cannot configure VM's anymore, this section is omitted completely.
+Properties such as `locale`, `timezone` and `keyboardLayout` must happen when the Kubernetes cluster is initialized.
 
-### Region Naming
 
-The 'Naming' region contains configurations that affect the entire system. This includes FQDN, domain, SSL certificates and more.
+### `Naming` region
 
-TODO
+The `naming` region contains configurations that affect the entire system. This includes FQDN, domain, SSL certificates and more.
 
-### Region UserBackend
+Object name: _naming_
+Properties:
 
-TODO
+#### useInternalIp
+* Optional
+* Data type: boolean
+* Contents: This switch specifies whether a specific IP address should be used for an internal DNS resolution of the host. If this switch is set to `true`, then this forces a valid value in the `internalIp` field. If this field is not set, then it will be interpreted as `false` and ignored.
+* Example: `"useInternalIp": true`
 
-### Region AdminUser
+#### internalIp
+* Optional
+* Data type: String
+* Contents: If and only if `userInternalIp` is true, the IP address stored here will be used for an internal DNS resolution of the host. Otherwise this field is ignored. This is especially interesting for installations with a split DNS configuration, i.e. if the instance is reachable from outside with a different IP address than from inside.
+* Example: `"internalIp": "10.0.2.15"`.
 
-TODO
+The internal IP is used in `ces-setup` to write an additional entry in `etc/hosts`.
+In the Kubernetes environment, this is not possible in this way and is not currently implemented.
+
+### UserBackend section
+
+Properties have no differences to `ces-setup`
+
+### AdminUser region
+
+Properties do not have any differences to `ces-setup`
 
 ### Region Dogus
 
-TODO
+Properties have no differences to the `ces-setup`
 
 ### Region RegistryConfig
 
-TODO
+Properties have no differences to the `ces-setup`
 
 ### Region RegistryConfigEncrypted
 
-TODO
+Properties have no differences to `ces-setup`
