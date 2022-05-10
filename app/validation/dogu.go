@@ -24,15 +24,20 @@ func NewDoguValidator(registry remote.Registry) *doguValidator {
 
 // ValidateDogus check whether the configured dogu has no invalid or unmet dependencies.
 func (dv *doguValidator) ValidateDogus(dogus context.Dogus) error {
-	// TODO just iterate over install list
-	_, err := dv.Registry.Get(dogus.DefaultDogu)
-	if err != nil {
-		return fmt.Errorf("invalid default dogu: %w", err)
-	}
-
 	doguList, err := dv.parseDoguStrToDoguList(dogus.Install)
 	if err != nil {
 		return err
+	}
+
+	isDeafultDoguValid := false
+	for _, dogu := range dogus.Install {
+		if strings.Contains(dogu, dogus.DefaultDogu) {
+			isDeafultDoguValid = true
+		}
+	}
+
+	if !isDeafultDoguValid {
+		return fmt.Errorf("invalid value for default dogu [%s]", dogus.DefaultDogu)
 	}
 
 	for _, installDogu := range doguList {

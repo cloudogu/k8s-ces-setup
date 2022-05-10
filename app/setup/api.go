@@ -38,25 +38,25 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 			return
 		}
 
-		if setupContext.StartupConfiguration.Naming.CertificateType == "selfsigned" {
-			err = setupExecutor.RegisterSSLGenerationStep()
-			if err != nil {
-				handleInternalServerError(ctx, err, "Register ssl generation setup step")
-				return
-			}
-		}
-
-		err = setupExecutor.RegisterValidationStep()
-		if err != nil {
-			handleInternalServerError(ctx, err, "Register validation setup steps")
-			return
-		}
-
-		err = setupExecutor.RegisterComponentSetupSteps()
-		if err != nil {
-			handleInternalServerError(ctx, err, "Register component setup steps")
-			return
-		}
+		//if setupContext.StartupConfiguration.Naming.CertificateType == "selfsigned" {
+		//	err = setupExecutor.RegisterSSLGenerationStep()
+		//	if err != nil {
+		//		handleInternalServerError(ctx, err, "Register ssl generation setup step")
+		//		return
+		//	}
+		//}
+		//
+		//err = setupExecutor.RegisterValidationStep()
+		//if err != nil {
+		//	handleInternalServerError(ctx, err, "Register validation setup steps")
+		//	return
+		//}
+		//
+		//err = setupExecutor.RegisterComponentSetupSteps()
+		//if err != nil {
+		//	handleInternalServerError(ctx, err, "Register component setup steps")
+		//	return
+		//}
 
 		err = setupExecutor.RegisterDataSetupSteps()
 		if err != nil {

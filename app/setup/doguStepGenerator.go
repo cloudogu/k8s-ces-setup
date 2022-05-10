@@ -34,7 +34,7 @@ var (
 type doguStepGenerator struct {
 	Client     kubernetes.Interface
 	RestClient *rest.RESTClient
-	dogus      *[]*core.Dogu
+	Dogus      *[]*core.Dogu
 	Registry   remote.Registry
 	namespace  string
 }
@@ -55,30 +55,32 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 		doguList = append(doguList, dogu)
 	}
 
-	return &doguStepGenerator{Client: client, RestClient: restClient, dogus: &doguList, Registry: registry, namespace: namespace}, nil
+	return &doguStepGenerator{Client: client, RestClient: restClient, Dogus: &doguList, Registry: registry, namespace: namespace}, nil
 }
 
-func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
+func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
 	steps := []ExecutorStep{}
 
-	installedDogus := core.SortDogusByDependency(*dsg.dogus)
+	installedDogus := core.SortDogusByDependency(*dsg.Dogus)
+	waitForDoguList := ""
 	for _, dogu := range installedDogus {
-		// create wait step if necessary
-		for _, dependency := range dogu.Dependencies {
-			if dependency.Type == core.DependencyTypeDogu {
-				labelSelector := fmt.Sprintf("dogu=%s", dependency.Name)
+		// create wait step if needing a service account from a certain dogu
+		for _, serviceAccountDepedency := range dogu.ServiceAccounts {
+			labelSelector := fmt.Sprintf("dogu=%s", serviceAccountDepedency.Type)
+
+			if !strings.Contains(waitForDoguList, fmt.Sprintf("[%s]", labelSelector)) {
 				waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, time.Second*300)
 				steps = append(steps, waitForDependencyStep)
+				waitForDoguList += fmt.Sprintf("[%s]", labelSelector)
 			}
 		}
-		// todo also for optional if installed
 
 		// create install step
 		installStep := dogus.NewInstallDogusStep(dsg.RestClient, dogu, dsg.namespace)
 		steps = append(steps, installStep)
 	}
 
-	return steps, nil
+	return steps
 }
 
 func getDoguByString(registry remote.Registry, doguString string) (*core.Dogu, error) {

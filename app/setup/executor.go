@@ -177,11 +177,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
 
-	doguSteps, err := doguStepGenerator.GenerateSteps()
-	if err != nil {
-		return fmt.Errorf("failed when generating steps for dogus: %w", err)
-	}
-
+	doguSteps := doguStepGenerator.GenerateSteps()
 	for _, step := range doguSteps {
 		e.RegisterSetupStep(step)
 	}

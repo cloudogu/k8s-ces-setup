@@ -12,7 +12,7 @@
     "internalIp": ""
   },
   "dogus": {
-    "defaultDogu": "official/usermgt",
+    "defaultDogu": "usermgt",
     "install": [
       "official/ldap",
       "official/cas",
