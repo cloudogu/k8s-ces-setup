@@ -10,6 +10,7 @@ import (
 const (
 	DsTypeEmbedded = "embedded"
 	DsTypeExternal = "external"
+	searchFilter   = "(objectClass=person)"
 )
 
 type userBackendValidator struct {
@@ -52,8 +53,8 @@ func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.U
 	if backend.AttributeGroup != "memberOf" {
 		return GetInvalidOptionError("attributeGroup", "memberOf")
 	}
-	if backend.SearchFilter != "(objectClass=person)" {
-		return GetInvalidOptionError("searchFilter", "(objectClass=person)")
+	if backend.SearchFilter != searchFilter {
+		return GetInvalidOptionError("searchFilter", searchFilter)
 	}
 
 	return nil
@@ -128,8 +129,8 @@ func (ubv *userBackendValidator) validateEmbeddedBackend(backend context.UserBac
 	if backend.AttributeGroup != "memberOf" {
 		return GetInvalidOptionError("attributeGroup", "memberOf")
 	}
-	if backend.SearchFilter != "(objectClass=person)" {
-		return GetInvalidOptionError("searchFilter", "(objectClass=person)")
+	if backend.SearchFilter != searchFilter {
+		return GetInvalidOptionError("searchFilter", searchFilter)
 	}
 	if backend.Host != "ldap" {
 		return GetInvalidOptionError("host", "ldap")

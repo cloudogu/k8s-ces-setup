@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+const encodeErrorMsg = "failed to encode certificate"
+
 type sslGenerator struct {
 }
 
@@ -52,7 +54,7 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		Bytes: certBytes,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("failed to encode certificate: %w", err)
+		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
 	}
 
 	caCertPEM := new(bytes.Buffer)
@@ -61,7 +63,7 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		Bytes: caCertBytes,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("failed to encode certificate: %w", err)
+		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
 	}
 
 	certPrivKeyPEM := new(bytes.Buffer)
@@ -70,14 +72,14 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("failed to encode certificate: %w", err)
+		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
 	}
 
 	chain := fmt.Sprintf("%s%s", caCertPEM.String(), certPEM.String())
 	return chain, certPrivKeyPEM.String(), nil
 }
 
-func (gss *sslGenerator) createCertTemplateWithKey(validDays int, domain string) (*x509.Certificate, *rsa.PrivateKey, error) {
+func (sg *sslGenerator) createCertTemplateWithKey(validDays int, domain string) (*x509.Certificate, *rsa.PrivateKey, error) {
 	certPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, nil, err
@@ -99,14 +101,14 @@ func (gss *sslGenerator) createCertTemplateWithKey(validDays int, domain string)
 	return certificate, certPrivKey, nil
 }
 
-func (gss *sslGenerator) appendCaTemplate(ca *x509.Certificate) {
+func (sg *sslGenerator) appendCaTemplate(ca *x509.Certificate) {
 	ca.Subject.CommonName = "CES Self Signed"
 	ca.IsCA = true
 	ca.KeyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign
 	ca.BasicConstraintsValid = true
 }
 
-func (gss *sslGenerator) appendCertTemplate(cert *x509.Certificate, fqdn string) {
+func (sg *sslGenerator) appendCertTemplate(cert *x509.Certificate, fqdn string) {
 	cert.KeyUsage = x509.KeyUsageDigitalSignature
 	cert.SubjectKeyId = []byte{1, 2, 3, 4, 6}
 	ip := net.ParseIP(fqdn)
