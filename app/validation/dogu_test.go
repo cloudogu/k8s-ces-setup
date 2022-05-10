@@ -40,9 +40,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguC := "official/redmine:3.1.2-1"
 		doguD := "official/postfix"
 		doguList := []string{doguA, doguB, doguC, doguD}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		ldapDogu := &core.Dogu{Name: "official/ldap", Version: "1.1.1-2"}
 		casDogu := &core.Dogu{Name: "official/cas", Version: "2.0.0-3", Dependencies: []core.Dependency{{
 			Type:    "dogu",
@@ -80,9 +79,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguC := "official/redmine:3.1.2-1"
 		doguD := "official/postfix:0.0.1-1"
 		doguList := []string{doguA, doguB, doguC, doguD}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		ldapDogu := &core.Dogu{Name: "official/ldap", Version: "1.1.1-2"}
 		casDogu := &core.Dogu{Name: "official/cas", Version: "2.0.0-3", Dependencies: []core.Dependency{{
 			Type:    "dogu",
@@ -118,9 +116,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		// given
 		doguA := "official/ldap:1.1.1-2"
 		doguList := []string{doguA}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-2").Return(nil, assert.AnError)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
 
@@ -137,9 +134,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		// given
 		doguA := "official/ldap"
 		doguList := []string{doguA}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("Get", "official/ldap").Return(nil, assert.AnError)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
 
@@ -156,9 +152,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		// given
 		doguA := "official/ldap:1.1.asd.1-2"
 		doguList := []string{doguA}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
 
 		// when
@@ -179,9 +174,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		}}}
 
 		doguList := []string{doguB}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("GetVersion", "official/cas", "2.0.0-3").Return(casDogu, nil)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
 
@@ -207,9 +201,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguCas := &core.Dogu{Name: "official/cas", Version: "1.1-1-1"}
 
 		doguList := []string{doguLdapID, doguCasID}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
@@ -236,9 +229,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguCas := &core.Dogu{Name: "official/cas", Version: "1.1.1-1"}
 
 		doguList := []string{doguLdapID, doguCasID}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
 		doguValidator := validation.NewDoguValidator(mockRegistry)
@@ -265,9 +257,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguCas := &core.Dogu{Name: "official/cas", Version: "1.1.1-1"}
 
 		doguList := []string{doguLdapID, doguCasID}
-		dogus := context.Dogus{Install: doguList, DefaultDogu: "cockpit"}
+		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		mockRegistry := &remoteMocks.Registry{}
-		mockRegistry.On("Get", "cockpit").Return(nil, nil)
 		mockRegistry.On("GetVersion", "official/ldap", "1.1.1-1").Return(doguLdap, nil)
 		mockRegistry.On("GetVersion", "official/cas", "1.1.1-1").Return(doguCas, nil)
 		doguValidator := validation.NewDoguValidator(mockRegistry)

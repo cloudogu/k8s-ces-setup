@@ -3,7 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

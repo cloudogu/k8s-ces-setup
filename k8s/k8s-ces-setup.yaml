@@ -49,6 +49,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+            failureThreshold: 60
+            periodSeconds: 10
           livenessProbe:
             failureThreshold: 5
             httpGet:

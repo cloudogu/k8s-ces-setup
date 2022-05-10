@@ -64,6 +64,18 @@ func createSetupRouter(configFile string) (*gin.Engine, error) {
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
 	logrus.Debugf("Current context: [%+v]", setupContext)
 
+	if setupContext.StartupConfiguration.IsCompleted() {
+		logrus.Info("Setup configuration is completed. Start setup...")
+		starter, err := setup.NewStarter(setupContext)
+		if err != nil {
+			return nil, err
+		}
+		err = starter.StartSetup()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return createRouter(setupContext), nil
 }
 

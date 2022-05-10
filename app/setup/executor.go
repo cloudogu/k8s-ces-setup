@@ -142,7 +142,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 }
 
 // RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
-func (e *Executor) RegisterDataSetupSteps() error {
+func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
 	// note: with introduction of the setup UI the instance secret may either come into play with a new instance
 	// registration or it may already reside in the current namespace
 	namespace := e.SetupContext.AppConfig.TargetNamespace
@@ -171,6 +171,7 @@ func (e *Executor) RegisterDataSetupSteps() error {
 	return nil
 }
 
+// RegisterDoguInstallationSteps creates install steps for the dogu install list
 func (e *Executor) RegisterDoguInstallationSteps() error {
 	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
@@ -185,11 +186,13 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	return nil
 }
 
+// RegisterValidationStep registers all validation steps
 func (e *Executor) RegisterValidationStep() error {
 	e.RegisterSetupStep(NewValidatorStep(e.Registry, e.SetupContext))
 	return nil
 }
 
+// RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
 	generationStep := data.NewGenerateSSLStep(&e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(generationStep)
