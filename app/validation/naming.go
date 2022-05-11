@@ -10,8 +10,7 @@ import (
 	"strings"
 )
 
-type namingValidator struct {
-}
+type namingValidator struct {}
 
 // NewNamingValidator creates a new validator for the naming section of the setup configuration
 func NewNamingValidator() *namingValidator {

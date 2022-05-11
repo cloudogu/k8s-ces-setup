@@ -24,6 +24,7 @@ func (wacs *writeAdminDataStep) GetStepDescription() string {
 	return "Write admin data to the registry"
 }
 
+// PerformSetupStep writes the configured admin data into the registry.
 func (wacs *writeAdminDataStep) PerformSetupStep() error {
 	registryConfig := context.CustomKeyValue{
 		"_global": map[string]interface{}{

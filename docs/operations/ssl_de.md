@@ -1,4 +1,4 @@
-# SSL
+# Verwendung eines selbst signierten SSL Zertifikats
 
 ## Ablage
 

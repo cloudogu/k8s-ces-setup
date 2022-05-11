@@ -21,6 +21,7 @@ func (wdds *writeDoguDataStep) GetStepDescription() string {
 	return "Write dogu data to the registry"
 }
 
+// PerformSetupStep writes the configured dogu data into the registry
 func (wdds *writeDoguDataStep) PerformSetupStep() error {
 	registryConfig := context.CustomKeyValue{
 		"_global": map[string]interface{}{

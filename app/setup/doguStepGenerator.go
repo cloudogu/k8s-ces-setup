@@ -39,6 +39,7 @@ type doguStepGenerator struct {
 	namespace  string
 }
 
+// NewDoguStepGenerator creates a new generator capable of generating dogu installation steps.
 func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Config, dogus context.Dogus, registry remote.Registry, namespace string) (*doguStepGenerator, error) {
 	restClient, err := getDoguRestClient(clusterConfig)
 	if err != nil {
@@ -58,6 +59,7 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 	return &doguStepGenerator{Client: client, RestClient: restClient, Dogus: &doguList, Registry: registry, namespace: namespace}, nil
 }
 
+// GenerateSteps generates dogu installation steps for all configured dogus.
 func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
 	steps := []ExecutorStep{}
 

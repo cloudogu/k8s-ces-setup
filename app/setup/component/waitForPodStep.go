@@ -33,7 +33,7 @@ func (wfps *waitForPodStep) GetStepDescription() string {
 
 // PerformSetupStep implements all actions in this step
 func (wfps *waitForPodStep) PerformSetupStep() error {
-	err := wfps.isPodReady()
+	return  wfps.isPodReady()
 
 	return err
 }

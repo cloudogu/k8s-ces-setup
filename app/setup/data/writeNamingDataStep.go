@@ -21,6 +21,7 @@ func (wnds *writeNamingDataStep) GetStepDescription() string {
 	return "Write naming data to the registry"
 }
 
+// PerformSetupStep writes the configured naming data into the registry
 func (wnds *writeNamingDataStep) PerformSetupStep() error {
 	registryConfig := context.CustomKeyValue{
 		"_global": map[string]interface{}{

@@ -24,6 +24,7 @@ func (wlds *writeLdapDataStep) GetStepDescription() string {
 	return "Write ldap data to the registry"
 }
 
+// PerformSetupStep writes the configured ldap data into the registry
 func (wlds *writeLdapDataStep) PerformSetupStep() error {
 	registryConfig := context.CustomKeyValue{}
 	registryConfig["cas"] = wlds.getCasEntriesAsMap()

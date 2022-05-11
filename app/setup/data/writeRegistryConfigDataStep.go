@@ -21,6 +21,7 @@ func (wrcds *writeRegistryConfigDataStep) GetStepDescription() string {
 	return "Write registry config data to the registry"
 }
 
+// PerformSetupStep writes the registry config data into the registry
 func (wrcds *writeRegistryConfigDataStep) PerformSetupStep() error {
 	err := wrcds.Writer.WriteConfigToRegistry(wrcds.Configuration.RegistryConfig)
 	if err != nil {

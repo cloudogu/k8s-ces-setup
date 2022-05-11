@@ -1,4 +1,4 @@
-# SSL
+# Use of a Self-Signed SSL Certificate
 
 ## Location
 

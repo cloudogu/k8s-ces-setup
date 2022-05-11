@@ -7,8 +7,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
-type adminValidator struct {
-}
+type adminValidator struct {}
 
 // NewAdminValidator creates a new validator for the admin section of the setup configuration
 func NewAdminValidator() *adminValidator {

@@ -16,6 +16,7 @@ type installDogusStep struct {
 	namespace string
 }
 
+// NewInstallDogusStep creates a new step responsible to apply a dogu resource to the cluster, and, thus, starting the dogu instllation.
 func NewInstallDogusStep(client rest.Interface, dogu *core.Dogu, namespace string) *installDogusStep {
 	return &installDogusStep{client: client, dogu: dogu, namespace: namespace}
 }
@@ -25,6 +26,7 @@ func (ids *installDogusStep) GetStepDescription() string {
 	return fmt.Sprintf("Installing dogu [%s]", ids.dogu.GetFullName())
 }
 
+// PerformSetupStep applies a dogu recource for the configured dogu to the cluster.
 func (ids *installDogusStep) PerformSetupStep() error {
 	doguVersion, err := ids.dogu.GetVersion()
 	if err != nil {
