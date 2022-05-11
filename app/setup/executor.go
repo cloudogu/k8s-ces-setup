@@ -59,7 +59,7 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		Password: string(doguRegistrySecret.Data["password"]),
 	}
 
-	doguRegistry, err := remote.New(getRemoteConfig(doguRegistrySecret), credentials)
+	doguRegistry, err := remote.New(getRemoteConfig(doguRegistrySecret, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
@@ -72,16 +72,15 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 	}, nil
 }
 
-func getRemoteConfig(doguRegistrySecret *corev1.Secret) *core.Remote {
+func getRemoteConfig(doguRegistrySecret *corev1.Secret, urlSchema string) *core.Remote {
 	endpoint := string(doguRegistrySecret.Data["endpoint"])
 	endpoint = strings.TrimSuffix(endpoint, "/")
 	endpoint = strings.TrimSuffix(endpoint, "dogus")
 	endpoint = strings.TrimSuffix(endpoint, "/")
 
-	// TODO ConfigMap für URlSchema (default oder mirrored)
 	return &core.Remote{
 		Endpoint:  endpoint,
-		URLSchema: "",
+		URLSchema: urlSchema,
 		CacheDir:  "/tmp",
 	}
 }
