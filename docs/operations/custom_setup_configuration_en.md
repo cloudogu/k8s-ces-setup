@@ -28,30 +28,6 @@ The `k8s-ces-setup` differs from the [ces-setup](https://github.com/cloudogu/ces
 A `setup.json` from the `ces-setup` can be used as setup configuration for the `k8s-ces-setup` without any problems.
 
 **Note**: However, it should be noted that some regions/configuration values in the `k8s-ces-setup` are invalid or not yet supported.
-The following regions/configuration values are currently ignored by the `k8s-ces-setup`:
-
-* **Token** - //TODO.
-* **Region**: Contains general configuration values for regional settings on the VM.
-* **Projects**: Contains configuration values for initial deployment of projects during setup.
-* **UnixUser**: Contains configuration for the user of the VM.
-* **UnattendedUpgrades**: Contains configurations for unattended updates to the VM.
-* **ExtendedConfiguration**: Contains configuration values for special cases.
-* **SequentialDoguStart**: Configuration value to perform the Dogus installation sequentially.
-
-## Deployment of a setup configuration
-
-If a setup configuration is available in the form of a `setup.json`, it can be spawned with the following command for the setup:
-
-```bash
-kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --from-file=setup.json
-```
-
-Now the setup can be deployed. For more information about deploying the setup
-[here](installation_guide_en.md) describe.
-
-## Description of differences of all regions of the setup configuration in contrast to `ces-setup`.
-This chapter records differences of `setup.json` from the "old" `ces-setup`.
-The basic description can be found [here](https://github.com/cloudogu/ces-setup/blob/develop/docs/operations/setup-json_de.md).
 
 ### Region tokens
 
@@ -100,3 +76,14 @@ Properties have no differences to the `ces-setup`
 ### Region RegistryConfigEncrypted
 
 Properties have no differences to `ces-setup`
+
+## Deployment of a setup configuration
+
+If a setup configuration is available in the form of a `setup.json`, it can be spawned with the following command for the setup:
+
+```bash
+kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --from-file=setup.json
+```
+
+Now the setup can be deployed. For more information about deploying the setup
+[here](installation_guide_en.md) describe.
