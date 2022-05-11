@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.3.0
 
 GOTAG?=1.18.1
-MAKEFILES_VERSION=5.1.0
+MAKEFILES_VERSION=5.2.0
 
 # Image URL to use all building/pushing image targets
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
@@ -22,6 +22,7 @@ include build/make/variables.mk
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
 # remove DWARF symbol table and strip other symbols to shave ~13 MB from binary
 ADDITIONAL_LDFLAGS=-extldflags -static -w -s
+LINT_VERSION=v1.45.2
 
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk

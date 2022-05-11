@@ -2,10 +2,11 @@ package ssl
 
 import (
 	"fmt"
-	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
 	"net/http"
 	"strconv"
+
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/cesapp-lib/registry"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
@@ -30,23 +31,31 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 			Type:      "etcd",
 			Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupContext.AppConfig.TargetNamespace)},
 		})
+		if err != nil {
+			handleError(ctx, http.StatusBadRequest, err, "Creating etcd registry")
+			return
+		}
+
 		config := etcdRegistry.GlobalConfig()
 		fqdn, err := config.Get("fqdn")
 		if err != nil {
 			handleError(ctx, http.StatusInternalServerError, err, "Failed to get FQDN from global config")
 			return
 		}
+
 		domain, err := config.Get("domain")
 		if err != nil {
 			handleError(ctx, http.StatusInternalServerError, err, "Failed to get DOMAIN from global config")
 			return
 		}
+
 		sslGenerator := NewSSLGenerator()
 		cert, key, err := sslGenerator.GenerateSelfSignedCert(fqdn, domain, int(i))
 		if err != nil {
 			handleError(ctx, http.StatusInternalServerError, err, "Failed to generate self-signed certificate and key")
 			return
 		}
+
 		sslWriter := NewSSLWriter(config)
 		err = sslWriter.WriteCertificate("selfsigned", cert, key)
 		if err != nil {
