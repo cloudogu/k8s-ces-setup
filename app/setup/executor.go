@@ -166,7 +166,7 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewKeyProviderStep(etcdRegistry.GlobalConfig()))
+	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 
 	return nil
 }

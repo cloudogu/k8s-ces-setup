@@ -24,6 +24,8 @@ type Config struct {
 	EtcdServerResourceURL string `yaml:"etcd_server_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
+	// KeyProvider sets the key provider used to encrypt etcd values
+	KeyProvider string `yaml:"key_provider"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.
