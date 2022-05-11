@@ -29,30 +29,6 @@ Das `k8s-ces-setup` unterscheidet sich zum [ces-setup](https://github.com/cloudo
 Eine `setup.json` von dem `ces-setup` kann ohne Probleme als Setup Konfiguration für das `k8s-ces-setup` benutzt werden.
 
 **Hinweis**: Es ist jedoch zu beachten, dass einige Regionen/Konfigurationswerte im `k8s-ces-setup` hinfällig oder noch nicht unterstützt werden. 
-Folgenden Regionen/Konfigurationswerte werden derzeitig von dem `k8s-ces-setup` ignoriert:
-
-* **Token** - //TODO.
-* **Region**: Enthält allgemeine Konfigurationswerte für regionale Einstellungen an der VM.
-* **Projects**: Enthält Konfigurationswerte für die initiale Ausbringung von Projekten beim Setup.
-* **UnixUser**: Enthält die Konfiguration für den User der VM.
-* **UnattendedUpgrades**: Enthält Konfigurationen für unbeaufsichtigte Updates der VM.
-* **ExtendedConfiguration**: Enthält Konfigurationswerte für spezielle Fälle.
-* **SequentialDoguStart**: Konfigurationswert, um die Installation der Dogus sequenziell durchzuführen.
-
-## Ausbringung einer Setup-Konfiguration
-
-Wenn eine Setup-Konfiguration in Form einer `setup.json` vorliegt, kann diese mit dem folgenden Befehl für das Setup ausgebracht werden:
-
-```bash
-kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --from-file=setup.json
-```
-
-Nun kann das Setup ausgebracht werden. Für mehr Informationen zur Ausbringung des Setup sind
-[hier](installation_guide_de.md) beschreiben.
-
-## Beschreibung der Unterschiede aller Regionen der Setup-Konfiguration im Gegensatz zum `ces-setup`
-In diesem Kapitel werden Unterschiede der `setup.json` zum "alten" `ces-setup` festgehalten.
-Die grundlegende Beschreibung ist [hier](https://github.com/cloudogu/ces-setup/blob/develop/docs/operations/setup-json_de.md) zu finden.
 
 ### Region Token
 
@@ -101,3 +77,14 @@ Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 ### Region RegistryConfigEncrypted
 
 Eigenschaften besitzen keine Unterschiede zum `ces-setup`
+
+## Ausbringung einer Setup-Konfiguration
+
+Wenn eine Setup-Konfiguration in Form einer `setup.json` vorliegt, kann diese mit dem folgenden Befehl für das Setup ausgebracht werden:
+
+```bash
+kubectl --namespace your-target-namespace create configmap k8s-ces-setup-json --from-file=setup.json
+```
+
+Nun kann das Setup ausgebracht werden. Für mehr Informationen zur Ausbringung des Setup sind
+[hier](installation_guide_de.md) beschreiben.
