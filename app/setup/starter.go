@@ -38,6 +38,7 @@ type Starter struct {
 	SetupContext  *context.SetupContext
 	Namespace     string
 	SetupExecutor SetupExecutor
+	Finisher      SetupFinisher
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
@@ -68,13 +69,16 @@ func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
 		return nil, fmt.Errorf("failed to create setup executor: %w", err)
 	}
 
+	finisher := NewFinisher(clientSet, setupContext.AppConfig.TargetNamespace)
 	return &Starter{
 		EtcdRegistry:  etcdRegistry,
 		ClientSet:     clientSet,
 		ClusterConfig: clusterConfig,
 		SetupContext:  setupContext,
 		Namespace:     namespace,
-		SetupExecutor: setupExecutor}, nil
+		SetupExecutor: setupExecutor,
+		Finisher:      finisher,
+	}, nil
 }
 
 // StartSetup creates necessary k8s config and client, register steps and executes them
@@ -92,6 +96,11 @@ func (s *Starter) StartSetup() error {
 	err, errCausingAction := s.SetupExecutor.PerformSetup()
 	if err != nil {
 		return fmt.Errorf("error while initializing namespace for setup [%s]: %w", errCausingAction, err)
+	}
+
+	err = s.Finisher.FinishSetup()
+	if err != nil {
+		return fmt.Errorf("failed to finish setup: %w", err)
 	}
 
 	return nil

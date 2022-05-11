@@ -31,12 +31,39 @@ func TestStarter_StartSetup(t *testing.T) {
 		executorMock.On("PerformSetup").Return(nil, "")
 		starter.SetupExecutor = executorMock
 
+		finisher := &mocks.SetupFinisher{}
+		finisher.On("FinishSetup").Return(nil)
+		starter.Finisher = finisher
+
 		// when
 		err := starter.StartSetup()
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, executorMock)
+		mock.AssertExpectationsForObjects(t, executorMock, finisher)
+	})
+
+	t.Run("failed to finish setup", func(t *testing.T) {
+		// given
+		executorMock := &mocks.SetupExecutor{}
+		executorMock.On("RegisterSSLGenerationStep").Return(nil)
+		executorMock.On("RegisterValidationStep").Return(nil)
+		executorMock.On("RegisterComponentSetupSteps").Return(nil)
+		executorMock.On("RegisterDataSetupSteps", mock.Anything).Return(nil)
+		executorMock.On("RegisterDoguInstallationSteps").Return(nil)
+		executorMock.On("PerformSetup").Return(nil, "")
+		starter.SetupExecutor = executorMock
+
+		finisher := &mocks.SetupFinisher{}
+		finisher.On("FinishSetup").Return(assert.AnError)
+		starter.Finisher = finisher
+
+		// when
+		err := starter.StartSetup()
+
+		// then
+		require.Error(t, err, assert.AnError)
+		mock.AssertExpectationsForObjects(t, executorMock, finisher)
 	})
 
 	t.Run("failed because setup is busy", func(t *testing.T) {

@@ -4,10 +4,6 @@ import (
 	context2 "context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
-
-	"k8s.io/apimachinery/pkg/api/errors"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -42,67 +38,67 @@ func (f *Finisher) FinishSetup() error {
 }
 
 func (f *Finisher) removeK8sCesSetupFromCluster() error {
-	gracePeriod := int64(5)
-
-	// ------- Cluster Role Bindings
-	logrus.Debug("Remove cluster role binding: k8s-ces-setup-cluster-resources")
-	err := f.Client.RbacV1().ClusterRoleBindings().Delete(context2.Background(), "k8s-ces-setup-cluster-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete cluster role binding [%s]: %w", "k8s-ces-setup-cluster-resources", err)
-	}
-	logrus.Debug("Remove cluster role binding: k8s-ces-setup-cluster-non-resources")
-	err = f.Client.RbacV1().ClusterRoleBindings().Delete(context2.Background(), "k8s-ces-setup-cluster-non-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete cluster role binding [%s]: %w", "k8s-ces-setup-cluster-non-resources", err)
-	}
-
-	// ------- Cluster Roles
-	logrus.Debug("Remove cluster role: k8s-ces-setup-cluster-resources")
-	err = f.Client.RbacV1().ClusterRoles().Delete(context2.Background(), "k8s-ces-setup-cluster-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete cluster role [%s]: %w", "k8s-ces-setup-cluster-resources", err)
-	}
-	logrus.Debug("Remove cluster role: k8s-ces-setup-cluster-non-resources")
-	err = f.Client.RbacV1().ClusterRoles().Delete(context2.Background(), "k8s-ces-setup-cluster-non-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete cluster role [%s]: %w", "k8s-ces-setup-cluster-non-resources", err)
-	}
-
-	// ------- Role Binding
-	logrus.Debug("Remove role binding: k8s-ces-setup")
-	err = f.Client.RbacV1().RoleBindings(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete role binding [%s]: %w", "k8s-ces-setup", err)
-	}
-
-	// ------- Role
-	logrus.Debug("Remove role: k8s-ces-setup")
-	err = f.Client.RbacV1().Roles(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete role [%s]: %w", "k8s-ces-setup", err)
-	}
-
-	// ------- Service Account
-	logrus.Debug("Remove service account: k8s-ces-setup")
-	err = f.Client.CoreV1().ServiceAccounts(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete service account [%s]: %w", "k8s-ces-setup", err)
-	}
-
-	// ------- Service
-	logrus.Debug("Remove service: k8s-ces-setup")
-	err = f.Client.CoreV1().Services(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete service [%s]: %w", "k8s-ces-setup", err)
-	}
-
-	// ------- Deployment
-	logrus.Debug("Remove deployment: k8s-ces-setup")
-	err = f.Client.AppsV1().Deployments(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete deployment [%s]: %w", "k8s-ces-setup", err)
-	}
-
+	// TODO: this does currently not work as it is forbidden to delete own resources.
+	//gracePeriod := int64(5)
+	//
+	//// ------- Cluster Role Bindings
+	//logrus.Debug("Remove cluster role binding: k8s-ces-setup-cluster-resources")
+	//err := f.Client.RbacV1().ClusterRoleBindings().Delete(context2.Background(), "k8s-ces-setup-cluster-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete cluster role binding [%s]: %w", "k8s-ces-setup-cluster-resources", err)
+	//}
+	//logrus.Debug("Remove cluster role binding: k8s-ces-setup-cluster-non-resources")
+	//err = f.Client.RbacV1().ClusterRoleBindings().Delete(context2.Background(), "k8s-ces-setup-cluster-non-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete cluster role binding [%s]: %w", "k8s-ces-setup-cluster-non-resources", err)
+	//}
+	//
+	//// ------- Cluster Roles
+	//logrus.Debug("Remove cluster role: k8s-ces-setup-cluster-resources")
+	//err = f.Client.RbacV1().ClusterRoles().Delete(context2.Background(), "k8s-ces-setup-cluster-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete cluster role [%s]: %w", "k8s-ces-setup-cluster-resources", err)
+	//}
+	//logrus.Debug("Remove cluster role: k8s-ces-setup-cluster-non-resources")
+	//err = f.Client.RbacV1().ClusterRoles().Delete(context2.Background(), "k8s-ces-setup-cluster-non-resources", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete cluster role [%s]: %w", "k8s-ces-setup-cluster-non-resources", err)
+	//}
+	//
+	//// ------- Role Binding
+	//logrus.Debug("Remove role binding: k8s-ces-setup")
+	//err = f.Client.RbacV1().RoleBindings(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete role binding [%s]: %w", "k8s-ces-setup", err)
+	//}
+	//
+	//// ------- Role
+	//logrus.Debug("Remove role: k8s-ces-setup")
+	//err = f.Client.RbacV1().Roles(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete role [%s]: %w", "k8s-ces-setup", err)
+	//}
+	//
+	//// ------- Service Account
+	//logrus.Debug("Remove service account: k8s-ces-setup")
+	//err = f.Client.CoreV1().ServiceAccounts(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete service account [%s]: %w", "k8s-ces-setup", err)
+	//}
+	//
+	//// ------- Service
+	//logrus.Debug("Remove service: k8s-ces-setup")
+	//err = f.Client.CoreV1().Services(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete service [%s]: %w", "k8s-ces-setup", err)
+	//}
+	//
+	//// ------- Deployment
+	//logrus.Debug("Remove deployment: k8s-ces-setup")
+	//err = f.Client.AppsV1().Deployments(f.Namespace).Delete(context2.Background(), "k8s-ces-setup", metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod})
+	//if err != nil && !errors.IsNotFound(err) {
+	//	return fmt.Errorf("failed to delete deployment [%s]: %w", "k8s-ces-setup", err)
+	//}
 	return nil
 }
 
