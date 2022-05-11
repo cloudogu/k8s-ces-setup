@@ -3,11 +3,12 @@ package context
 import (
 	"context"
 	"fmt"
+	"os"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +17,9 @@ const SecretDoguRegistry = "k8s-dogu-operator-dogu-registry"
 const SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
 
 const defaultSetupConfigJson = "/setup.json"
+
 const SetupConfigMap = "k8s-setup-config"
+const SetupStateKey = "state"
 const SetupStateInstalled = "installed"
 const SetupStateInstalling = "installing"
 

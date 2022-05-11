@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"testing"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/mocks"
 	"github.com/stretchr/testify/assert"
@@ -9,7 +11,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func TestStarter_StartSetup(t *testing.T) {
@@ -44,7 +45,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.SetupContext = &setupContext
 		doneStarter.Namespace = "test"
 		data := make(map[string]string)
-		data["state"] = context.SetupStateInstalling
+		data[context.SetupStateKey] = context.SetupStateInstalling
 		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupConfigMap, Namespace: "test"}, Data: data}
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
@@ -62,7 +63,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.SetupContext = &setupContext
 		doneStarter.Namespace = "test"
 		data := make(map[string]string)
-		data["state"] = context.SetupStateInstalled
+		data[context.SetupStateKey] = context.SetupStateInstalled
 		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupConfigMap, Namespace: "test"}, Data: data}
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 

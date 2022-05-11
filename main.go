@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/ssl"
 	"os"
+
+	"github.com/cloudogu/k8s-ces-setup/app/ssl"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 
@@ -62,7 +63,6 @@ func createSetupRouter(configFile string) (*gin.Engine, error) {
 	configureLogger(setupContext.AppConfig)
 
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
-	logrus.Debugf("Current context: [%+v]", setupContext)
 
 	if setupContext.StartupConfiguration.IsCompleted() {
 		logrus.Info("Setup configuration is completed. Start setup...")

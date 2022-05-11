@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -98,6 +99,7 @@ func createOrUpdateResource(ctx context.Context, desiredResource *unstructured.U
 	if err != nil {
 		return NewResourceError(err, "error while parsing resource to json", desiredResource.GetKind(), desiredResource.GetAPIVersion(), desiredResource.GetName())
 	}
+
 	// 7. Update the object with server-side-apply
 	//    types.ApplyPatchType indicates server-side-apply.
 	//    FieldManager specifies the field owner ID.

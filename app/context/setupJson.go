@@ -112,6 +112,5 @@ func ReadSetupConfig(path string) (SetupConfiguration, error) {
 		return config, fmt.Errorf("failed to unmarshal setup configuration %s: %w", path, err)
 	}
 
-	logrus.Printf("Found setup json: [%+v]", config)
 	return config, nil
 }

@@ -3,6 +3,9 @@ package setup
 import (
 	gocontext "context"
 	"fmt"
+
+	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
+
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -22,6 +25,11 @@ type SetupExecutor interface {
 	PerformSetup() (error, string)
 }
 
+// SetupFinisher does finishing tasks after the setup is done
+type SetupFinisher interface {
+	FinishSetup() error
+}
+
 // Starter is used to init and start the setup process
 type Starter struct {
 	EtcdRegistry  registry.Registry
@@ -37,7 +45,7 @@ func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
 	namespace := setupContext.AppConfig.TargetNamespace
 	registryInformation := core.Registry{
 		Type:      "etcd",
-		Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", namespace)},
+		Endpoints: []string{fmt.Sprintf("http://%s:4001", component.GetNodeMasterFileContent(namespace))},
 	}
 
 	etcdRegistry, err := registry.New(registryInformation)
@@ -126,12 +134,12 @@ func initSetupState(clientSet kubernetes.Interface, namespace string) error {
 		return fmt.Errorf("failed to get k8s-ces-setup configmap: %w", err)
 	}
 
-	actualState := stateCM.Data["state"]
+	actualState := stateCM.Data[context.SetupStateKey]
 	if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
 		return fmt.Errorf("setup is busy or already done")
 	}
 
-	stateCM.Data["state"] = context.SetupStateInstalling
+	stateCM.Data[context.SetupStateKey] = context.SetupStateInstalling
 	_, err = clientSet.CoreV1().ConfigMaps(namespace).Update(gocontext.Background(), stateCM, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update k8s-ces-setup configmap: %w", err)

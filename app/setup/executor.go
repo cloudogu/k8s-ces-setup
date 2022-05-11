@@ -143,24 +143,10 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 // RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
-	// note: with introduction of the setup UI the instance secret may either come into play with a new instance
-	// registration or it may already reside in the current namespace
-	namespace := e.SetupContext.AppConfig.TargetNamespace
-
-	registryInformation := core.Registry{
-		Type:      "etcd",
-		Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", namespace)},
-	}
-
-	etcdRegistry, err := registry.New(registryInformation)
-	if err != nil {
-		return fmt.Errorf("failed to create registry: %w", err)
-	}
-
 	configWriter := data.NewGenericConfigurationWriter(etcdRegistry)
 
 	// register steps
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, namespace))
+	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, &e.SetupContext.StartupConfiguration))
