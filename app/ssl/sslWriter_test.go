@@ -9,10 +9,6 @@ import (
 	"testing"
 )
 
-func TestNewSSLWriter(t *testing.T) {
-
-}
-
 func Test_sslWriter_WriteCertificate(t *testing.T) {
 	t.Parallel()
 

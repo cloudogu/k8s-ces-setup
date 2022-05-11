@@ -26,7 +26,7 @@ func NewUserBackendValidator() *userBackendValidator {
 func (ubv *userBackendValidator) ValidateUserBackend(backend context.UserBackend) error {
 	dsType := backend.DsType
 	if dsType != DsTypeEmbedded && dsType != DsTypeExternal {
-		return GetInvalidOptionError("dsType", DsTypeEmbedded, DsTypeExternal)
+		return getInvalidOptionError("dsType", DsTypeEmbedded, DsTypeExternal)
 	}
 
 	var result error
@@ -42,19 +42,19 @@ func (ubv *userBackendValidator) ValidateUserBackend(backend context.UserBackend
 
 func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.UserBackend) error {
 	if backend.AttributeID != "sAMAccountName" {
-		return GetInvalidOptionError("attributeID", "sAMAccountName")
+		return getInvalidOptionError("attributeID", "sAMAccountName")
 	}
 	if backend.AttributeFullname != "cn" {
-		return GetInvalidOptionError("attributeFullName", "cn")
+		return getInvalidOptionError("attributeFullName", "cn")
 	}
 	if backend.AttributeMail != "mail" {
-		return GetInvalidOptionError("attributeMail", "mail")
+		return getInvalidOptionError("attributeMail", "mail")
 	}
 	if backend.AttributeGroup != "memberOf" {
-		return GetInvalidOptionError("attributeGroup", "memberOf")
+		return getInvalidOptionError("attributeGroup", "memberOf")
 	}
 	if backend.SearchFilter != searchFilter {
-		return GetInvalidOptionError("searchFilter", searchFilter)
+		return getInvalidOptionError("searchFilter", searchFilter)
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.U
 
 func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBackend) error {
 	if backend.Server != "activeDirectory" && backend.Server != "custom" {
-		return GetInvalidOptionError("server", "activeDirectory", "custom")
+		return getInvalidOptionError("server", "activeDirectory", "custom")
 	}
 	if backend.Server == "activeDirectory" {
 		err := ubv.validateActiveDirectoryServer(backend)
@@ -71,46 +71,46 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 		}
 	}
 	if backend.AttributeGivenName == "" {
-		return GetPropertyNotSetError("attributeGivenName")
+		return getPropertyNotSetError("attributeGivenName")
 	}
 	if backend.AttributeSurname == "" {
-		return GetPropertyNotSetError("attributeSurName")
+		return getPropertyNotSetError("attributeSurName")
 	}
 	if backend.BaseDN == "" {
-		return GetPropertyNotSetError("baseDn")
+		return getPropertyNotSetError("baseDn")
 	}
 	if backend.ConnectionDN == "" {
-		return GetPropertyNotSetError("connectionDn")
+		return getPropertyNotSetError("connectionDn")
 	}
 	if backend.Password == "" {
-		return GetPropertyNotSetError("password")
+		return getPropertyNotSetError("password")
 	}
 	if backend.Host == "" {
-		return GetPropertyNotSetError("host")
+		return getPropertyNotSetError("host")
 	}
 	if backend.Port == "" {
-		return GetPropertyNotSetError("port")
+		return getPropertyNotSetError("port")
 	}
 	if _, err := strconv.Atoi(backend.Port); err != nil {
 		return fmt.Errorf("failed to validate property port: the given value is not a number")
 	}
 	if backend.Encryption != "none" && backend.Encryption != "ssl" && backend.Encryption != "sslAny" && backend.Encryption != "startTLS" && backend.Encryption != "startTLSAny" {
-		return GetInvalidOptionError("encryption", "none", "ssl", "sslAny", "startTLS", "startTLSAny")
+		return getInvalidOptionError("encryption", "none", "ssl", "sslAny", "startTLS", "startTLSAny")
 	}
 	if backend.GroupBaseDN == "" {
-		return GetPropertyNotSetError("groupBaseDN")
+		return getPropertyNotSetError("groupBaseDN")
 	}
 	if backend.GroupSearchFilter == "" {
-		return GetPropertyNotSetError("groupSearchFilter")
+		return getPropertyNotSetError("groupSearchFilter")
 	}
 	if backend.GroupAttributeName == "" {
-		return GetPropertyNotSetError("groupAttributeName")
+		return getPropertyNotSetError("groupAttributeName")
 	}
 	if backend.GroupAttributeDescription == "" {
-		return GetPropertyNotSetError("groupAttributeDescription")
+		return getPropertyNotSetError("groupAttributeDescription")
 	}
 	if backend.GroupAttributeMember == "" {
-		return GetPropertyNotSetError("groupAttributeMember")
+		return getPropertyNotSetError("groupAttributeMember")
 	}
 
 	return nil
@@ -118,25 +118,25 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 
 func (ubv *userBackendValidator) validateEmbeddedBackend(backend context.UserBackend) error {
 	if backend.AttributeID != "uid" {
-		return GetInvalidOptionError("attributeID", "uid")
+		return getInvalidOptionError("attributeID", "uid")
 	}
 	if backend.AttributeFullname != "cn" {
-		return GetInvalidOptionError("attributeFullName", "cn")
+		return getInvalidOptionError("attributeFullName", "cn")
 	}
 	if backend.AttributeMail != "mail" {
-		return GetInvalidOptionError("attributeMail", "mail")
+		return getInvalidOptionError("attributeMail", "mail")
 	}
 	if backend.AttributeGroup != "memberOf" {
-		return GetInvalidOptionError("attributeGroup", "memberOf")
+		return getInvalidOptionError("attributeGroup", "memberOf")
 	}
 	if backend.SearchFilter != searchFilter {
-		return GetInvalidOptionError("searchFilter", searchFilter)
+		return getInvalidOptionError("searchFilter", searchFilter)
 	}
 	if backend.Host != "ldap" {
-		return GetInvalidOptionError("host", "ldap")
+		return getInvalidOptionError("host", "ldap")
 	}
 	if backend.Port != "389" {
-		return GetInvalidOptionError("port", "389")
+		return getInvalidOptionError("port", "389")
 	}
 
 	return nil

@@ -27,6 +27,8 @@ data:
     service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
+    key_provider: pkcs1v15
+    remote_registry_url_schema: default
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.

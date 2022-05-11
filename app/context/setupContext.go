@@ -36,8 +36,7 @@ func NewSetupContext(version string, configPath string) (*SetupContext, error) {
 
 	targetNamespace, err := getEnvVar("POD_NAMESPACE")
 	if err != nil {
-		err2 := fmt.Errorf("could not read current namespace: %w", err)
-		return nil, err2
+		return nil, fmt.Errorf("could not read current namespace: %w", err)
 	}
 
 	config, err := ReadConfig(configPath)
@@ -63,6 +62,7 @@ func NewSetupContext(version string, configPath string) (*SetupContext, error) {
 	}, nil
 }
 
+// GetSetupConfigMap returns or creates if it does not exist the configmap map for presenting the state of the setup process
 func GetSetupConfigMap(client kubernetes.Interface, namespace string) (*corev1.ConfigMap, error) {
 	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupConfigMap, metav1.GetOptions{})
 	if errors.IsNotFound(err) {

@@ -29,7 +29,7 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 
 		etcdRegistry, err := registry.New(core.Registry{
 			Type:      "etcd",
-			Endpoints: []string{fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupContext.AppConfig.TargetNamespace)},
+			Endpoints: []string{fmt.Sprintf("http://%s:4001", setupContext.AppConfig.TargetNamespace)},
 		})
 		if err != nil {
 			handleError(ctx, http.StatusBadRequest, err, "Creating etcd registry")

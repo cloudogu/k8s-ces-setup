@@ -31,6 +31,7 @@ func NewGenericConfigurationWriter(registry registry.Registry) *GenericConfigura
 	return &GenericConfigurationWriter{Registry: registry}
 }
 
+// WriteConfigToRegistry write the given registry config to the registry
 func (gcw *GenericConfigurationWriter) WriteConfigToRegistry(registryConfig context.CustomKeyValue) error {
 	for fieldName, fieldMap := range registryConfig {
 		err := gcw.writeEntriesForConfig(fieldMap, fieldName)

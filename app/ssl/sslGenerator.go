@@ -23,7 +23,8 @@ func NewSSLGenerator() *sslGenerator {
 	return &sslGenerator{}
 }
 
-// GenerateSelfSignedCert generates a self-signed certificate for the ces
+// GenerateSelfSignedCert generates a self-signed certificate for the ces and returns the certificate chain and the
+// private key as string
 func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certExpireDays int) (string, string, error) {
 	// create x509 certificate and key (ca)
 	ca, caPrivateKey, err := sg.createCertTemplateWithKey(certExpireDays, domain)

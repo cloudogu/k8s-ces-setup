@@ -69,5 +69,6 @@ func Test_setupValidatorStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
+		mock.AssertExpectationsForObjects(t, validatorMock)
 	})
 }

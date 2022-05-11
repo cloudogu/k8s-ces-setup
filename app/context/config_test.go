@@ -24,7 +24,7 @@ func TestReadConfig(t *testing.T) {
 		assert.Equal(t, logrus.DebugLevel, c.LogLevel)
 	})
 
-	t.Run("fail on non existen config", func(t *testing.T) {
+	t.Run("fail on non existent config", func(t *testing.T) {
 		// when
 		_, err := context.ReadConfig("testdata/doesnotexist.yaml")
 
@@ -40,5 +40,14 @@ func TestReadConfig(t *testing.T) {
 		// then
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unmarshal errors")
+	})
+
+	t.Run("fail on invalid keyProvider", func(t *testing.T) {
+		// when
+		_, err := context.ReadConfig("testdata/invalidConfigKeyProvider.yaml")
+
+		// then
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid key provider")
 	})
 }

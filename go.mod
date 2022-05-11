@@ -3,9 +3,10 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.18
 
 require (
-	github.com/cloudogu/cesapp-lib v0.0.0-20220505132258-1c44e6506f52
+	github.com/cloudogu/cesapp-lib v0.1.0
 	github.com/cloudogu/k8s-dogu-operator v0.3.0
 	github.com/gin-gonic/gin v1.7.7
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
@@ -51,7 +52,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

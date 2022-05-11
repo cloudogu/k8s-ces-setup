@@ -51,8 +51,7 @@ curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
 
 ### Status of the setup
 
-The old `ces-setup` mirrored the status using a simple `installed` file on the filesystem.
-This changes to `k8s-ces-setup`. For this purpose there is a ConfigMap `k8s-setup-config` with the data key
+For the presentation of the state there is a ConfigMap `k8s-setup-config` with the data key
 `state`. Possible values are `installing, installed`. If these values are set before the setup process, a start of the setup
 start of the setup will abort immediately.
 

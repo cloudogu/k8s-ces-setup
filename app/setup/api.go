@@ -11,12 +11,12 @@ import (
 )
 
 const endpointPostStartSetup = "/api/v1/setup"
-const endpointPostFinalizeSetup = "/api/v1/finalize"
+const endpointPostFinishSetup = "/api/v1/finish"
 
 // SetupAPI setups the REST API for configuration information
 func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
-	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostFinalizeSetup)
-	router.POST(endpointPostFinalizeSetup, func(c *gin.Context) {
+	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostFinishSetup)
+	router.POST(endpointPostFinishSetup, func(c *gin.Context) {
 		finishSetup(c, setupContext)
 	})
 
@@ -38,7 +38,7 @@ func handleInternalServerError(ginCtx *gin.Context, err error, causingAction str
 func startSetup(ctx *gin.Context, setupCtx *context.SetupContext) {
 	starter, err := NewStarter(setupCtx)
 	if err != nil {
-		handleInternalServerError(ctx, err, "Failed to start setup")
+		handleInternalServerError(ctx, err, "Failed to create setup starter")
 		return
 	}
 

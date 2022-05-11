@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type namingValidator struct {}
+type namingValidator struct{}
 
 // NewNamingValidator creates a new validator for the naming section of the setup configuration
 func NewNamingValidator() *namingValidator {
@@ -21,22 +21,22 @@ func NewNamingValidator() *namingValidator {
 // see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
 func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 	if naming.Fqdn == "" {
-		return GetPropertyNotSetError("fqdn")
+		return getPropertyNotSetError("fqdn")
 	}
 
 	if naming.Domain == "" {
-		return GetPropertyNotSetError("domain")
+		return getPropertyNotSetError("domain")
 	}
 
 	certificateType := naming.CertificateType
 	if certificateType != "selfsigned" && certificateType != "external" {
-		return GetInvalidOptionError("certificateType", "selfsigned", "external")
+		return getInvalidOptionError("certificateType", "selfsigned", "external")
 	}
 
 	if certificateType == "external" {
 		cert := naming.Certificate
 		if cert == "" {
-			return GetPropertyNotSetError("certificate")
+			return getPropertyNotSetError("certificate")
 		}
 
 		certs := SplitPemCertificates(cert)
@@ -53,7 +53,7 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 
 		key := naming.CertificateKey
 		if key == "" {
-			return GetPropertyNotSetError("certificate key")
+			return getPropertyNotSetError("certificate key")
 		}
 
 		keyBlock, _ := pem.Decode([]byte(key))
@@ -63,7 +63,7 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 	}
 
 	if naming.RelayHost == "" {
-		return GetPropertyNotSetError("relayHost")
+		return getPropertyNotSetError("relayHost")
 	}
 	address := naming.MailAddress
 
@@ -85,6 +85,7 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 	return nil
 }
 
+// SplitPemCertificates splits a certificate chain in pem format and returns all certificates of the chain as []string
 func SplitPemCertificates(chain string) []string {
 	sep := "-----BEGIN CERTIFICATE-----\n"
 	result := []string{}
@@ -98,10 +99,10 @@ func SplitPemCertificates(chain string) []string {
 	return result
 }
 
-func GetInvalidOptionError(property string, validOptions ...string) error {
+func getInvalidOptionError(property string, validOptions ...string) error {
 	return fmt.Errorf("invalid %s valid options are %s", property, validOptions)
 }
 
-func GetPropertyNotSetError(property string) error {
+func getPropertyNotSetError(property string) error {
 	return fmt.Errorf("no %s set", property)
 }

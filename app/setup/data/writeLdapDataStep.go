@@ -14,7 +14,7 @@ type writeLdapDataStep struct {
 	Configuration *context.SetupConfiguration
 }
 
-// NewWriteLdapDataStep create a new setup step which writes the naming configuration into the registry.
+// NewWriteLdapDataStep create a new setup step which writes the ldap configuration into the registry.
 func NewWriteLdapDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeLdapDataStep {
 	return &writeLdapDataStep{Writer: writer, Configuration: configuration}
 }

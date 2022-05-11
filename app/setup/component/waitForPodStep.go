@@ -33,9 +33,7 @@ func (wfps *waitForPodStep) GetStepDescription() string {
 
 // PerformSetupStep implements all actions in this step
 func (wfps *waitForPodStep) PerformSetupStep() error {
-	return  wfps.isPodReady()
-
-	return err
+	return wfps.isPodReady()
 }
 
 // isPodReady does a watch on a pod and returns nil if the pod is ready and the configured timout is not reached

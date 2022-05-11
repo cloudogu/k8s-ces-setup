@@ -11,7 +11,7 @@ type writeRegistryConfigDataStep struct {
 	Configuration *context.SetupConfiguration
 }
 
-// NewWriteRegistryConfigDataStep create a new setup step which writes the naming configuration into the registry.
+// NewWriteRegistryConfigDataStep create a new setup step which writes the registry config configuration into the registry.
 func NewWriteRegistryConfigDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeRegistryConfigDataStep {
 	return &writeRegistryConfigDataStep{Writer: writer, Configuration: configuration}
 }

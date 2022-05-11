@@ -76,6 +76,7 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 	return nil
 }
 
+// GetNodeMasterFileContent returns the dns address for the node master file
 func GetNodeMasterFileContent(namespace string) string {
 	return fmt.Sprintf("etcd.%s.svc.cluster.local", namespace)
 }

@@ -121,7 +121,6 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 		fakeRestClient.Client = restClientMock
 		fakeRestClient.NegotiatedSerializer = &fakeNegotiatedSerializer{}
 
-		//fakeRestClient.N
 		myDogu := &core.Dogu{Name: "MyName", Version: "1.1.1-1"}
 		installStep := dogus.NewInstallDogusStep(fakeRestClient, myDogu, "namespace")
 

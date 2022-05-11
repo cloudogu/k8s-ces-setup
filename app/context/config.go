@@ -47,5 +47,10 @@ func ReadConfig(path string) (Config, error) {
 		return config, fmt.Errorf("failed to unmarshal configuration %s: %w", path, err)
 	}
 
+	keyProvider := config.KeyProvider
+	if keyProvider != "pkcs1v15" && config.KeyProvider != "oaesp" {
+		return config, fmt.Errorf("invalid key provider")
+	}
+
 	return config, nil
 }

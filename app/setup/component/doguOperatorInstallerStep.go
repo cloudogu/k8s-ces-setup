@@ -31,6 +31,7 @@ type doguOperatorInstallerStep struct {
 	k8sClient              k8sClient
 }
 
+// NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
 func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
 	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
-type adminValidator struct {}
+type adminValidator struct{}
 
 // NewAdminValidator creates a new validator for the admin section of the setup configuration
 func NewAdminValidator() *adminValidator {
@@ -18,7 +18,7 @@ func NewAdminValidator() *adminValidator {
 // see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
 func (av *adminValidator) ValidateAdmin(admin context.User, dsType string) error {
 	if admin.AdminGroup == "" {
-		return GetPropertyNotSetError("admin group")
+		return getPropertyNotSetError("admin group")
 	}
 
 	if dsType == DsTypeExternal {
@@ -26,17 +26,17 @@ func (av *adminValidator) ValidateAdmin(admin context.User, dsType string) error
 	}
 
 	if admin.Mail == "" {
-		return GetPropertyNotSetError("admin mail")
+		return getPropertyNotSetError("admin mail")
 	}
 	_, err := mail.ParseAddress(admin.Mail)
 	if err != nil {
 		return fmt.Errorf("invalid admin mail")
 	}
 	if admin.Username == "" {
-		return GetPropertyNotSetError("admin username")
+		return getPropertyNotSetError("admin username")
 	}
 	if admin.Password == "" {
-		return GetPropertyNotSetError("admin password")
+		return getPropertyNotSetError("admin password")
 	}
 
 	return nil

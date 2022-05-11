@@ -9,6 +9,7 @@ const (
 	DefaultKeyProvider = "pkcs1v15"
 )
 
+// KeyProviderSetterStep writes the key provider in the registry
 type KeyProviderSetterStep struct {
 	Writer      RegistryWriter
 	KeyProvider string
