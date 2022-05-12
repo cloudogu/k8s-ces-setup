@@ -5,20 +5,20 @@ Dieses Dokument beschreibt alle notwendigen Schritte um das `k8s-ces-setup` zu i
 ## Voraussetzungen
 
 1. Ein laufendes K8s-Cluster ist vorhanden.
-2. `kubectl` wurde installiert und wurde für das vorhandene K8s-Cluster konfiguriert. 
+2. `kubectl` wurde installiert und wurde für das vorhandene K8s-Cluster konfiguriert.
 
 ## Installation von GitHub
 
 ### Konfiguration ausbringen
 
-Das `k8s-ces-setup` benötigt eine Konfiguration für die Installation. Diese muss in Form einer ConfigMap vor der 
-Installation des `k8s-ces-setup` ausgebracht werden. Mehr Information zur Ausbringung und zu den einzelnen 
+Das `k8s-ces-setup` benötigt eine Konfiguration für die Installation. Diese muss in Form einer ConfigMap vor der
+Installation des `k8s-ces-setup` ausgebracht werden. Mehr Information zur Ausbringung und zu den einzelnen
 Konfigurationsoptionen wird [im Configuration-Guide](configuration_guide_de.md) beschrieben.
 
 ### Setup ausbringen
 
-Die Installation von GitHub erfordert die Installations-YAML, die alle benötigten K8s-Ressourcen enthält. Diese liegt
-im Repository unter `k8s/k8s-ces-setup.yaml`. Die Installation sieht mit `kubectl` folgendermaßen aus:
+Die Installation von GitHub erfordert die Installations-YAML, die alle benötigten K8s-Ressourcen enthält. Diese liegt im
+Repository unter `k8s/k8s-ces-setup.yaml`. Die Installation sieht mit `kubectl` folgendermaßen aus:
 
 ```bash
 kubectl create ns your-target-namespace
@@ -48,3 +48,11 @@ dem Port `30080` erreichbar sein.
 ```bash
 curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
 ```
+
+### Status des Setups
+
+Für die Präsentation des Zustands existiert eine ConfigMap `k8s-setup-config` mit dem Data-Key
+`state`. Mögliche werte sind `installing, installed`. Falls diese Werte vor dem Setup-Prozess gesetzt sind, bricht ein
+Start des Setups sofort ab.
+
+`kubectl --namespace your-target-namespace describe configmap k8s-setup-config`

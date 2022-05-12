@@ -48,3 +48,11 @@ the port `30080`.
 ```bash
 curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
 ```
+
+### Status of the setup
+
+For the presentation of the state there is a ConfigMap `k8s-setup-config` with the data key
+`state`. Possible values are `installing, installed`. If these values are set before the setup process, a start of the setup
+start of the setup will abort immediately.
+
+`kubectl --namespace your-target-namespace describe configmap k8s-setup-config`

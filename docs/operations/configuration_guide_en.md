@@ -27,6 +27,8 @@ data:
     service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
+    key_provider: pkcs1v15
+    remote_registry_url_schema: default
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
@@ -71,6 +73,22 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Necessary configuration
 * Description: The Etcd-Client is a component in the EcoSystem which simplifies the communication with the Etcd-Server. The entry must be on a valid image of `bitnami/etcd`.
 * Example: `bitnami/etcd:3.5.2-debian-10-r0`
+
+### key_provider
+
+* YAML key: `key_provider`
+* Type: one of the following values `pkcs1v15, oaesp`
+* Required configuration
+* Description: Sets the used key provider of the ecosystem and thus influences the registry values to be encrypted.
+* Example: `pkcs1v15`
+
+### remote_registry_url_schema
+
+* YAML key: `remote_registry_url_schema`
+* Type: one of the following values `default, index`.
+* Required Configuration
+* Description: Sets the URLSchema of the remote registry.
+* Example: `default` in normal environments, `index` in mirrored environments.
 
 ## Deploy configuration
 

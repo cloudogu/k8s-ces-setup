@@ -2,13 +2,17 @@ package setup_test
 
 import (
 	"errors"
+	"k8s.io/client-go/kubernetes/fake"
 	"testing"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+
+	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
 type mySimpleSetupStep struct {
@@ -42,12 +46,15 @@ func TestNewExecutor(t *testing.T) {
 	t.Parallel()
 
 	// given
-	clientSetMock := testclient.NewSimpleClientset()
+	restConfigMock := &rest.Config{}
+	clientSetMock := &fake.Clientset{}
+	testContext := &context.SetupContext{AppConfig: context.Config{TargetNamespace: "test"}}
 
 	// when
-	executor := setup.NewExecutor(clientSetMock)
+	executor, err := setup.NewExecutor(restConfigMock, clientSetMock, testContext)
 
 	// then
+	require.Nil(t, err)
 	require.NotNil(t, executor)
 }
 
@@ -56,8 +63,7 @@ func TestExecutor_RegisterSetupStep(t *testing.T) {
 
 	t.Run("Register multiple setup steps", func(t *testing.T) {
 		// given
-		clientSetMock := testclient.NewSimpleClientset()
-		executor := setup.NewExecutor(clientSetMock)
+		executor := setup.Executor{}
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", false)
 		step3 := newSimpleSetupStep("Step3", false)
@@ -87,8 +93,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 
 	t.Run("Perform setup with multiple successful setup steps", func(t *testing.T) {
 		// given
-		clientSetMock := testclient.NewSimpleClientset()
-		executor := setup.NewExecutor(clientSetMock)
+		executor := setup.Executor{}
 
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", false)
@@ -110,8 +115,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 
 	t.Run("Perform setup with error on setup step", func(t *testing.T) {
 		// given
-		clientSetMock := testclient.NewSimpleClientset()
-		executor := setup.NewExecutor(clientSetMock)
+		executor := setup.Executor{}
 
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", true)
