@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.4.0] - 2022-05-12
+### Added
+- [#10] Automatic setup process with `setup.json`. See [custom setup configuration](docs/operations/custom_setup_configuration_en.md) for more information.
+
 ## [v0.3.0] - 2022-05-03
 ### Added
 - [#8] Setup installs `k8s-service-discovery` when performing a setup. Please see
