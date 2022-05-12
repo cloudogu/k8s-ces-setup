@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cloudogu/k8s-ces-setup/app/ssl"
+
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/cloudogu/k8s-ces-setup/app/health"
@@ -61,7 +63,18 @@ func createSetupRouter(configFile string) (*gin.Engine, error) {
 	configureLogger(setupContext.AppConfig)
 
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
-	logrus.Debugf("Current context: [%+v]", setupContext)
+
+	if setupContext.StartupConfiguration.IsCompleted() {
+		logrus.Info("Setup configuration is completed. Start setup...")
+		starter, err := setup.NewStarter(setupContext)
+		if err != nil {
+			return nil, err
+		}
+		err = starter.StartSetup()
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return createRouter(setupContext), nil
 }
@@ -85,4 +98,5 @@ func configureLogger(appConfig context.Config) {
 func setupAPI(router gin.IRoutes, context *context.SetupContext) {
 	health.SetupAPI(router, context)
 	setup.SetupAPI(router, context)
+	ssl.SetupAPI(router, context)
 }

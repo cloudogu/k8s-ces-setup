@@ -24,6 +24,10 @@ type Config struct {
 	EtcdServerResourceURL string `yaml:"etcd_server_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
+	// KeyProvider sets the key provider used to encrypt etcd values
+	KeyProvider string `yaml:"key_provider"`
+	// RemoteRegistryURLSchema sets the url schema for the remote registry. It can be empty, "default" or "index"
+	RemoteRegistryURLSchema string `yaml:"remote_registry_url_schema"`
 }
 
 // ReadConfig reads the application configuration from a configuration file.
@@ -41,6 +45,11 @@ func ReadConfig(path string) (Config, error) {
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		return config, fmt.Errorf("failed to unmarshal configuration %s: %w", path, err)
+	}
+
+	keyProvider := config.KeyProvider
+	if keyProvider != "pkcs1v15" && config.KeyProvider != "oaesp" {
+		return config, fmt.Errorf("invalid key provider")
 	}
 
 	return config, nil

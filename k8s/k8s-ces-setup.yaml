@@ -49,6 +49,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+            failureThreshold: 60
+            periodSeconds: 10
           livenessProbe:
             failureThreshold: 5
             httpGet:
@@ -77,10 +83,17 @@ spec:
             - mountPath: /k8s-ces-setup.yaml
               name: k8s-ces-setup-config
               subPath: k8s-ces-setup.yaml
+            - mountPath: /setup.json
+              name: k8s-ces-setup-json
+              subPath: setup.json
       volumes:
         - configMap:
             name: k8s-ces-setup-config
           name: k8s-ces-setup-config
+        - configMap:
+            name: k8s-ces-setup-json
+            optional: true
+          name: k8s-ces-setup-json
       serviceAccountName: k8s-ces-setup
       nodeSelector:
         kubernetes.io/os: linux
@@ -135,8 +148,9 @@ rules:
       - create
       - patch
       - update
+      - delete
   - apiGroups:
-      - networking.k8s.io
+      - "*"
     resources:
       - ingressclasses
     verbs:

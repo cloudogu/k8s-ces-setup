@@ -2,8 +2,8 @@
 ARTIFACT_ID=k8s-ces-setup
 VERSION=0.3.0
 
-GOTAG?=1.17.7
-MAKEFILES_VERSION=5.1.0
+GOTAG?=1.18.1
+MAKEFILES_VERSION=5.2.0
 
 # Image URL to use all building/pushing image targets
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
@@ -22,6 +22,7 @@ include build/make/variables.mk
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
 # remove DWARF symbol table and strip other symbols to shave ~13 MB from binary
 ADDITIONAL_LDFLAGS=-extldflags -static -w -s
+LINT_VERSION=v1.45.2
 
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk
@@ -54,7 +55,7 @@ serve-local-yaml:
 build-setup: ${SRC} compile ## Builds the setup Go binary.
 
 .PHONY: run
-run: vet ## Run a setup from your host.
+run: vet setup-etcd-port-forward ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource
@@ -62,6 +63,8 @@ k8s-create-temporary-resource:
 	@cp $(K8S_SETUP_CONFIG_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@cat $(K8S_SETUP_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
+	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
+	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
 
 ##@ Release
 
