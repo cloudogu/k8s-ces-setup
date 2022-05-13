@@ -55,4 +55,4 @@ For the presentation of the state there is a ConfigMap `k8s-setup-config` with t
 `state`. Possible values are `installing, installed`. If these values are set before the setup process, a start of the setup
 start of the setup will abort immediately.
 
-`kubectl --namespace your-target-namespace describe configmap k8s-setup-config`
+`kubectl --namespace your-target-namespace describe configmap k8s-ces-setup-config`
