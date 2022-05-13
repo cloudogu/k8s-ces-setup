@@ -58,9 +58,9 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Description: Service Discovery is a central component in EcoSystem and must be installed. The specified link points to the version of Service Discovery to be installed. The link must point to a valid K8s YAML resource of the `k8s-service-discovery`. This will be appended to the release of the `k8s-service-discovery` on each release.
 * Example: `https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml`
 
-### etcd_server_version
+### etcd_server_url
 
-* YAML key: `etcd_server_version`
+* YAML key: `etcd_server_url`
 * Type: `String` as link to the desired [Etcd](http://github.com/cloudogu/k8s-etcd) version
 * Necessary configuration
 * Description: The Etcd is a central component in the EcoSystem and must be installed. The specified link points to the version of the EcoSystem Etcd to be installed. The link must point to a valid K8s YAML resource of the `k8s-etcd`. This is located directly in the repository under the path `manifests/etcd.yaml`.
