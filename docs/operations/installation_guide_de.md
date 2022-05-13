@@ -34,7 +34,7 @@ kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
     --docker-password="your-ces-instance-password"
 
 # Hinweis: Die setup-Ressource muss mit dem passenden Namespace (hier: your-target-namespace) angepasst werden
-wget https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+wget https://raw.githubusercontent.com/cloudogu/k8s-ces-setup/develop/k8s/k8s-ces-setup.yaml
 yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
 
 kubectl --namespace your-target-namespace apply -f k8s-ces-setup.patched.yaml
