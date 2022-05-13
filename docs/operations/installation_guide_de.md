@@ -55,4 +55,4 @@ Für die Präsentation des Zustands existiert eine ConfigMap `k8s-setup-config` 
 `state`. Mögliche werte sind `installing, installed`. Falls diese Werte vor dem Setup-Prozess gesetzt sind, bricht ein
 Start des Setups sofort ab.
 
-`kubectl --namespace your-target-namespace describe configmap k8s-ces-setup-config`
+`kubectl --namespace your-target-namespace describe configmap k8s-setup-config`
