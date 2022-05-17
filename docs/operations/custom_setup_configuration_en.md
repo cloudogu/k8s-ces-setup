@@ -76,6 +76,9 @@ Properties have no differences to the `ces-setup`
 ### Region RegistryConfigEncrypted
 
 Properties have no differences to `ces-setup`
+It should be noted, however, that the key/value pairs are not immediately set in the Dogu configuration.
+Because the Dogu operator generates the public and private key for a Dogu only later, the RegistryConfigEncrypted is
+stored in Secrets which are consumed afterwards after key generation by the Dogu operator.
 
 ## Deployment of a setup configuration
 

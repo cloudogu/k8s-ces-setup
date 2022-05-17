@@ -64,34 +64,6 @@ func (wlds *writeLdapDataStep) getCasEntriesAsMap() map[string]interface{} {
 		ldapInCasOptions["encryption"] = wlds.Configuration.UserBackend.Encryption
 	}
 
-	// TODO save encrypted password in cas ldap-configuration
-	//log.Debug("set encrypted password in cas ldap-configuration")
-	//casPublicKeyString, err := doguConfig.Get("public.pem")
-	//if err == nil {
-	//	keyProvider, err := keys.NewKeyProviderFromContext(cesappCtx)
-	//	if err != nil {
-	//		return errors.Wrap(err, "could not create key provider")
-	//	}
-	//
-	//	casPublicKey, err := keyProvider.ReadPublicKeyFromString(casPublicKeyString)
-	//	if err != nil {
-	//		return errors.Wrap(err, "could not get public key from public.pem")
-	//	}
-	//
-	//	passwordEnc, err := casPublicKey.Encrypt(conf.UserBackend.Password)
-	//	if err != nil {
-	//		return errors.Wrap(err, "could not encrypt password")
-	//	}
-	//
-	//	err = doguConfig.Set("ldap/password", passwordEnc)
-	//	if err != nil {
-	//		return errors.Wrap(err, "could not set password")
-	//	}
-	//} else {
-	//	// maybe cas is not installed, continue execution
-	//	log.Warning("error while trying to get public.pem from cas: " + err.Error())
-	//}
-
 	return map[string]interface{}{"ldap": ldapInCasOptions}
 }
 
@@ -127,43 +99,6 @@ func (wlds *writeLdapDataStep) getLdapMapperEntriesAsMap() map[string]interface{
 			},
 		}
 	}
-
-	// TODO set encrypted password in ldap-mapper ldap-configuraion
-	//	log.Debug("set encrypted password in ldap-mapper ldap-configuraion")
-	//	ldapMapperPublicKeyString, err := doguConfig.Get("public.pem")
-	//	if err == nil {
-	//		keyProvider, err := keys.NewKeyProviderFromContext(cesappCtx)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not create key provider")
-	//		}
-	//
-	//		ldapMapperPublicKey, err := keyProvider.ReadPublicKeyFromString(ldapMapperPublicKeyString)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not get public key from public.pem")
-	//		}
-	//
-	//		passwordEnc, err := ldapMapperPublicKey.Encrypt(conf.UserBackend.Password)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not encrypt password")
-	//		}
-	//
-	//		connectionDnEnc, err := ldapMapperPublicKey.Encrypt(conf.UserBackend.ConnectionDN)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not encrypt password")
-	//		}
-	//
-	//		err = doguConfig.Set("backend/password", passwordEnc)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not set password")
-	//		}
-	//
-	//		err = doguConfig.Set("backend/connection_dn", connectionDnEnc)
-	//		if err != nil {
-	//			return errors.Wrap(err, "could not set username")
-	//		}
-	//	} else {
-	//		log.Warning("error while trying to get public.pem from ldap-mapper: " + err.Error())
-	//	}
 
 	return ldapMapperRegistryConfig
 }

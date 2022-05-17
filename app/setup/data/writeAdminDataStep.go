@@ -38,33 +38,6 @@ func (wacs *writeAdminDataStep) PerformSetupStep() error {
 			"admin_mail":     wacs.Configuration.Admin.Mail,
 			"admin_member":   strconv.FormatBool(wacs.Configuration.Admin.AdminMember),
 		}
-
-		// TODO: Currently it is not possible to save encrypted values for the dogus. Should be addressed ASAP
-		//logrus.Debug("set encrypted admin password in ldap dogu configuration")
-		//ldapPublicKeyString, err := ldapContext.Get("public.pem")
-		//if err != nil {
-		//	return errors.Wrap(err, "could not get public.pem from ldap")
-		//}
-		//
-		//keyProvider, err := keys.NewKeyProviderFromContext(cesappCtx)
-		//if err != nil {
-		//	return errors.Wrap(err, "could not create key provider")
-		//}
-		//
-		//ldapPublicKey, err := keyProvider.ReadPublicKeyFromString(ldapPublicKeyString)
-		//if err != nil {
-		//	return errors.Wrap(err, "could not get public key from public.pem")
-		//}
-		//
-		//passwordEnc, err := ldapPublicKey.Encrypt(wacs.Configuration.Admin.Password)
-		//if err != nil {
-		//	return errors.Wrap(err, "could not encrypt password")
-		//}
-		//
-		//err = ldapContext.Set("admin_password", passwordEnc)
-		//if err != nil {
-		//	return errors.Wrap(err, "could not set admin password")
-		//}
 	}
 
 	err := wacs.Writer.WriteConfigToRegistry(registryConfig)

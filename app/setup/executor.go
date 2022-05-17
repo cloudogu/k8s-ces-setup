@@ -142,7 +142,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 // RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
-	configWriter := data.NewGenericConfigurationWriter(etcdRegistry)
+	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
 
 	// register steps
 	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
@@ -152,6 +152,7 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(&e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 
 	return nil
 }

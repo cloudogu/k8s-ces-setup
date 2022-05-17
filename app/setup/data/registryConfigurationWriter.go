@@ -15,24 +15,18 @@ type RegistryWriter interface {
 	WriteConfigToRegistry(registryConfig context.CustomKeyValue) error
 }
 
-// GenericConfigurationWriter writes a configuration into the registry.
-type GenericConfigurationWriter struct {
+// RegistryConfigurationWriter writes a configuration into the registry.
+type RegistryConfigurationWriter struct {
 	Registry registry.Registry
 }
 
-// contextConfigWriter writes a configuration into a
-// configurationContext (like _global or the context of a dogu)
-type contextConfigWriter struct {
-	ConfigCtx registry.ConfigurationContext
-}
-
-// NewGenericConfigurationWriter creates a new configuration writer.
-func NewGenericConfigurationWriter(registry registry.Registry) *GenericConfigurationWriter {
-	return &GenericConfigurationWriter{Registry: registry}
+// NewRegistryConfigurationWriter creates a new configuration Writer.
+func NewRegistryConfigurationWriter(registry registry.Registry) *RegistryConfigurationWriter {
+	return &RegistryConfigurationWriter{Registry: registry}
 }
 
 // WriteConfigToRegistry write the given registry config to the registry
-func (gcw *GenericConfigurationWriter) WriteConfigToRegistry(registryConfig context.CustomKeyValue) error {
+func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig context.CustomKeyValue) error {
 	for fieldName, fieldMap := range registryConfig {
 		err := gcw.writeEntriesForConfig(fieldMap, fieldName)
 		if err != nil {
@@ -42,7 +36,7 @@ func (gcw *GenericConfigurationWriter) WriteConfigToRegistry(registryConfig cont
 	return nil
 }
 
-func (gcw *GenericConfigurationWriter) writeEntriesForConfig(entries map[string]interface{}, config string) error {
+func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string]interface{}, config string) error {
 	var configCtx registry.ConfigurationContext
 
 	logrus.Infof("write in %s configuration", config)
@@ -52,7 +46,9 @@ func (gcw *GenericConfigurationWriter) writeEntriesForConfig(entries map[string]
 		configCtx = gcw.Registry.DoguConfig(config)
 	}
 
-	contextWriter := gcw.newContextConfigWriter(configCtx)
+	contextWriter := gcw.newConfigWriter(func(field string, value string) error {
+		return configCtx.Set(field, value)
+	})
 	for fieldName, fieldEntry := range entries {
 		err := contextWriter.handleEntry(fieldName, fieldEntry)
 		if err != nil {
@@ -63,29 +59,37 @@ func (gcw *GenericConfigurationWriter) writeEntriesForConfig(entries map[string]
 	return nil
 }
 
-// newContextConfigWriter returns a new object to write config to a specific context.
-func (gcw *GenericConfigurationWriter) newContextConfigWriter(configCtx registry.ConfigurationContext) *contextConfigWriter {
-	return &contextConfigWriter{configCtx}
+// newConfigWriter returns a new object to write config with a given function.
+func (gcw *RegistryConfigurationWriter) newConfigWriter(writer configurationContextWriter) *configWriter {
+	return &configWriter{writer: writer, delimiter: "/"}
 }
 
-// handleEntry writes values into the context configured in the writer.
-func (contextWriter contextConfigWriter) handleEntry(field string, value interface{}) (err error) {
+type configurationContextWriter = func(field string, value string) error
+
+// configWriter writes a configuration with a given function
+type configWriter struct {
+	writer    configurationContextWriter
+	delimiter string
+}
+
+// handleEntry writes values into the context implemented in the writer.
+func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:
-		err = contextWriter.ConfigCtx.Set(field, value.(string))
+		err = contextWriter.writer(field, value.(string))
 		if err != nil {
 			return errors.Wrapf(err, "could not set %s", value)
 		}
 	case map[string]string:
 		for fieldName, fieldEntry := range value.(map[string]string) {
-			err = contextWriter.handleEntry(field+"/"+fieldName, fieldEntry)
+			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
 				break
 			}
 		}
 	case map[string]interface{}:
 		for fieldName, fieldEntry := range value.(map[string]interface{}) {
-			err = contextWriter.handleEntry(field+"/"+fieldName, fieldEntry)
+			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
 				break
 			}

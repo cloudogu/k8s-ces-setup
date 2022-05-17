@@ -14,12 +14,12 @@ import (
 )
 
 func TestNewGenericConfigurationWriter(t *testing.T) {
-	t.Run("create new generic configuration writer", func(t *testing.T) {
+	t.Run("create new generic configuration Writer", func(t *testing.T) {
 		// given
 		registryMock := &mocks.Registry{}
 
 		// when
-		writer := data.NewGenericConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(registryMock)
 
 		// then
 		require.NotNil(t, writer)
@@ -41,7 +41,7 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 		registryMock := &mocks.Registry{}
 		registryMock.On("GlobalConfig").Return(globalRegistryMock)
 
-		writer := data.NewGenericConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(registryMock)
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)
@@ -104,7 +104,7 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 		registryMock.On("DoguConfig", "cas").Return(casRegistryMock)
 		registryMock.On("DoguConfig", "ldap-mapper").Return(ldapMapperRegistryMock)
 
-		writer := data.NewGenericConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(registryMock)
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)

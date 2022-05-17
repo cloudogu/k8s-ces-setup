@@ -12,14 +12,13 @@
     "internalIp": ""
   },
   "dogus": {
-    "defaultDogu": "usermgt",
+    "defaultDogu": "ldap",
     "install": [
       "official/ldap",
-      "official/cas",
       "official/postgresql",
-      "official/usermgt",
-      "official/redmine",
-      "official/postfix"
+      "official/postfix",
+      "official/ldap-mapper",
+      "official/cas"
     ],
     "completed": true
   },
@@ -43,8 +42,8 @@
     "attributeGroup": "memberOf",
     "baseDN": "",
     "searchFilter": "(objectClass=person)",
-    "connectionDN": "",
-    "password": "",
+    "connectionDN": "123",
+    "password": "fewfwf",
     "host": "ldap",
     "port": "389",
     "loginID": "",
@@ -56,5 +55,26 @@
     "groupAttributeName": "",
     "groupAttributeDescription": "",
     "groupAttributeMember": ""
+  },
+  "registryConfigEncrypted": {
+    "postfix" : {
+      "smtp_tls_cert_file": "<CERTIFICATE>",
+      "smtp_tls_key_file": "<PRIVATE KEY>"
+    },
+    "cas" : {
+      "field": "Do not override",
+      "obj": {
+        "field1": "1",
+        "field2": "2"
+      }
+    },
+    "ldap" : {
+      "field": "nochmal"
+    },
+    "ldap-mapper": {
+      "backend": {
+        "port123": "123"
+      }
+    }
   }
 }
