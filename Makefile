@@ -49,6 +49,20 @@ serve-local-yaml:
 	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
 	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
 
+##@ Development (with cluster)
+
+.PHONY: k8s-clean
+k8s-clean: ## Cleans all resources deployed by the setup
+	@kubectl delete --all dogus --namespace=ecosystem || true
+	@kubectl delete ns $(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete crd dogus.k8s.cloudogu.com --ignore-not-found=true
+	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
+	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
+	@kubectl create ns ecosystem && kubectl ns ecosystem
+	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${K8S_DOGU_REGISTRY_URL} --from-literal=username=${K8S_DOGU_REGISTRY_USERNAME} --from-literal=password=${K8S_DOGU_REGISTRY_PASSWORD}
+	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${K8S_DOCKER_REGISTRY_URL} --docker-username=${K8S_DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${K8S_DOCKER_REGISTRY_PASSWORD}
+	@make build
+
 ##@ Build
 
 .PHONY: build-setup
