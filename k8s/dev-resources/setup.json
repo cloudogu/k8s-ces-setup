@@ -20,7 +20,7 @@
       "official/ldap-mapper",
       "official/cas"
     ],
-    "completed": true
+    "completed": false
   },
   "admin": {
     "username": "asd",
