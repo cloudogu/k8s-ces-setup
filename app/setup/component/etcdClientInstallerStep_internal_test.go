@@ -16,7 +16,7 @@ import (
 
 var etcdClientSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
-	AppConfig: ctx.Config{
+	AppConfig: &ctx.Config{
 		TargetNamespace:     testTargetNamespaceName,
 		EtcdClientImageRepo: "registryurl/registryname/repo:tag",
 	},

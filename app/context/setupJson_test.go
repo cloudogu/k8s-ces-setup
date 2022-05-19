@@ -18,8 +18,9 @@ var myTestSetupJson []byte
 func TestReadSetupConfig(t *testing.T) {
 	t.Run("read config", func(t *testing.T) {
 		// when
-		c, err := context.ReadSetupConfig("testdata/testSetupJson.json")
-		var expectedSetupJson context.SetupConfiguration
+		c, err := context.ReadSetupConfigFromFile("testdata/testSetupJson.json")
+		require.NoError(t, err)
+		var expectedSetupJson *context.SetupConfiguration
 		err = json.Unmarshal(myTestSetupJson, &expectedSetupJson)
 		require.NoError(t, err)
 
@@ -30,16 +31,16 @@ func TestReadSetupConfig(t *testing.T) {
 
 	t.Run("config does not exists -> empty config returned", func(t *testing.T) {
 		// when
-		emptyConfig, err := context.ReadSetupConfig("testdata/doesnotexist.json")
+		emptyConfig, err := context.ReadSetupConfigFromFile("testdata/doesnotexist.json")
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, context.SetupConfiguration{}, emptyConfig)
+		assert.Equal(t, &context.SetupConfiguration{}, emptyConfig)
 	})
 
 	t.Run("fail on invalid file content", func(t *testing.T) {
 		// when
-		_, err := context.ReadSetupConfig("testdata/invalidConfig.yaml")
+		_, err := context.ReadSetupConfigFromFile("testdata/invalidConfig.yaml")
 
 		// then
 		assert.Error(t, err)

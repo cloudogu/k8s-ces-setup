@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // SetupExecutor is uses to register all necessary steps and executes them
@@ -42,7 +41,12 @@ type Starter struct {
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
-func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
+func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) (*Starter, error) {
+	setupContext, err := setupContextBuilder.NewSetupContext(k8sClient)
+	if err != nil {
+		return nil, err
+	}
+
 	namespace := setupContext.AppConfig.TargetNamespace
 	registryInformation := core.Registry{
 		Type:      "etcd",
@@ -54,25 +58,15 @@ func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
 		return nil, fmt.Errorf("failed to create registry: %w", err)
 	}
 
-	clusterConfig, err := ctrl.GetConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load cluster configuration: %w", err)
-	}
-
-	clientSet, err := kubernetes.NewForConfig(clusterConfig)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create kubernetes client: %w", err)
-	}
-
-	setupExecutor, err := NewExecutor(clusterConfig, clientSet, setupContext)
+	setupExecutor, err := NewExecutor(clusterConfig, k8sClient, setupContext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create setup executor: %w", err)
 	}
 
-	finisher := NewFinisher(clientSet, setupContext.AppConfig.TargetNamespace)
+	finisher := NewFinisher(k8sClient, namespace)
 	return &Starter{
 		EtcdRegistry:  etcdRegistry,
-		ClientSet:     clientSet,
+		ClientSet:     k8sClient,
 		ClusterConfig: clusterConfig,
 		SetupContext:  setupContext,
 		Namespace:     namespace,
@@ -138,7 +132,7 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 }
 
 func initSetupState(clientSet kubernetes.Interface, namespace string) error {
-	stateCM, err := context.GetSetupConfigMap(clientSet, namespace)
+	stateCM, err := context.GetSetupStateConfigMap(clientSet, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get k8s-ces-setup configmap: %w", err)
 	}

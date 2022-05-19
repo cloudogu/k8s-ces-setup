@@ -1,8 +1,11 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -30,9 +33,28 @@ type Config struct {
 	RemoteRegistryURLSchema string `yaml:"remote_registry_url_schema"`
 }
 
-// ReadConfig reads the application configuration from a configuration file.
-func ReadConfig(path string) (Config, error) {
-	config := Config{}
+// ReadConfigFromCluster reads the setup config from the cluster state
+func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Config, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupConfigConfigmap, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get setup configuration from cluster: %w", err)
+	}
+
+	config := &Config{}
+	stringData := configMap.Data["k8s-ces-setup.yaml"]
+	err = yaml.Unmarshal([]byte(stringData), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarschal configuration from configmap: %w", err)
+	}
+
+	configureLogger(config)
+
+	return config, nil
+}
+
+// ReadConfigFromFile reads the application configuration from a configuration file.
+func ReadConfigFromFile(path string) (*Config, error) {
+	config := &Config{}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return config, fmt.Errorf("could not find configuration at %s", path)
 	}
@@ -42,15 +64,19 @@ func ReadConfig(path string) (Config, error) {
 		return config, fmt.Errorf("failed to read configuration %s: %w", path, err)
 	}
 
-	err = yaml.Unmarshal(data, &config)
+	err = yaml.Unmarshal(data, config)
 	if err != nil {
 		return config, fmt.Errorf("failed to unmarshal configuration %s: %w", path, err)
 	}
 
-	keyProvider := config.KeyProvider
-	if keyProvider != "pkcs1v15" && config.KeyProvider != "oaesp" {
-		return config, fmt.Errorf("invalid key provider")
-	}
+	configureLogger(config)
 
 	return config, nil
+}
+
+func configureLogger(config *Config) {
+	logrus.SetLevel(config.LogLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableTimestamp: true,
+	})
 }

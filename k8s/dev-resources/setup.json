@@ -57,18 +57,11 @@
     "groupAttributeMember": ""
   },
   "registryConfigEncrypted": {
-    "postfix" : {
+    "postfix": {
       "smtp_tls_cert_file": "<CERTIFICATE>",
       "smtp_tls_key_file": "<PRIVATE KEY>"
     },
-    "cas" : {
-      "field": "Do not override",
-      "obj": {
-        "field1": "1",
-        "field2": "2"
-      }
-    },
-    "ldap" : {
+    "ldap": {
       "field": "nochmal"
     },
     "ldap-mapper": {

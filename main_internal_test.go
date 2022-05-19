@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"k8s.io/client-go/rest"
 	"os"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,23 +16,41 @@ func Test_createSetupRouter(t *testing.T) {
 
 	t.Run("Startup without error", func(t *testing.T) {
 		// given
+		oldGetConfig := ctrl.GetConfig
+		defer func() { ctrl.GetConfig = oldGetConfig }()
+		ctrl.GetConfig = func() (*rest.Config, error) {
+			return &rest.Config{}, nil
+		}
+
 		t.Setenv("POD_NAMESPACE", "myTestNamespace")
+		t.Setenv("STAGE", "development")
+		contextBuilder := &context.SetupContextBuilder{}
+		contextBuilder.DevSetupConfigPath = "testdata/k8s-ces-setup-testdata.yaml"
+		contextBuilder.DevStartupConfigPath = "testdata/testSetup.json.yaml"
 
 		// when
-		router, err := createSetupRouter("testdata/k8s-ces-setup-testdata.yaml")
+		router, err := createSetupRouter(contextBuilder)
 
-		//then
+		// then
 		require.NoError(t, err)
 		assert.NotNil(t, router)
 	})
 
-	t.Run("Startup error", func(t *testing.T) {
-		// when
-		router, err := createSetupRouter("not-a-config")
+	t.Run("Startup with config error", func(t *testing.T) {
+		// given
+		oldGetConfig := ctrl.GetConfig
+		defer func() { ctrl.GetConfig = oldGetConfig }()
+		ctrl.GetConfig = func() (*rest.Config, error) {
+			return nil, assert.AnError
+		}
 
-		//then
+		contextBuilder := &context.SetupContextBuilder{}
+
+		// when
+		_, err := createSetupRouter(contextBuilder)
+
+		// then
 		require.Error(t, err)
-		assert.Nil(t, router)
-		assert.Contains(t, err.Error(), "could not read current namespace")
+		assert.Contains(t, err.Error(), "failed to load cluster configuration")
 	})
 }

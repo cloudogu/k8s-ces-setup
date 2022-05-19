@@ -103,7 +103,7 @@ func (f *Finisher) removeK8sCesSetupFromCluster() error {
 }
 
 func (f *Finisher) writeInformationToClusterState() error {
-	setupConfigMap, err := context.GetSetupConfigMap(f.Client, f.Namespace)
+	setupConfigMap, err := context.GetSetupStateConfigMap(f.Client, f.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get setup config map: %w", err)
 	}

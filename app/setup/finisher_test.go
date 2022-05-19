@@ -23,7 +23,7 @@ func TestFinisher_FinishSetup(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		cm, err := context.GetSetupConfigMap(fakeclient, "mytestnamespace")
+		cm, err := context.GetSetupStateConfigMap(fakeclient, "mytestnamespace")
 		require.NoError(t, err)
 
 		assert.Equal(t, "installed", cm.Data[context.SetupStateKey])

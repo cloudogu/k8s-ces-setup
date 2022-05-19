@@ -18,10 +18,10 @@ import (
 
 func getSetupCtx() context.SetupContext {
 	return context.SetupContext{
-		AppConfig: context.Config{
+		AppConfig: &context.Config{
 			TargetNamespace: "mynamespace",
 		},
-		StartupConfiguration: context.SetupConfiguration{},
+		StartupConfiguration: &context.SetupConfiguration{},
 	}
 }
 

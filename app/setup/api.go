@@ -1,28 +1,22 @@
 package setup
 
 import (
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"k8s.io/client-go/rest"
 	"net/http"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const endpointPostStartSetup = "/api/v1/setup"
-const endpointPostFinishSetup = "/api/v1/finish"
 
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
-	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostFinishSetup)
-	router.POST(endpointPostFinishSetup, func(c *gin.Context) {
-		finishSetup(c, setupContext)
-	})
-
+func SetupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 	router.POST(endpointPostStartSetup, func(ctx *gin.Context) {
-		startSetup(ctx, setupContext)
+		startSetup(ctx, clusterConfig, k8sClient, setupContextBuilder)
 	})
 }
 
@@ -35,8 +29,8 @@ func handleInternalServerError(ginCtx *gin.Context, err error, causingAction str
 	_ = ginCtx.Error(err)
 }
 
-func startSetup(ctx *gin.Context, setupCtx *context.SetupContext) {
-	starter, err := NewStarter(setupCtx)
+func startSetup(ctx *gin.Context, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
+	starter, err := NewStarter(clusterConfig, k8sClient, setupContextBuilder)
 	if err != nil {
 		handleInternalServerError(ctx, err, "Failed to create setup starter")
 		return
@@ -45,29 +39,6 @@ func startSetup(ctx *gin.Context, setupCtx *context.SetupContext) {
 	err = starter.StartSetup()
 	if err != nil {
 		handleInternalServerError(ctx, err, "Failed to start setup")
-		return
-	}
-
-	ctx.Status(http.StatusOK)
-}
-
-func finishSetup(ctx *gin.Context, setupCtx *context.SetupContext) {
-	clusterConfig, err := ctrl.GetConfig()
-	if err != nil {
-		handleInternalServerError(ctx, err, "Load cluster configuration")
-		return
-	}
-
-	clientSet, err := kubernetes.NewForConfig(clusterConfig)
-	if err != nil {
-		handleInternalServerError(ctx, err, "Cannot create kubernetes client")
-		return
-	}
-
-	setupFinalizer := NewFinisher(clientSet, setupCtx.AppConfig.TargetNamespace)
-	err = setupFinalizer.FinishSetup()
-	if err != nil {
-		handleInternalServerError(ctx, err, "Cannot finalize setup")
 		return
 	}
 

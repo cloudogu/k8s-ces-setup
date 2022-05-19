@@ -14,7 +14,7 @@ import (
 )
 
 func TestStarter_StartSetup(t *testing.T) {
-	setupContext := context.SetupContext{AppConfig: context.Config{TargetNamespace: "test"}, StartupConfiguration: context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
+	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, StartupConfiguration: &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
 	starter := &Starter{}
 	starter.SetupContext = &setupContext
 	starter.ClientSet = &fake.Clientset{}
@@ -73,7 +73,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.Namespace = "test"
 		data := make(map[string]string)
 		data[context.SetupStateKey] = context.SetupStateInstalling
-		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupConfigMap, Namespace: "test"}, Data: data}
+		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupStateConfigMap, Namespace: "test"}, Data: data}
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
@@ -91,7 +91,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.Namespace = "test"
 		data := make(map[string]string)
 		data[context.SetupStateKey] = context.SetupStateInstalled
-		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupConfigMap, Namespace: "test"}, Data: data}
+		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupStateConfigMap, Namespace: "test"}, Data: data}
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
