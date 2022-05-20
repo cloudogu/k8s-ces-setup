@@ -72,15 +72,17 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
 
 	if setupContext.StartupConfiguration.IsCompleted() {
-		logrus.Info("Setup configuration is completed. Start setup...")
-		starter, err := setup.NewStarter(clusterConfig, clientSet, setupContextBuilder)
-		if err != nil {
-			return nil, err
-		}
-		err = starter.StartSetup()
-		if err != nil {
-			return nil, err
-		}
+		go func() {
+			logrus.Info("Setup configuration is completed. Start setup...")
+			starter, err := setup.NewStarter(clusterConfig, clientSet, setupContextBuilder)
+			if err != nil {
+				logrus.Error(err.Error())
+			}
+			err = starter.StartSetup()
+			if err != nil {
+				logrus.Error(err.Error())
+			}
+		}()
 	}
 
 	return createRouter(clusterConfig, clientSet, setupContext.AppConfig.TargetNamespace, setupContextBuilder), nil
