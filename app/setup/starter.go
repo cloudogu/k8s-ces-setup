@@ -24,11 +24,6 @@ type SetupExecutor interface {
 	PerformSetup() (error, string)
 }
 
-// SetupFinisher does finishing tasks after the setup is done
-type SetupFinisher interface {
-	FinishSetup() error
-}
-
 // Starter is used to init and start the setup process
 type Starter struct {
 	EtcdRegistry  registry.Registry
@@ -37,7 +32,6 @@ type Starter struct {
 	SetupContext  *context.SetupContext
 	Namespace     string
 	SetupExecutor SetupExecutor
-	Finisher      SetupFinisher
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
@@ -63,7 +57,6 @@ func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setu
 		return nil, fmt.Errorf("failed to create setup executor: %w", err)
 	}
 
-	finisher := NewFinisher(k8sClient, namespace)
 	return &Starter{
 		EtcdRegistry:  etcdRegistry,
 		ClientSet:     k8sClient,
@@ -71,13 +64,12 @@ func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setu
 		SetupContext:  setupContext,
 		Namespace:     namespace,
 		SetupExecutor: setupExecutor,
-		Finisher:      finisher,
 	}, nil
 }
 
 // StartSetup creates necessary k8s config and client, register steps and executes them
 func (s *Starter) StartSetup() error {
-	err := initSetupState(s.ClientSet, s.Namespace)
+	err := setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalling)
 	if err != nil {
 		return err
 	}
@@ -92,9 +84,9 @@ func (s *Starter) StartSetup() error {
 		return fmt.Errorf("error while initializing namespace for setup [%s]: %w", errCausingAction, err)
 	}
 
-	err = s.Finisher.FinishSetup()
+	err = setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalled)
 	if err != nil {
-		return fmt.Errorf("failed to finish setup: %w", err)
+		return err
 	}
 
 	return nil
@@ -131,18 +123,20 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 	return nil
 }
 
-func initSetupState(clientSet kubernetes.Interface, namespace string) error {
+func setSetupState(clientSet kubernetes.Interface, namespace string, state string) error {
 	stateCM, err := context.GetSetupStateConfigMap(clientSet, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get k8s-ces-setup configmap: %w", err)
 	}
 
-	actualState := stateCM.Data[context.SetupStateKey]
-	if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
-		return fmt.Errorf("setup is busy or already done")
+	if state == context.SetupStateInstalling {
+		actualState := stateCM.Data[context.SetupStateKey]
+		if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
+			return fmt.Errorf("setup is busy or already done")
+		}
 	}
 
-	stateCM.Data[context.SetupStateKey] = context.SetupStateInstalling
+	stateCM.Data[context.SetupStateKey] = state
 	_, err = clientSet.CoreV1().ConfigMaps(namespace).Update(gocontext.Background(), stateCM, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update k8s-ces-setup configmap: %w", err)

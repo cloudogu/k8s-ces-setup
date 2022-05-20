@@ -98,5 +98,6 @@ func createRouter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, na
 func setupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, namespace string, setupContextBuilder *context.SetupContextBuilder) {
 	health.SetupAPI(router, Version)
 	setup.SetupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
+	// TODO in Dogu-Operator verschieben
 	ssl.SetupAPI(router, namespace)
 }

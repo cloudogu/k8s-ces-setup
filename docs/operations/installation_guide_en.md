@@ -56,3 +56,12 @@ For the presentation of the state there is a ConfigMap `k8s-setup-config` with t
 start of the setup will abort immediately.
 
 `kubectl --namespace your-target-namespace describe configmap k8s-setup-config`
+
+### Cleanup of the setup
+
+A cron job `k8s-ces-setup-finisher` is delivered with the setup which periodically (default: 1 minute) checks whether the setup has run successfully.
+If this occurs, all resources with the label `app.kubernetes.io/name=k8s-ces-setup` are deleted.
+Additionally, configurations such as `setup.json` and the cron job itself are removed. Cluster scoped objects are not deleted.
+
+Since the cron job cannot delete its own role, it is the only resource that must be removed manually:
+`kubectl delete role k8s-ces-setup-finisher`.

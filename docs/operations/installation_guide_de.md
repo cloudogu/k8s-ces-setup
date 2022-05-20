@@ -52,7 +52,18 @@ curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
 ### Status des Setups
 
 Für die Präsentation des Zustands existiert eine ConfigMap `k8s-setup-config` mit dem Data-Key
-`state`. Mögliche werte sind `installing, installed`. Falls diese Werte vor dem Setup-Prozess gesetzt sind, bricht ein
+`state`. Mögliche werte sind `installing, installed`. Falls der Wert `installing` vor dem Setup-Prozess gesetzt sind, bricht ein
 Start des Setups sofort ab.
 
 `kubectl --namespace your-target-namespace describe configmap k8s-setup-config`
+
+Falls der Wert `installed` gesetzt ist, ist das Setup bereit aus dem Cluster gelöscht zu werden.
+
+### Cleanup des Setups
+
+Mit dem Setup wird ein CronJob `k8s-ces-setup-finisher` ausgeliefert der periodisch (default: 1 Minute) prüft, ob das Setup erfolgreich durchlaufen ist.
+Tritt dieser Fall ein werden alle Ressourcen mit dem Label `app.kubernetes.io/name=k8s-ces-setup` gelöscht.
+Zusätzlich werden Konfigurationen wie z.B. die `setup.json` und der CronJob selbst entfernt. Cluster bezogene Objekte werden nicht gelöscht.
+
+Da der CronJob nicht seine eigene Rolle löschen kann, muss diese als einzige Ressource manuell entfernt werden:
+`kubectl delete role k8s-ces-setup-finisher`
