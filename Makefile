@@ -53,7 +53,7 @@ serve-local-yaml:
 
 .PHONY: k8s-clean
 k8s-clean: ## Cleans all resources deployed by the setup
-	@kubectl delete --all dogus --namespace=ecosystem || true
+	@kubectl delete --all dogus --namespace=$(K8S_CURRENT_NAMESPACE) || true
 	@kubectl delete ns $(K8S_CURRENT_NAMESPACE) || true
 	@kubectl delete crd dogus.k8s.cloudogu.com --ignore-not-found=true
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
