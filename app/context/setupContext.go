@@ -24,6 +24,9 @@ const SetupStateConfigMap = "k8s-setup-config"
 const SetupStateKey = "state"
 const SetupStateInstalled = "installed"
 const SetupStateInstalling = "installing"
+const EnvironmentVariableStage = "STAGE"
+const StageDevelopment = "development"
+const EnvironmentVariableTargetNamespace = "POD_NAMESPACE"
 
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
@@ -52,27 +55,14 @@ func NewSetupContextBuilder(version string) *SetupContextBuilder {
 func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) (*SetupContext, error) {
 	logrus.Print("Reading configuration file...")
 
-	targetNamespace, err := GetEnvVar("POD_NAMESPACE")
+	targetNamespace, err := GetEnvVar(EnvironmentVariableTargetNamespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not read current namespace: %w", err)
 	}
 
-	var config *Config
-	var setupJson *SetupConfiguration
-	var errConfig error
-	var errSetup error
-	if os.Getenv("STAGE") == "development" {
-		config, errConfig = ReadConfigFromFile(scb.DevSetupConfigPath)
-		setupJson, errSetup = ReadSetupConfigFromFile(scb.DevStartupConfigPath)
-	} else {
-		config, errConfig = ReadConfigFromCluster(clientSet, targetNamespace)
-		setupJson, errSetup = ReadSetupConfigFromCluster(clientSet, targetNamespace)
-	}
-	if errConfig != nil {
-		return nil, errConfig
-	}
-	if errSetup != nil {
-		return nil, errSetup
+	config, setupJson, err := scb.getConfigurations(clientSet, targetNamespace)
+	if err != nil {
+		return nil, err
 	}
 
 	config.TargetNamespace = targetNamespace
@@ -82,11 +72,33 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 		return nil, fmt.Errorf("invalid key provider: %s", keyProvider)
 	}
 
+	configureLogger(config)
+
 	return &SetupContext{
 		AppVersion:           scb.version,
 		AppConfig:            config,
 		StartupConfiguration: setupJson,
 	}, nil
+}
+
+func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupConfiguration, error) {
+	if os.Getenv(EnvironmentVariableStage) == StageDevelopment {
+		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
+		return config, setupJson, err
+	} else {
+		config, err := ReadConfigFromCluster(clientSet, targetNamespace)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		setupJson, err := ReadSetupConfigFromCluster(clientSet, targetNamespace)
+		return config, setupJson, err
+	}
 }
 
 // GetSetupStateConfigMap returns or creates if it does not exist the configmap map for presenting the state of the setup process
@@ -120,4 +132,11 @@ func GetEnvVar(name string) (string, error) {
 		return "", fmt.Errorf("%s must be set", name)
 	}
 	return ns, nil
+}
+
+func configureLogger(config *Config) {
+	logrus.SetLevel(config.LogLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableTimestamp: true,
+	})
 }

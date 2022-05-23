@@ -12,7 +12,7 @@ import (
 )
 
 func Test_createSetupRouter(t *testing.T) {
-	_ = os.Unsetenv("POD_NAMESPACE")
+	_ = os.Unsetenv(context.EnvironmentVariableTargetNamespace)
 
 	t.Run("Startup without error", func(t *testing.T) {
 		// given
@@ -22,8 +22,8 @@ func Test_createSetupRouter(t *testing.T) {
 			return &rest.Config{}, nil
 		}
 
-		t.Setenv("POD_NAMESPACE", "myTestNamespace")
-		t.Setenv("STAGE", "development")
+		t.Setenv(context.EnvironmentVariableTargetNamespace, "myTestNamespace")
+		t.Setenv(context.EnvironmentVariableStage, "development")
 		contextBuilder := &context.SetupContextBuilder{}
 		contextBuilder.DevSetupConfigPath = "testdata/k8s-ces-setup-testdata.yaml"
 		contextBuilder.DevStartupConfigPath = "testdata/testSetup.json.yaml"

@@ -21,7 +21,7 @@ var configBytes []byte
 func TestNewSetupContextBuilder(t *testing.T) {
 	t.Run("should return new context", func(t *testing.T) {
 		// given
-		t.Setenv("POD_NAMESPACE", "myTestNamespace")
+		t.Setenv(EnvironmentVariableTargetNamespace, "myTestNamespace")
 
 		// when
 		actual := NewSetupContextBuilder("1.2.3")
@@ -33,14 +33,14 @@ func TestNewSetupContextBuilder(t *testing.T) {
 }
 
 func Test_GetEnvVar(t *testing.T) {
-	_ = os.Unsetenv("POD_NAMESPACE")
+	_ = os.Unsetenv(EnvironmentVariableTargetNamespace)
 
 	t.Run("successfully query env var namespace", func(t *testing.T) {
 		// given
-		t.Setenv("POD_NAMESPACE", "myTestNamespace")
+		t.Setenv(EnvironmentVariableTargetNamespace, "myTestNamespace")
 
 		// when
-		ns, err := GetEnvVar("POD_NAMESPACE")
+		ns, err := GetEnvVar(EnvironmentVariableTargetNamespace)
 
 		// then
 		require.NoError(t, err)
@@ -50,7 +50,7 @@ func Test_GetEnvVar(t *testing.T) {
 
 	t.Run("failed to query env var namespace", func(t *testing.T) {
 		// when
-		_, err := GetEnvVar("POD_NAMESPACE")
+		_, err := GetEnvVar(EnvironmentVariableTargetNamespace)
 
 		// then
 		require.Error(t, err)
@@ -58,8 +58,8 @@ func Test_GetEnvVar(t *testing.T) {
 }
 
 func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
-	t.Setenv("STAGE", "development")
-	t.Setenv("POD_NAMESPACE", "myTestNamespace")
+	t.Setenv(EnvironmentVariableStage, StageDevelopment)
+	t.Setenv(EnvironmentVariableTargetNamespace, "myTestNamespace")
 	t.Run("success read dev resources", func(t *testing.T) {
 		// given
 		builder := NewSetupContextBuilder("1.2.3")
@@ -81,7 +81,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
 	})
 
-	_ = os.Unsetenv("STAGE")
+	_ = os.Unsetenv(EnvironmentVariableStage)
 
 	t.Run("success read cluster resources", func(t *testing.T) {
 		// given

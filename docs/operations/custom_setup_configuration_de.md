@@ -77,10 +77,10 @@ Eigenschaften besitzen keine Unterschiede zum `ces-setup`
 ### Region RegistryConfigEncrypted
 
 Eigenschaften besitzen keine Unterschiede zum `ces-setup`.
-Zu beachten ist allerdings, dass die Schlüssel/Wert-Paare nicht sofort in die
-Dogu-Konfiguration gesetzt werden. Weil der Dogu-Operator erst später den Public- und Private-Key
-für ein Dogu erzeugt, wird die RegistryConfigEncrypted in Secrets zwischen gespeichert, welche anschließend
-nach Schlüsselerzeugung von dem Dogu-Operator konsumiert werden.
+Zu beachten ist allerdings, dass die Schlüssel/Wert-Paare nicht sofort in der Dogu-Konfiguration gesetzt werden, 
+weil der Dogu-Operator erst zum Zeitpunkt der Dogu-Installation den Public- und Private-Key für ein Dogu erzeugt.
+Daher werden die Einträge aus der Region `registryConfigEncrypted` in Secrets zwischen gespeichert.
+Diese werden bei der Installation eines Dogus von dem Dogu Operator konsumiert.
 
 ## Ausbringung einer Setup-Konfiguration
 

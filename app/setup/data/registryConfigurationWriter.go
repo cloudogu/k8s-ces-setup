@@ -61,22 +61,22 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 
 // newConfigWriter returns a new object to write config with a given function.
 func (gcw *RegistryConfigurationWriter) newConfigWriter(writer configurationContextWriter) *configWriter {
-	return &configWriter{writer: writer, delimiter: "/"}
+	return &configWriter{write: writer, delimiter: "/"}
 }
 
 type configurationContextWriter = func(field string, value string) error
 
 // configWriter writes a configuration with a given function
 type configWriter struct {
-	writer    configurationContextWriter
+	write     configurationContextWriter
 	delimiter string
 }
 
-// handleEntry writes values into the context implemented in the writer.
+// handleEntry writes values into the context implemented in the write.
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:
-		err = contextWriter.writer(field, value.(string))
+		err = contextWriter.write(field, value.(string))
 		if err != nil {
 			return errors.Wrapf(err, "could not set %s", value)
 		}

@@ -59,6 +59,7 @@ func (wrces *writeRegistryConfigEncryptedStep) appendLdapMapperConfig(resultConf
 	if wrces.configuration.UserBackend.DsType == validation.DsTypeEmbedded {
 		return
 	}
+
 	if isDoguInstalled(wrces.configuration.Dogus.Install, "ldap-mapper") {
 		if resultConfigs["ldap-mapper"] == nil {
 			resultConfigs["ldap-mapper"] = map[string]string{"backend.password": wrces.configuration.UserBackend.Password,
@@ -81,12 +82,14 @@ func (wrces *writeRegistryConfigEncryptedStep) appendCasConfig(resultConfigs map
 }
 
 func (wrces *writeRegistryConfigEncryptedStep) appendLdapConfig(resultConfigs map[string]map[string]string) {
-	if wrces.configuration.UserBackend.DsType == validation.DsTypeEmbedded {
-		if resultConfigs["ldap"] == nil {
-			resultConfigs["ldap"] = map[string]string{"admin_password": wrces.configuration.Admin.Password}
-		} else {
-			resultConfigs["ldap"]["admin_password"] = wrces.configuration.Admin.Password
-		}
+	if wrces.configuration.UserBackend.DsType != validation.DsTypeEmbedded {
+		return
+	}
+
+	if resultConfigs["ldap"] == nil {
+		resultConfigs["ldap"] = map[string]string{"admin_password": wrces.configuration.Admin.Password}
+	} else {
+		resultConfigs["ldap"]["admin_password"] = wrces.configuration.Admin.Password
 	}
 }
 
@@ -103,10 +106,9 @@ func (wrces *writeRegistryConfigEncryptedStep) createRegistryConfigEncryptedSecr
 }
 
 // stringDataConfigurationWriter writes a configuration into a map used to set in secrets.
-type stringDataConfigurationWriter struct {
-}
+type stringDataConfigurationWriter struct{}
 
-// NewStringDataConfigurationWriter creates a new instance of a map string data configuration writer used for
+// NewStringDataConfigurationWriter creates a new instance of a map string data configuration write used for
 // registry config encrypted
 func NewStringDataConfigurationWriter() *stringDataConfigurationWriter {
 	return &stringDataConfigurationWriter{}
@@ -121,7 +123,7 @@ func (mcw *stringDataConfigurationWriter) WriteConfigToStringDataMap(registryCon
 	for config, entryMap := range registryConfig {
 		resultConfig := map[string]string{}
 		for key, value := range entryMap {
-			contextWriter := &configWriter{delimiter: ".", writer: func(field string, value string) error {
+			contextWriter := &configWriter{delimiter: ".", write: func(field string, value string) error {
 				resultConfig[field] = value
 				return nil
 			}}

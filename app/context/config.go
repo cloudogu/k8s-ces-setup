@@ -47,8 +47,6 @@ func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Conf
 		return nil, fmt.Errorf("failed to unmarschal configuration from configmap: %w", err)
 	}
 
-	configureLogger(config)
-
 	return config, nil
 }
 
@@ -69,14 +67,5 @@ func ReadConfigFromFile(path string) (*Config, error) {
 		return config, fmt.Errorf("failed to unmarshal configuration %s: %w", path, err)
 	}
 
-	configureLogger(config)
-
 	return config, nil
-}
-
-func configureLogger(config *Config) {
-	logrus.SetLevel(config.LogLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{
-		DisableTimestamp: true,
-	})
 }

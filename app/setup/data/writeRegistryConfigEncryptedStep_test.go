@@ -58,14 +58,13 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		err := step.PerformSetupStep()
 		require.NoError(t, err)
 
+		// then
 		secret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-
-		// then
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
 		assert.Equal(t, 1, len(secret.StringData))
@@ -89,14 +88,13 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		err := step.PerformSetupStep()
 		require.NoError(t, err)
 
+		// then
 		secret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-
-		// then
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
 		assert.Equal(t, 2, len(secret.StringData))
@@ -123,14 +121,13 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		err := step.PerformSetupStep()
 		require.NoError(t, err)
 
+		// then
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-
-		// then
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
 		assert.Equal(t, 2, len(casSecret.StringData))
@@ -161,14 +158,13 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		err := step.PerformSetupStep()
 		require.NoError(t, err)
 
+		// then
 		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-
-		// then
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
 		assert.Equal(t, 1, len(casSecret.StringData))
