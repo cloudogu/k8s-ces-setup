@@ -16,7 +16,10 @@ require (
 	k8s.io/apimachinery v0.23.6
 	k8s.io/client-go v0.23.6
 	sigs.k8s.io/controller-runtime v0.11.1
+
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.29.0
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
