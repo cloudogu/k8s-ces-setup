@@ -6,26 +6,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/sirupsen/logrus"
-
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testContext = &context.SetupContext{
-	AppVersion: "",
-	AppConfig: context.Config{
-		LogLevel: logrus.DebugLevel,
-	},
-}
-
 func setupGinAndAPI() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	SetupAPI(r, testContext)
+	SetupAPI(r, "")
 	return r
 }
 

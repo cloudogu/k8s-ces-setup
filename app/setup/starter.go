@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // SetupExecutor is uses to register all necessary steps and executes them
@@ -25,11 +24,6 @@ type SetupExecutor interface {
 	PerformSetup() (error, string)
 }
 
-// SetupFinisher does finishing tasks after the setup is done
-type SetupFinisher interface {
-	FinishSetup() error
-}
-
 // Starter is used to init and start the setup process
 type Starter struct {
 	EtcdRegistry  registry.Registry
@@ -38,11 +32,15 @@ type Starter struct {
 	SetupContext  *context.SetupContext
 	Namespace     string
 	SetupExecutor SetupExecutor
-	Finisher      SetupFinisher
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
-func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
+func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) (*Starter, error) {
+	setupContext, err := setupContextBuilder.NewSetupContext(k8sClient)
+	if err != nil {
+		return nil, err
+	}
+
 	namespace := setupContext.AppConfig.TargetNamespace
 	registryInformation := core.Registry{
 		Type:      "etcd",
@@ -54,36 +52,24 @@ func NewStarter(setupContext *context.SetupContext) (*Starter, error) {
 		return nil, fmt.Errorf("failed to create registry: %w", err)
 	}
 
-	clusterConfig, err := ctrl.GetConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load cluster configuration: %w", err)
-	}
-
-	clientSet, err := kubernetes.NewForConfig(clusterConfig)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create kubernetes client: %w", err)
-	}
-
-	setupExecutor, err := NewExecutor(clusterConfig, clientSet, setupContext)
+	setupExecutor, err := NewExecutor(clusterConfig, k8sClient, setupContext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create setup executor: %w", err)
 	}
 
-	finisher := NewFinisher(clientSet, setupContext.AppConfig.TargetNamespace)
 	return &Starter{
 		EtcdRegistry:  etcdRegistry,
-		ClientSet:     clientSet,
+		ClientSet:     k8sClient,
 		ClusterConfig: clusterConfig,
 		SetupContext:  setupContext,
 		Namespace:     namespace,
 		SetupExecutor: setupExecutor,
-		Finisher:      finisher,
 	}, nil
 }
 
 // StartSetup creates necessary k8s config and client, register steps and executes them
 func (s *Starter) StartSetup() error {
-	err := initSetupState(s.ClientSet, s.Namespace)
+	err := setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalling)
 	if err != nil {
 		return err
 	}
@@ -98,9 +84,9 @@ func (s *Starter) StartSetup() error {
 		return fmt.Errorf("error while initializing namespace for setup [%s]: %w", errCausingAction, err)
 	}
 
-	err = s.Finisher.FinishSetup()
+	err = setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalled)
 	if err != nil {
-		return fmt.Errorf("failed to finish setup: %w", err)
+		return err
 	}
 
 	return nil
@@ -137,18 +123,20 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 	return nil
 }
 
-func initSetupState(clientSet kubernetes.Interface, namespace string) error {
-	stateCM, err := context.GetSetupConfigMap(clientSet, namespace)
+func setSetupState(clientSet kubernetes.Interface, namespace string, state string) error {
+	stateCM, err := context.GetSetupStateConfigMap(clientSet, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get k8s-ces-setup configmap: %w", err)
 	}
 
-	actualState := stateCM.Data[context.SetupStateKey]
-	if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
-		return fmt.Errorf("setup is busy or already done")
+	if state == context.SetupStateInstalling {
+		actualState := stateCM.Data[context.SetupStateKey]
+		if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
+			return fmt.Errorf("setup is busy or already done")
+		}
 	}
 
-	stateCM.Data[context.SetupStateKey] = context.SetupStateInstalling
+	stateCM.Data[context.SetupStateKey] = state
 	_, err = clientSet.CoreV1().ConfigMaps(namespace).Update(gocontext.Background(), stateCM, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update k8s-ces-setup configmap: %w", err)

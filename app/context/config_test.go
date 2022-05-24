@@ -12,7 +12,7 @@ import (
 func TestReadConfig(t *testing.T) {
 	t.Run("read config", func(t *testing.T) {
 		// when
-		c, err := context.ReadConfig("testdata/testConfig.yaml")
+		c, err := context.ReadConfigFromFile("testdata/testConfig.yaml")
 
 		// then
 		assert.NoError(t, err)
@@ -26,7 +26,7 @@ func TestReadConfig(t *testing.T) {
 
 	t.Run("fail on non existent config", func(t *testing.T) {
 		// when
-		_, err := context.ReadConfig("testdata/doesnotexist.yaml")
+		_, err := context.ReadConfigFromFile("testdata/doesnotexist.yaml")
 
 		// then
 		assert.Error(t, err)
@@ -35,19 +35,10 @@ func TestReadConfig(t *testing.T) {
 
 	t.Run("fail on invalid file content", func(t *testing.T) {
 		// when
-		_, err := context.ReadConfig("testdata/invalidConfig.yaml")
+		_, err := context.ReadConfigFromFile("testdata/invalidConfig.yaml")
 
 		// then
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unmarshal errors")
-	})
-
-	t.Run("fail on invalid keyProvider", func(t *testing.T) {
-		// when
-		_, err := context.ReadConfig("testdata/invalidConfigKeyProvider.yaml")
-
-		// then
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid key provider")
 	})
 }

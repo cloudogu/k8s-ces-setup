@@ -61,3 +61,8 @@ kubectl delete clusterrolebindings ingress-nginx
 # eventuell noch fälschlich ausgebrachte Ressourcen manuell löschen
 ...
 ```
+
+## Cleanup des Setups
+
+Wenn in der Entwicklung neue Kubernetes-Ressourcen erstellt werden, müssen ggf. diese von dem Cleanup-Task berücksichtigt werden.
+Dazu ist das Skript der Configmap `k8s-ces-setup-cleanup-script` in der `k8s-ces-setup.yaml` zu bearbeiten.

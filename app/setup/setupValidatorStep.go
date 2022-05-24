@@ -22,7 +22,7 @@ type ConfigurationValidator interface {
 func NewValidatorStep(registry remote.Registry, setupCtx *context.SetupContext) *setupValidatorStep {
 	validator := validation.NewStartupConfigurationValidator(registry)
 
-	return &setupValidatorStep{Validator: validator, Configuration: &setupCtx.StartupConfiguration}
+	return &setupValidatorStep{Validator: validator, Configuration: setupCtx.StartupConfiguration}
 }
 
 // GetStepDescription return the human-readable description of the step.

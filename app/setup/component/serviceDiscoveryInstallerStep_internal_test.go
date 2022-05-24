@@ -17,7 +17,7 @@ const serviceDiscoveryResourceURL = "https://url.server.com/service-discovery/re
 
 var serviceDiscoverySetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
-	AppConfig: ctx.Config{
+	AppConfig: &ctx.Config{
 		TargetNamespace:     testTargetNamespaceName,
 		ServiceDiscoveryURL: serviceDiscoveryResourceURL,
 	},
