@@ -34,7 +34,7 @@ kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
     --docker-password="your-ces-instance-password"
 
 # note: the setup resource must be modified with your-target-namespace
-wget https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/k8s-ces-setup.yaml
+wget https://raw.githubusercontent.com/cloudogu/k8s-ces-setup/develop/k8s/k8s-ces-setup.yaml
 yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
 
 kubectl --namespace your-target-namespace apply -f k8s-ces-setup.patched.yaml
@@ -56,3 +56,12 @@ For the presentation of the state there is a ConfigMap `k8s-setup-config` with t
 start of the setup will abort immediately.
 
 `kubectl --namespace your-target-namespace describe configmap k8s-setup-config`
+
+### Cleanup of the setup
+
+A cron job `k8s-ces-setup-finisher` is delivered with the setup which periodically (default: 1 minute) checks whether the setup has run successfully.
+If this occurs, all resources with the label `app.kubernetes.io/name=k8s-ces-setup` are deleted.
+Additionally, configurations such as `setup.json` and the cron job itself are removed. Cluster scoped objects are not deleted.
+
+Since the cron job cannot delete its own role, it is the only resource that must be removed manually:
+`kubectl delete role k8s-ces-setup-finisher`.

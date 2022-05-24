@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.5.0] - 2022-05-24
+### Added
+- [#12] Implement the registryConfigEncrypted section from the `setup.json`. Setup creates secrets for these values which 
+- can be processed by the `k8s-dogu-operator`.
+
 ## [v0.4.0] - 2022-05-12
 ### Added
 - [#10] Automatic setup process with `setup.json`. See [custom setup configuration](docs/operations/custom_setup_configuration_en.md) for more information.

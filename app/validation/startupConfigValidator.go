@@ -8,10 +8,11 @@ import (
 )
 
 type validator struct {
-	namingValidator     NamingValidator
-	userBackenValidator UserBackendValidator
-	adminValidator      AdminValidator
-	doguValidator       DoguValidator
+	namingValidator                  NamingValidator
+	userBackenValidator              UserBackendValidator
+	adminValidator                   AdminValidator
+	doguValidator                    DoguValidator
+	registryConfigEncryptedValidator RegistryConfigEncryptedValidator
 }
 
 // NamingValidator is used to validate the naming section of the setup configuration
@@ -34,15 +35,21 @@ type DoguValidator interface {
 	ValidateDogus(dogus context.Dogus) error
 }
 
+// RegistryConfigEncryptedValidator is used to validate the registry config encrypted section of the setup configuration
+type RegistryConfigEncryptedValidator interface {
+	ValidateRegistryConfigEncrypted(config *context.SetupConfiguration) error
+}
+
 // NewStartupConfigurationValidator creates a new setup json validator
 func NewStartupConfigurationValidator(registry remote.Registry) *validator {
 	doguValidator := NewDoguValidator(registry)
 
 	return &validator{
-		namingValidator:     NewNamingValidator(),
-		userBackenValidator: NewUserBackendValidator(),
-		adminValidator:      NewAdminValidator(),
-		doguValidator:       doguValidator,
+		namingValidator:                  NewNamingValidator(),
+		userBackenValidator:              NewUserBackendValidator(),
+		adminValidator:                   NewAdminValidator(),
+		doguValidator:                    doguValidator,
+		registryConfigEncryptedValidator: NewRegistryConfigEncryptedValidator(),
 	}
 }
 
@@ -71,6 +78,11 @@ func (v *validator) ValidateConfiguration(configuration *context.SetupConfigurat
 	err = v.adminValidator.ValidateAdmin(admin, userBackend.DsType)
 	if err != nil {
 		return fmt.Errorf("failed to validate admin user section: %w", err)
+	}
+
+	err = v.registryConfigEncryptedValidator.ValidateRegistryConfigEncrypted(configuration)
+	if err != nil {
+		return fmt.Errorf("failed to validate registry config encrypted section: %w", err)
 	}
 
 	return nil

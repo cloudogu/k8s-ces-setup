@@ -8,7 +8,6 @@ import (
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +15,7 @@ import (
 const endpointPostGenerateSSL = "/api/v1/ssl"
 
 // SetupAPI setups the REST API for ssl generation
-func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
+func SetupAPI(router gin.IRoutes, namespace string) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostGenerateSSL)
 
 	router.POST(endpointPostGenerateSSL, func(ctx *gin.Context) {
@@ -29,7 +28,7 @@ func SetupAPI(router gin.IRoutes, setupContext *context.SetupContext) {
 
 		etcdRegistry, err := registry.New(core.Registry{
 			Type:      "etcd",
-			Endpoints: []string{fmt.Sprintf("http://%s:4001", setupContext.AppConfig.TargetNamespace)},
+			Endpoints: []string{fmt.Sprintf("http://%s:4001", namespace)},
 		})
 		if err != nil {
 			handleError(ctx, http.StatusBadRequest, err, "Creating etcd registry")

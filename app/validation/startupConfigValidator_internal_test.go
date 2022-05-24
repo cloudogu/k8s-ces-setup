@@ -49,19 +49,22 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
 		adminValidatorMock := &mocks.AdminValidator{}
 		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(nil)
+		registryConfigEncryptedValidatorMock := &mocks.RegistryConfigEncryptedValidator{}
+		registryConfigEncryptedValidatorMock.On("ValidateRegistryConfigEncrypted", mock.Anything).Return(nil)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
 		validator.namingValidator = namingValidatorMock
 		validator.userBackenValidator = userBackendValidatorMock
 		validator.adminValidator = adminValidatorMock
+		validator.registryConfigEncryptedValidator = registryConfigEncryptedValidatorMock
 
 		// when
 		err := validator.ValidateConfiguration(configuration)
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, userBackendValidatorMock, adminValidatorMock)
+		mock.AssertExpectationsForObjects(t, namingValidatorMock, userBackendValidatorMock, adminValidatorMock, registryConfigEncryptedValidatorMock)
 	})
 
 	t.Run("error during dogu validation", func(t *testing.T) {
@@ -152,5 +155,35 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate admin user section")
 		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock, userBackendValidatorMock, adminValidatorMock)
+	})
+
+	t.Run("error during registry config encrypted validation", func(t *testing.T) {
+		// given
+		configuration := &context.SetupConfiguration{Admin: context.User{Completed: true}}
+		doguValidatorMock := &mocks.DoguValidator{}
+		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
+		namingValidatorMock := &mocks.NamingValidator{}
+		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
+		userBackendValidatorMock := &mocks.UserBackendValidator{}
+		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
+		adminValidatorMock := &mocks.AdminValidator{}
+		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(nil)
+		registryConfigEncryptedValidatorMock := &mocks.RegistryConfigEncryptedValidator{}
+		registryConfigEncryptedValidatorMock.On("ValidateRegistryConfigEncrypted", mock.Anything).Return(assert.AnError)
+		mockRegistry := &remoteMocks.Registry{}
+		validator := NewStartupConfigurationValidator(mockRegistry)
+		validator.doguValidator = doguValidatorMock
+		validator.namingValidator = namingValidatorMock
+		validator.userBackenValidator = userBackendValidatorMock
+		validator.adminValidator = adminValidatorMock
+		validator.registryConfigEncryptedValidator = registryConfigEncryptedValidatorMock
+
+		// when
+		err := validator.ValidateConfiguration(configuration)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to validate registry config encrypted section")
+		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock, userBackendValidatorMock, adminValidatorMock, registryConfigEncryptedValidatorMock)
 	})
 }

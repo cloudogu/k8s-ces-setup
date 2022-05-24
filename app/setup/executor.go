@@ -142,16 +142,17 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 // RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
-	configWriter := data.NewGenericConfigurationWriter(etcdRegistry)
+	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
 
 	// register steps
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, &e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, &e.SetupContext.StartupConfiguration))
 	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
+	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.StartupConfiguration))
 
 	return nil
 }
@@ -179,7 +180,7 @@ func (e *Executor) RegisterValidationStep() error {
 
 // RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
-	generationStep := data.NewGenerateSSLStep(&e.SetupContext.StartupConfiguration)
+	generationStep := data.NewGenerateSSLStep(e.SetupContext.StartupConfiguration)
 	e.RegisterSetupStep(generationStep)
 	return nil
 }

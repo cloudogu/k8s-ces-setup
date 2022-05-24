@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.4.0
+VERSION=0.5.0
 
 GOTAG?=1.18.1
 MAKEFILES_VERSION=5.2.0
@@ -48,6 +48,20 @@ serve-local-yaml:
 	@echo "Press Ctrl+C to exit"
 	@echo "You need a routable IP address or DNS in order to address resources from inside the cluster"
 	@cd ${WORKDIR}/${LOCAL_HTTP_DIR} && python3 -m http.server ${LOCAL_HTTP_SERVER_PORT}
+
+##@ Development (with cluster)
+
+.PHONY: k8s-clean
+k8s-clean: ## Cleans all resources deployed by the setup
+	@kubectl delete --all dogus --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete ns $(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete crd dogus.k8s.cloudogu.com --ignore-not-found=true
+	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
+	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
+	@kubectl create ns $(K8S_CURRENT_NAMESPACE) && kubectl ns $(K8S_CURRENT_NAMESPACE)
+	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
+	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${DOCKER_REGISTRY_PASSWORD}
+	@make build
 
 ##@ Build
 

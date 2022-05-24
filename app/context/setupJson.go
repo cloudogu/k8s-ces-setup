@@ -1,9 +1,12 @@
 package context
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -87,9 +90,26 @@ func (conf *SetupConfiguration) IsCompleted() bool {
 	return conf.Naming.Completed && conf.Dogus.Completed && conf.Admin.Completed && conf.UserBackend.Completed
 }
 
-// ReadSetupConfig reads the setup configuration from a setup json file.
-func ReadSetupConfig(path string) (SetupConfiguration, error) {
-	config := SetupConfiguration{}
+// ReadSetupConfigFromCluster reads the setup configuration from the configmap
+func ReadSetupConfigFromCluster(client kubernetes.Interface, namespace string) (*SetupConfiguration, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupStartUpConfigMap, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get setup.json configmap: %w", err)
+	}
+
+	config := &SetupConfiguration{}
+	stringData := configMap.Data["setup.json"]
+	err = json.Unmarshal([]byte(stringData), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal setup configuration from configmap: %w", err)
+	}
+
+	return config, nil
+}
+
+// ReadSetupConfigFromFile reads the setup configuration from a setup json file.
+func ReadSetupConfigFromFile(path string) (*SetupConfiguration, error) {
+	config := &SetupConfiguration{}
 
 	fileInfo, err := os.Stat(path)
 
