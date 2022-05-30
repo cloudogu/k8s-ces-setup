@@ -3,15 +3,15 @@ package core
 import (
 	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/utils/pointer"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	ctrl "sigs.k8s.io/controller-runtime"
+
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -25,6 +25,7 @@ import (
 type k8sApplyClient struct {
 	gvrMapper meta.RESTMapper
 	dynClient dynamic.Interface
+	scheme    *runtime.Scheme
 }
 
 // NewK8sClient creates a `kubectl`-like client which operates on the K8s API with YAML resources.
@@ -38,7 +39,13 @@ func NewK8sClient(clusterConfig *rest.Config) (*k8sApplyClient, error) {
 		return nil, fmt.Errorf("error while creating k8s apply client: %w", err)
 	}
 
-	return &k8sApplyClient{gvrMapper: gvrMapper, dynClient: dynCli}, nil
+	schemeWithDoguType := runtime.NewScheme()
+	err = k8sv1.AddToScheme(schemeWithDoguType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &k8sApplyClient{gvrMapper: gvrMapper, dynClient: dynCli, scheme: schemeWithDoguType}, nil
 }
 
 func createGVRMapper(config *rest.Config) (meta.RESTMapper, error) {
@@ -94,7 +101,7 @@ func (dkc *k8sApplyClient) ApplyWithOwner(yamlResource []byte, namespace string,
 		dr = dkc.dynClient.Resource(gvr.Resource).Namespace(namespace)
 
 		if owningResource != nil {
-			err = SetControllerReference(owningResource, k8sObjects, gvk)
+			err = ctrl.SetControllerReference(owningResource, k8sObjects, dkc.scheme)
 			if err != nil {
 				return fmt.Errorf("could not apply YAML doccument '%s': could not set controller reference: %w", string(yamlResource), err)
 			}
@@ -128,94 +135,4 @@ func createOrUpdateResource(ctx context.Context, desiredResource *unstructured.U
 	}
 
 	return nil
-}
-
-// SetControllerReference sets owner as a Controller OwnerReference on controlled.
-// This is used for garbage collection of the controlled object and for
-// reconciling the owner object on changes to controlled (with a Watch + EnqueueRequestForOwner).
-// Since only one OwnerReference can be a controller, it returns an error if
-// there is another OwnerReference with Controller flag set.
-//
-// This customized version was taken from https://github.com/kubernetes-sigs/controller-runtime/blob/196828e54e4210497438671b2b449522c004db5c/pkg/controller/controllerutil/controllerutil.go#L96
-func SetControllerReference(owner, controlled metav1.Object, gvk *schema.GroupVersionKind) error {
-	// Validate the owner.
-	_, ok := owner.(runtime.Object)
-	if !ok {
-		return fmt.Errorf("%T is not a runtime.Object, cannot call SetControllerReference", owner)
-	}
-	if err := validateOwner(owner, controlled); err != nil {
-		return err
-	}
-
-	// Create a new controller ref.
-	ref := metav1.OwnerReference{
-		APIVersion:         gvk.GroupVersion().String(),
-		Kind:               gvk.Kind,
-		Name:               owner.GetName(),
-		UID:                owner.GetUID(),
-		BlockOwnerDeletion: pointer.BoolPtr(true),
-		Controller:         pointer.BoolPtr(true),
-	}
-
-	// Return early with an error if the object is already controlled.
-	if existing := metav1.GetControllerOf(controlled); existing != nil && !referSameObject(*existing, ref) {
-		return &controllerutil.AlreadyOwnedError{
-			Object: controlled,
-			Owner:  *existing,
-		}
-	}
-
-	// Update owner references and return.
-	upsertOwnerRef(ref, controlled)
-	return nil
-}
-
-func upsertOwnerRef(ref metav1.OwnerReference, object metav1.Object) {
-	owners := object.GetOwnerReferences()
-	if idx := indexOwnerRef(owners, ref); idx == -1 {
-		owners = append(owners, ref)
-	} else {
-		owners[idx] = ref
-	}
-	object.SetOwnerReferences(owners)
-}
-
-// indexOwnerRef returns the index of the owner reference in the slice if found, or -1.
-func indexOwnerRef(ownerReferences []metav1.OwnerReference, ref metav1.OwnerReference) int {
-	for index, r := range ownerReferences {
-		if referSameObject(r, ref) {
-			return index
-		}
-	}
-	return -1
-}
-
-func validateOwner(owner, object metav1.Object) error {
-	objectName := object.GetName()
-	ownerNs := owner.GetNamespace()
-	if ownerNs != "" {
-		objNs := object.GetNamespace()
-		if objNs == "" {
-			return fmt.Errorf("cluster-scoped resource %s must not have a namespace-scoped owner, owner's namespace %s", objectName, ownerNs)
-		}
-		if ownerNs != objNs {
-			return fmt.Errorf("cross-namespace owner references are disallowed, owner's namespace %s, obj's name %s, obj's namespace %s", owner.GetNamespace(), objectName, object.GetNamespace())
-		}
-	}
-	return nil
-}
-
-// Returns true if a and b point to the same object.
-func referSameObject(a, b metav1.OwnerReference) bool {
-	aGV, err := schema.ParseGroupVersion(a.APIVersion)
-	if err != nil {
-		return false
-	}
-
-	bGV, err := schema.ParseGroupVersion(b.APIVersion)
-	if err != nil {
-		return false
-	}
-
-	return aGV.Group == bGV.Group && a.Kind == b.Kind && a.Name == b.Name
 }
