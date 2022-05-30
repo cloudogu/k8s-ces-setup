@@ -89,18 +89,19 @@ func (dkc *k8sApplyClient) ApplyWithOwner(yamlResource []byte, namespace string,
 	// 5. Obtain REST interface for the GVR
 	var dr dynamic.ResourceInterface
 	if gvr.Scope.Name() == meta.RESTScopeNameNamespace {
+		k8sObjects.SetNamespace(namespace)
 		// namespaced resources should specify the namespace
 		dr = dkc.dynClient.Resource(gvr.Resource).Namespace(namespace)
+
+		if owningResource != nil {
+			err = SetControllerReference(owningResource, k8sObjects, gvk)
+			if err != nil {
+				return fmt.Errorf("could not apply YAML doccument '%s': could not set controller reference: %w", string(yamlResource), err)
+			}
+		}
 	} else {
 		// for cluster-wide resources
 		dr = dkc.dynClient.Resource(gvr.Resource)
-	}
-
-	if owningResource != nil {
-		err = SetControllerReference(owningResource, k8sObjects, gvk)
-		if err != nil {
-			return fmt.Errorf("could not apply YAML doccument '%s': could not set controller reference: %w", string(yamlResource), err)
-		}
 	}
 
 	return createOrUpdateResource(context.Background(), k8sObjects, dr)
