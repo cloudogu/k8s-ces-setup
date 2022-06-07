@@ -11,7 +11,7 @@ import (
 )
 
 func NewServiceDiscoveryInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*serviceDiscoveryInstallerStep, error) {
-	k8sApplyClient, scheme, err := apply.New(clusterConfig, "TODO")
+	k8sApplyClient, scheme, err := apply.New(clusterConfig, K8sSetupFieldManagerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
 	}

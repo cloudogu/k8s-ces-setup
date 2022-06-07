@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const K8sSetupFieldManagerName = "k8s-ces-setup"
+
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
 
@@ -35,7 +37,7 @@ type doguOperatorInstallerStep struct {
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
 func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
-	k8sApplyClient, scheme, err := apply.New(clusterConfig, "TODO")
+	k8sApplyClient, scheme, err := apply.New(clusterConfig, K8sSetupFieldManagerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
 	}
