@@ -2,28 +2,16 @@ package component
 
 import (
 	"fmt"
-	"github.com/cloudogu/k8s-apply-lib/apply"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
-	"k8s.io/client-go/rest"
 )
 
-func NewEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*etcdServerInstallerStep, error) {
-	k8sApplyClient, scheme, err := apply.New(clusterConfig, K8sSetupFieldManagerName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
-	}
-	err = k8sv1.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
-	}
+func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
 		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              k8sApplyClient,
+		k8sClient:              k8sClient,
 		fileContentModificator: &defaultFileContentModificator{},
 	}, nil
 }

@@ -10,8 +10,6 @@ import (
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"k8s.io/client-go/rest"
 )
 
 const serviceDiscoveryResourceURL = "https://url.server.com/service-discovery/resource.yaml"
@@ -28,7 +26,7 @@ func TestNewServiceDiscoveryInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual, _ := NewServiceDiscoveryInstallerStep(&rest.Config{}, serviceDiscoverySetupCtx)
+	actual, _ := NewServiceDiscoveryInstallerStep(serviceDiscoverySetupCtx, &mockK8sClient{})
 
 	// then
 	assert.NotNil(t, actual)
@@ -38,7 +36,7 @@ func TestServiceDiscoveryInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer, _ := NewServiceDiscoveryInstallerStep(&rest.Config{}, serviceDiscoverySetupCtx)
+	installer, _ := NewServiceDiscoveryInstallerStep(serviceDiscoverySetupCtx, &mockK8sClient{})
 
 	// when
 	description := installer.GetStepDescription()

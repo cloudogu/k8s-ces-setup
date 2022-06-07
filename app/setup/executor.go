@@ -3,6 +3,8 @@ package setup
 import (
 	gocontext "context"
 	"fmt"
+	"github.com/cloudogu/k8s-apply-lib/apply"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"strings"
 	"time"
 
@@ -23,6 +25,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
+
+const K8sSetupFieldManagerName = "k8s-ces-setup"
 
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
@@ -109,17 +113,26 @@ func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 
 // RegisterComponentSetupSteps adds all setups steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	etcdSrvInstallerStep, err := component.NewEtcdServerInstallerStep(e.ClusterConfig, e.SetupContext)
+	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, K8sSetupFieldManagerName)
+	if err != nil {
+		return fmt.Errorf("failed to create k8s apply client: %w", err)
+	}
+	err = k8sv1.AddToScheme(scheme)
+	if err != nil {
+		return fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
+	}
+
+	etcdSrvInstallerStep, err := component.NewEtcdServerInstallerStep(e.SetupContext, k8sApplyClient)
 	if err != nil {
 		return fmt.Errorf("failed to create new etcd server installer step: %w", err)
 	}
 
-	doguOpInstallerStep, err := component.NewDoguOperatorInstallerStep(e.ClusterConfig, e.SetupContext)
+	doguOpInstallerStep, err := component.NewDoguOperatorInstallerStep(e.SetupContext, k8sApplyClient)
 	if err != nil {
 		return fmt.Errorf("failed to create new dogu operator installer step: %w", err)
 	}
 
-	serviceDisInstallerStep, err := component.NewServiceDiscoveryInstallerStep(e.ClusterConfig, e.SetupContext)
+	serviceDisInstallerStep, err := component.NewServiceDiscoveryInstallerStep(e.SetupContext, k8sApplyClient)
 	if err != nil {
 		return fmt.Errorf("failed to create new service discovery installer step: %w", err)
 	}

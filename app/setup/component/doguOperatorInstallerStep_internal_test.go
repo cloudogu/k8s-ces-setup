@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"k8s.io/client-go/rest"
 )
 
 const testTargetNamespaceName = "myfavouritenamespace-1"
@@ -187,7 +186,7 @@ func TestNewDoguOperatorInstallerStep(t *testing.T) {
 	t.Parallel()
 
 	// when
-	actual, _ := NewDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
+	actual, _ := NewDoguOperatorInstallerStep(doguOperatorSetupCtx, &mockK8sClient{})
 
 	// then
 	assert.NotNil(t, actual)
@@ -197,7 +196,7 @@ func TestDoguOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Parallel()
 
 	// given
-	installer, _ := NewDoguOperatorInstallerStep(&rest.Config{}, doguOperatorSetupCtx)
+	installer, _ := NewDoguOperatorInstallerStep(doguOperatorSetupCtx, &mockK8sClient{})
 
 	// when
 	description := installer.GetStepDescription()

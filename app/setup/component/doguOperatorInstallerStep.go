@@ -3,16 +3,12 @@ package component
 import (
 	"bytes"
 	"fmt"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"regexp"
 
 	"github.com/cloudogu/k8s-apply-lib/apply"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
-	"k8s.io/client-go/rest"
 )
-
-const K8sSetupFieldManagerName = "k8s-ces-setup"
 
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
@@ -36,21 +32,12 @@ type doguOperatorInstallerStep struct {
 }
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
-func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
-	k8sApplyClient, scheme, err := apply.New(clusterConfig, K8sSetupFieldManagerName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
-	}
-	err = k8sv1.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
-	}
-
+func NewDoguOperatorInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*doguOperatorInstallerStep, error) {
 	return &doguOperatorInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
 		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              k8sApplyClient,
+		k8sClient:              k8sClient,
 		fileContentModificator: &defaultFileContentModificator{},
 	}, nil
 }
