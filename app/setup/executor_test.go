@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
+	"k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -135,5 +136,38 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		assert.True(t, step1.PerformedStep)
 		assert.True(t, !step2.PerformedStep)
 		assert.True(t, !step3.PerformedStep) // not performed because step 2 could not perform
+	})
+}
+
+func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
+	t.Run("successfully register steps", func(t *testing.T) {
+		// given
+		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		executor := &setup.Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.NoError(t, err)
+	})
+
+	t.Run("failed to create applier", func(t *testing.T) {
+		// given
+		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		executor := &setup.Executor{
+			SetupContext:  testContext,
+			ClusterConfig: &rest.Config{ExecProvider: &api.ExecConfig{}, AuthProvider: &api.AuthProviderConfig{}},
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to create k8s apply client")
 	})
 }
