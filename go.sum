@@ -89,8 +89,8 @@ github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5P
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/cloudogu/cesapp-lib v0.1.0 h1:tqKUgWzyeMUO8MlGslnrKM+DE+i83xnWT63+9x11OeY=
 github.com/cloudogu/cesapp-lib v0.1.0/go.mod h1:0MyWjwl7lkhvAfOOyC/PDrhnS73q6r+BPYNDhGMLkok=
-github.com/cloudogu/k8s-apply-lib v0.0.0-20220602114521-9b166b6927e1 h1:QSr7YeFSzUhsBhEYJYyEnjiV9jv9dzRfsmVwUt/er0o=
-github.com/cloudogu/k8s-apply-lib v0.0.0-20220602114521-9b166b6927e1/go.mod h1:WHCe588o8e1vzNdLGV6N4E0g7BarbPXPpW4y8U0/lxE=
+github.com/cloudogu/k8s-apply-lib v0.2.0 h1:SriHQUj7/CDbn6TnuSviMN8J6XgLcg6nOcGvN9/WUnc=
+github.com/cloudogu/k8s-apply-lib v0.2.0/go.mod h1:WHCe588o8e1vzNdLGV6N4E0g7BarbPXPpW4y8U0/lxE=
 github.com/cloudogu/k8s-dogu-operator v0.3.0 h1:ZN9qOs7b519qnJHwkmQH4sTDmsA1gDRKqKAdWnqadSs=
 github.com/cloudogu/k8s-dogu-operator v0.3.0/go.mod h1:u12uF0etjVXNBiwrU6HGc4e5IBc9gB5Ftqx5nIjSoYI=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=

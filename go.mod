@@ -4,14 +4,13 @@ go 1.18
 
 require (
 	github.com/cloudogu/cesapp-lib v0.1.0
-	github.com/cloudogu/k8s-apply-lib v0.0.0-20220602114521-9b166b6927e1
+	github.com/cloudogu/k8s-apply-lib v0.2.0
 	github.com/cloudogu/k8s-dogu-operator v0.3.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.24.0
 	k8s.io/apimachinery v0.24.0
