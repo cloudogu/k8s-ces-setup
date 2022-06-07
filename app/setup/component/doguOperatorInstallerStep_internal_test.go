@@ -2,6 +2,7 @@ package component
 
 import (
 	"fmt"
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"testing"
 
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
@@ -210,13 +211,12 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("should perform an installation without resource modification", func(t *testing.T) {
 		// given
-		doguOpYamlBytes := []byte("yaml result goes here")
-
+		var doguOpYamlBytes apply.YamlDocument = []byte("yaml result goes here")
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", doguOperatorURL).Return(doguOpYamlBytes, nil)
+		mockedFileClient.On("Get", doguOperatorURL).Return([]byte(doguOpYamlBytes), nil)
 		mockedFileModder := &mockFileModder{}
-		mockedFileModder.On("replaceNamespacedResources", doguOpYamlBytes, testTargetNamespaceName)
-		mockedFileModder.On("removeLegacyNamespaceFromResources", doguOpYamlBytes)
+		mockedFileModder.On("replaceNamespacedResources", []byte(doguOpYamlBytes), testTargetNamespaceName)
+		mockedFileModder.On("removeLegacyNamespaceFromResources", []byte(doguOpYamlBytes))
 		mockedK8sClient := &mockK8sClient{}
 		mockedK8sClient.On("Apply", doguOpYamlBytes, testTargetNamespaceName).Return(nil)
 
@@ -244,20 +244,22 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 	namespace: aNamespaceToBeReplaced`
 		yamlDoc2 := `yamlDoc1: 2
 	namespace: aNamespaceToBeReplaced`
-		doguOpYamlBytes := []byte(fmt.Sprintf(`---
+		var doguOpYamlBytes apply.YamlDocument = []byte(fmt.Sprintf(`---
 %v
 ---
 %v
 `, yamlDoc1, yamlDoc2))
+		var typedYamlDoc1 apply.YamlDocument = []byte(yamlDoc1 + "\n")
+		var typedYamlDoc2 apply.YamlDocument = []byte(yamlDoc2 + "\n")
 
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", doguOperatorURL).Return(doguOpYamlBytes, nil)
+		mockedFileClient.On("Get", doguOperatorURL).Return([]byte(doguOpYamlBytes), nil)
 		mockedFileModder := &mockFileModder{}
-		mockedFileModder.On("replaceNamespacedResources", doguOpYamlBytes, testTargetNamespaceName)
-		mockedFileModder.On("removeLegacyNamespaceFromResources", doguOpYamlBytes)
+		mockedFileModder.On("replaceNamespacedResources", []byte(doguOpYamlBytes), testTargetNamespaceName)
+		mockedFileModder.On("removeLegacyNamespaceFromResources", []byte(doguOpYamlBytes))
 		mockedK8sClient := &mockK8sClient{}
-		mockedK8sClient.On("Apply", []byte(yamlDoc1+"\n"), testTargetNamespaceName).Return(nil)
-		mockedK8sClient.On("Apply", []byte(yamlDoc2+"\n"), testTargetNamespaceName).Return(nil)
+		mockedK8sClient.On("Apply", typedYamlDoc1, testTargetNamespaceName).Return(nil)
+		mockedK8sClient.On("Apply", typedYamlDoc2, testTargetNamespaceName).Return(nil)
 
 		installer := doguOperatorInstallerStep{
 			namespace:              testTargetNamespaceName,
@@ -282,20 +284,22 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 	namespace: aNamespaceToBeReplaced`
 		yamlDoc2 := `yamlDoc1: 2
 	namespace: aNamespaceToBeReplaced`
-		doguOpYamlBytes := []byte(fmt.Sprintf(`---
+		var doguOpYamlBytes apply.YamlDocument = []byte(fmt.Sprintf(`---
 %v
 ---
 %v
 `, yamlDoc1, yamlDoc2))
+		var typedYamlDoc1 apply.YamlDocument = []byte(yamlDoc1 + "\n")
+		var typedYamlDoc2 apply.YamlDocument = []byte(yamlDoc2 + "\n")
 
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", doguOperatorURL).Return(doguOpYamlBytes, nil)
+		mockedFileClient.On("Get", doguOperatorURL).Return([]byte(doguOpYamlBytes), nil)
 		mockedFileModder := &mockFileModder{}
-		mockedFileModder.On("replaceNamespacedResources", doguOpYamlBytes, testTargetNamespaceName)
-		mockedFileModder.On("removeLegacyNamespaceFromResources", doguOpYamlBytes)
+		mockedFileModder.On("replaceNamespacedResources", []byte(doguOpYamlBytes), testTargetNamespaceName)
+		mockedFileModder.On("removeLegacyNamespaceFromResources", []byte(doguOpYamlBytes))
 		mockedK8sClient := &mockK8sClient{}
-		mockedK8sClient.On("Apply", []byte(yamlDoc1+"\n"), testTargetNamespaceName).Return(nil)
-		mockedK8sClient.On("Apply", []byte(yamlDoc2+"\n"), testTargetNamespaceName).Return(assert.AnError)
+		mockedK8sClient.On("Apply", typedYamlDoc1, testTargetNamespaceName).Return(nil)
+		mockedK8sClient.On("Apply", typedYamlDoc2, testTargetNamespaceName).Return(assert.AnError)
 
 		installer := doguOperatorInstallerStep{
 			namespace:              testTargetNamespaceName,
@@ -329,7 +333,7 @@ type mockK8sClient struct {
 	mock.Mock
 }
 
-func (mkc *mockK8sClient) Apply(yamlResources []byte, namespace string) error {
+func (mkc *mockK8sClient) Apply(yamlResources apply.YamlDocument, namespace string) error {
 	args := mkc.Called(yamlResources, namespace)
 	return args.Error(0)
 }

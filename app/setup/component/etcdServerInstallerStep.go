@@ -2,6 +2,8 @@ package component
 
 import (
 	"fmt"
+	"github.com/cloudogu/k8s-apply-lib/apply"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
@@ -9,9 +11,13 @@ import (
 )
 
 func NewEtcdServerInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*etcdServerInstallerStep, error) {
-	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
+	k8sApplyClient, scheme, err := apply.New(clusterConfig, "TODO")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
+	}
+	err = k8sv1.AddToScheme(scheme)
+	if err != nil {
+		return nil, fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
 	}
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,

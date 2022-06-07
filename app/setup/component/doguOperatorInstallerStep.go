@@ -3,8 +3,10 @@ package component
 import (
 	"bytes"
 	"fmt"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"regexp"
 
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 	"k8s.io/client-go/rest"
@@ -20,7 +22,7 @@ type fileClient interface {
 
 type k8sClient interface {
 	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster's namespace.
-	Apply(yamlResources []byte, namespace string) error
+	Apply(yamlResources apply.YamlDocument, namespace string) error
 }
 
 type doguOperatorInstallerStep struct {
@@ -33,9 +35,13 @@ type doguOperatorInstallerStep struct {
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
 func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
-	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
+	k8sApplyClient, scheme, err := apply.New(clusterConfig, "TODO")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create k8s apply client: %w", err)
+	}
+	err = k8sv1.AddToScheme(scheme)
+	if err != nil {
+		return nil, fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
 	}
 
 	return &doguOperatorInstallerStep{
