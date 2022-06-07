@@ -15,6 +15,12 @@ Das `k8s-ces-setup` benötigt eine Konfiguration für die Installation. Diese mu
 Installation des `k8s-ces-setup` ausgebracht werden. Mehr Information zur Ausbringung und zu den einzelnen
 Konfigurationsoptionen wird [im Configuration-Guide](configuration_guide_de.md) beschrieben.
 
+### Automatisches Setup via setup.json
+
+Soll das Setup automatisch ohne Anwenderinteraktion durchgeführt werden, kann dies mithilfe einer `setup.json` geschehen.
+Diese enthält alle nötigen Konfigurationswerte zur Durchführung des Setups. Wie die `setup.json` erstellt und in den
+Cluster eingebracht werden kann, ist in ["Ausbringung einer Setup-Konfiguration"](custom_setup_configuration_de.md) beschrieben.
+
 ### Setup ausbringen
 
 Die Installation von GitHub erfordert die Installations-YAML, die alle benötigten K8s-Ressourcen enthält. Diese liegt im
