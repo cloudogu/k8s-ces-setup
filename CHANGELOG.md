@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Extract client to apply k8s resources into own repository 
+(https://github.com/cloudogu/k8s-apply-lib)
 
 ## [v0.5.0] - 2022-05-24
 ### Added
