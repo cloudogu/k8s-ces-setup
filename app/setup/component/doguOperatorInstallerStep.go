@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
-	"k8s.io/client-go/rest"
 )
 
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
@@ -20,7 +20,7 @@ type fileClient interface {
 
 type k8sClient interface {
 	// Apply sends a request to the K8s API with the provided YAML resources in order to apply them to the current cluster's namespace.
-	Apply(yamlResources []byte, namespace string) error
+	Apply(yamlResources apply.YamlDocument, namespace string) error
 }
 
 type doguOperatorInstallerStep struct {
@@ -32,17 +32,12 @@ type doguOperatorInstallerStep struct {
 }
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
-func NewDoguOperatorInstallerStep(clusterConfig *rest.Config, setupCtx *context.SetupContext) (*doguOperatorInstallerStep, error) {
-	k8sApplyClient, err := core.NewK8sClient(clusterConfig)
-	if err != nil {
-		return nil, err
-	}
-
+func NewDoguOperatorInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*doguOperatorInstallerStep, error) {
 	return &doguOperatorInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
 		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              k8sApplyClient,
+		k8sClient:              k8sClient,
 		fileContentModificator: &defaultFileContentModificator{},
 	}, nil
 }
