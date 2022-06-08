@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/cloudogu/cesapp-lib v0.1.0
-	github.com/cloudogu/k8s-apply-lib v0.2.0
+	github.com/cloudogu/k8s-apply-lib v0.3.0
 	github.com/cloudogu/k8s-dogu-operator v0.3.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/pkg/errors v0.9.1

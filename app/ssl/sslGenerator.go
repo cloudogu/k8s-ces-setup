@@ -76,7 +76,7 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
 	}
 
-	chain := fmt.Sprintf("%s%s", caCertPEM.String(), certPEM.String())
+	chain := fmt.Sprintf("%s%s", certPEM.String(), caCertPEM.String())
 	return chain, certPrivKeyPEM.String(), nil
 }
 
