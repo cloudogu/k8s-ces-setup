@@ -145,10 +145,7 @@ rules:
       - clusterroles
       - clusterrolebindings
     verbs:
-      - create
-      - patch
-      - update
-      - delete
+      - "*"
   - apiGroups:
       - "*"
     resources:

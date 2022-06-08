@@ -109,6 +109,7 @@ func GetSetupStateConfigMap(client kubernetes.Interface, namespace string) (*cor
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      SetupStateConfigMap,
 				Namespace: namespace,
+				Labels:    map[string]string{"app.kubernetes.io/name": "k8s-ces-setup"},
 			},
 		}
 
