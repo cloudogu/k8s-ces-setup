@@ -165,12 +165,14 @@ void stageStaticAnalysisSonarQube() {
 void stageAutomaticRelease() {
     if (gitflow.isReleaseBranch()) {
         String releaseVersion = gitWrapper.getSimpleBranchName()
+        Makefile makefile = new Makefile(this)
+        String setupVersion = makefile.getVersion()
 
         stage('Build & Push Image') {
-            def dockerImage = docker.build("cloudogu/${repositoryName}:${releaseVersion}")
+            def dockerImage = docker.build("cloudogu/${repositoryName}:${setupVersion}")
 
             docker.withRegistry('https://registry.hub.docker.com/', 'dockerHubCredentials') {
-                dockerImage.push("${releaseVersion}")
+                dockerImage.push("${setupVersion}")
             }
         }
 
