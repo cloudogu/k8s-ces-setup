@@ -8,20 +8,18 @@ import (
 
 func NewServiceDiscoveryInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*serviceDiscoveryInstallerStep, error) {
 	return &serviceDiscoveryInstallerStep{
-		namespace:              setupCtx.AppConfig.TargetNamespace,
-		resourceURL:            setupCtx.AppConfig.ServiceDiscoveryURL,
-		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              k8sClient,
-		fileContentModificator: &defaultFileContentModificator{},
+		namespace:   setupCtx.AppConfig.TargetNamespace,
+		resourceURL: setupCtx.AppConfig.ServiceDiscoveryURL,
+		fileClient:  core.NewFileClient(setupCtx.AppVersion),
+		k8sClient:   k8sClient,
 	}, nil
 }
 
 type serviceDiscoveryInstallerStep struct {
-	namespace              string
-	resourceURL            string
-	fileClient             fileClient
-	fileContentModificator fileContentModificator
-	k8sClient              k8sClient
+	namespace   string
+	resourceURL string
+	fileClient  fileClient
+	k8sClient   k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the service discovery installation step.
@@ -36,27 +34,10 @@ func (sdis *serviceDiscoveryInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	mod := sdis.fileContentModificator
-
-	fileContent = mod.replaceNamespacedResources(fileContent, sdis.namespace)
-	fileContent = mod.removeLegacyNamespaceFromResources(fileContent)
-
-	sections := splitYamlFileSections(fileContent)
-
-	err = sdis.applyYamlSections(sections)
+	err = applyNamespacedYamlSection(sdis.k8sClient, fileContent, sdis.namespace)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (sdis *serviceDiscoveryInstallerStep) applyYamlSections(sections [][]byte) error {
-	for _, section := range sections {
-		err := sdis.k8sClient.Apply(section, sdis.namespace)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }

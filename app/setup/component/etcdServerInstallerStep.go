@@ -8,20 +8,18 @@ import (
 
 func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
 	return &etcdServerInstallerStep{
-		namespace:              setupCtx.AppConfig.TargetNamespace,
-		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
-		fileClient:             core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:              k8sClient,
-		fileContentModificator: &defaultFileContentModificator{},
+		namespace:   setupCtx.AppConfig.TargetNamespace,
+		resourceURL: setupCtx.AppConfig.EtcdServerResourceURL,
+		fileClient:  core.NewFileClient(setupCtx.AppVersion),
+		k8sClient:   k8sClient,
 	}, nil
 }
 
 type etcdServerInstallerStep struct {
-	namespace              string
-	resourceURL            string
-	fileClient             fileClient
-	k8sClient              k8sClient
-	fileContentModificator fileContentModificator
+	namespace   string
+	resourceURL string
+	fileClient  fileClient
+	k8sClient   k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the etcd installation step.
@@ -36,27 +34,10 @@ func (esis *etcdServerInstallerStep) PerformSetupStep() error {
 		return err
 	}
 
-	mod := esis.fileContentModificator
-
-	fileContent = mod.replaceNamespacedResources(fileContent, esis.namespace)
-	fileContent = mod.removeLegacyNamespaceFromResources(fileContent)
-
-	sections := splitYamlFileSections(fileContent)
-
-	err = esis.applyYamlSections(sections)
+	err = applyNamespacedYamlSection(esis.k8sClient, fileContent, esis.namespace)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (esis *etcdServerInstallerStep) applyYamlSections(sections [][]byte) error {
-	for _, section := range sections {
-		err := esis.k8sClient.Apply(section, esis.namespace)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
