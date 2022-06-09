@@ -86,8 +86,15 @@ func (sg *sslGenerator) createCertTemplateWithKey(validDays int, domain string) 
 		return nil, nil, err
 	}
 
+	// generate a random serial number (a real cert authority would have some logic behind this)
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate serial number: %w", err)
+	}
+
 	certificate := &x509.Certificate{
-		SerialNumber: big.NewInt(2019),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Country:            []string{"DE"},
 			Province:           []string{"Lower Saxony"},
