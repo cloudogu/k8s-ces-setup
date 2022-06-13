@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- [#17] Update makefiles to version 6.0.3
+
 ### Fixed
 - [#17] Change order of certificate chain und use unique serial number in generation.
 

@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.5.0
 
 GOTAG?=1.18.1
-MAKEFILES_VERSION=6.0.2
+MAKEFILES_VERSION=6.0.3
 
 ## Image URL to use all building/pushing image targets
 IMAGE_DEV=${K3CES_REGISTRY_URL_PREFIX}/${ARTIFACT_ID}:${VERSION}
