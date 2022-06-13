@@ -15,6 +15,12 @@ The `k8s-ces-setup` needs a configuration for the installation. This must be pro
 before installing the `k8s-ces-setup`. More information about deployment and the individual
 configuration options describes [the configuration guide](configuration_guide_en.md).
 
+### Automatic setup via setup.json
+
+If the setup is to be performed automatically without any user interaction, this can be done using a `setup.json`.
+This file contains all the configuration values required to perform the setup. How the `setup.json` can be created and
+inserted into the cluster is described in ["Deployment of a setup configuration"](custom_setup_configuration_en.md).
+
 ### Deploy setup
 
 The installation from GitHub requires the installation YAML, which contains all the required K8s resources. This is located

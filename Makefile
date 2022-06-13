@@ -1,11 +1,12 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.5.0
+VERSION=0.6.0
 
 GOTAG?=1.18.1
-MAKEFILES_VERSION=5.2.0
+MAKEFILES_VERSION=6.0.3
 
-# Image URL to use all building/pushing image targets
+## Image URL to use all building/pushing image targets
+IMAGE_DEV=${K3CES_REGISTRY_URL_PREFIX}/${ARTIFACT_ID}:${VERSION}
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
@@ -54,11 +55,17 @@ serve-local-yaml:
 .PHONY: k8s-clean
 k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl delete --all dogus --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete ns $(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete crd dogus.k8s.cloudogu.com --ignore-not-found=true
+	@kubectl delete all -l app.kubernetes.io/name=k8s-ces-setup --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete all -l app.kubernetes.io/name=k8s-ces-setup-finisher --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete all -l app.kubernetes.io/name=etcd --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete all -l run=etcd-client --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete all -l control-plane=controller-manager --namespace=$(K8S_CURRENT_NAMESPACE) || true
+	@kubectl delete secret k8s-dogu-operator-dogu-registry || true
+	@kubectl delete secret docker-registry k8s-dogu-operator-docker-registry || true
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
-	@kubectl create ns $(K8S_CURRENT_NAMESPACE) && kubectl ns $(K8S_CURRENT_NAMESPACE)
+	@kubectl create ns $(K8S_CURRENT_NAMESPACE) || true
+	@kubectl ns $(K8S_CURRENT_NAMESPACE)
 	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
 	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${DOCKER_REGISTRY_PASSWORD}
 	@make build
@@ -73,12 +80,15 @@ run: vet setup-etcd-port-forward ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource:
+k8s-create-temporary-resource: create-temporary-release-resource
+	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
+
+.PHONY: create-temporary-release-resource
+create-temporary-release-resource:
 	@cp $(K8S_SETUP_CONFIG_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@cat $(K8S_SETUP_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
-	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
 
 ##@ Release
 
