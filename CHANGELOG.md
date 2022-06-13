@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2022-06-13
 ### Changed
 - [#17] Update makefiles to version 6.0.3
 
