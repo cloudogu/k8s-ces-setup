@@ -25,6 +25,7 @@ data:
     log_level: "DEBUG"
     dogu_operator_url: https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.8.0/k8s-dogu-operator_0.8.0.yaml
     service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.3.0/k8s-service-discovery_0.3.0.yaml
+    static_webserver_url: https://github.com/cloudogu/k8s-static-webserver/releases/download/v0.1.0/k8s-static_webserver_0.1.0.yaml
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
@@ -57,6 +58,14 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Necessary configuration
 * Description: Service Discovery is a central component in EcoSystem and must be installed. The specified link points to the version of Service Discovery to be installed. The link must point to a valid K8s YAML resource of the `k8s-service-discovery`. This will be appended to the release of the `k8s-service-discovery` on each release.
 * Example: `https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml`
+
+### static_webserver_url
+
+* YAML key: `static_webserver_url`.
+* Type: `string` as a link to the desired version of the [static webserver](http://github.com/cloudogu/k8s-static-webserver)
+* Necessary configuration
+* Description: The static web server is a central component in the EcoSystem and must be installed. The specified link points to the version of the Static Web Server to be installed. The link must point to a valid K8s YAML resource of the `static_webserver_url`. This will be appended to the release of the `static_webserver_url` on each release.
+* Example: `https://github.com/cloudogu/k8s-static-webserver/releases/download/v0.1.0/k8s-static-webserver_0.1.0.yaml`
 
 ### etcd_server_url
 

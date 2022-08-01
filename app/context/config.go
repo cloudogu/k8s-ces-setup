@@ -23,6 +23,8 @@ type Config struct {
 	DoguOperatorURL string `yaml:"dogu_operator_url"`
 	// ServiceDiscoveryURL sets the K8s resource URL which controls the installation of the service discovery into the current cluster.
 	ServiceDiscoveryURL string `yaml:"service_discovery_url"`
+	// StaticWebserverURL sets the K8s resource URL which controls the installation of the static webserver into the current cluster.
+	StaticWebserverURL string `yaml:"static_webserver_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdServerResourceURL string `yaml:"etcd_server_url"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.

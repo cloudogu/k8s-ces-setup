@@ -137,6 +137,11 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create new service discovery installer step: %w", err)
 	}
 
+	staticWebserverInstallerStep, err := component.NewStaticWebserverInstallerStep(e.SetupContext, k8sApplyClient)
+	if err != nil {
+		return fmt.Errorf("failed to create new service discovery installer step: %w", err)
+	}
+
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
 	if err != nil {
@@ -149,6 +154,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	e.RegisterSetupStep(doguOpInstallerStep)
 	e.RegisterSetupStep(serviceDisInstallerStep)
+	e.RegisterSetupStep(staticWebserverInstallerStep)
 
 	return nil
 }

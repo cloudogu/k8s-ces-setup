@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#18] The setup automatically install the `k8s-static-webserver`
+- [#18] Configuration option for installing a specific version of the `k8s-static-webserver`
 
 ## [v0.6.0] - 2022-06-13
 ### Changed
