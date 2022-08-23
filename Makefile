@@ -96,3 +96,7 @@ create-temporary-release-resource:
 setup-release: ## Interactively starts the release workflow.
 	@echo "Starting git flow release..."
 	@build/make/release.sh setup
+
+.PHONY: setup-etcd-port-forward
+setup-etcd-port-forward:
+	kubectl port-forward etcd-0 4001:2379 &
