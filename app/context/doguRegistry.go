@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// DoguRegistrySecret defines the credentials and the endpoint for the dogu registry.
 type DoguRegistrySecret struct {
 	Endpoint string `yaml:"endpoint"`
 	Username string `yaml:"username"`

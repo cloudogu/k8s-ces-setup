@@ -11,15 +11,19 @@ type fileClient interface {
 	Get(url string, username string, password string) ([]byte, error)
 }
 
+// ResourceRegistryClient is used to get resources with a file client from a dogu registry.
 type ResourceRegistryClient struct {
 	fileClient         fileClient
 	doguRegistrySecret *context.DoguRegistrySecret
 }
 
+// NewResourceRegistryClient creates a new instance of ResourceRegistryClient
 func NewResourceRegistryClient(appVersion string, secret *context.DoguRegistrySecret) *ResourceRegistryClient {
 	return &ResourceRegistryClient{fileClient: NewFileClient(appVersion), doguRegistrySecret: secret}
 }
 
+// GetResourceFileContent gets the bytes from the given resource url. If the host of the url is the same as the host
+// of the dogu registry, basic auth will be used.
 func (rrc *ResourceRegistryClient) GetResourceFileContent(resourceURL string) ([]byte, error) {
 	registryEndpoint := rrc.doguRegistrySecret.Endpoint
 	registryUrl, err := url.Parse(registryEndpoint)
