@@ -80,9 +80,9 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Equal(t, "https://etcds.yaml", actual.AppConfig.EtcdServerResourceURL)
 		assert.Equal(t, "https://etcdc.yaml", actual.AppConfig.EtcdClientImageRepo)
 		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
-		assert.Equal(t, "user", actual.doguRegistrySecret.Username)
-		assert.Equal(t, "pw", actual.doguRegistrySecret.Password)
-		assert.Equal(t, "endpoint", actual.doguRegistrySecret.Endpoint)
+		assert.Equal(t, "user", actual.DoguRegistryConfiguration.Username)
+		assert.Equal(t, "pw", actual.DoguRegistryConfiguration.Password)
+		assert.Equal(t, "endpoint", actual.DoguRegistryConfiguration.Endpoint)
 	})
 
 	_ = os.Unsetenv(EnvironmentVariableStage)

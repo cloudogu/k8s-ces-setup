@@ -50,11 +50,11 @@ type Executor struct {
 // NewExecutor creates a new setup executor with the given app configuration.
 func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *context.SetupContext) (*Executor, error) {
 	credentials := &core.Credentials{
-		Username: setupCtx.DoguRegistrySecret().Username,
-		Password: setupCtx.DoguRegistrySecret().Password,
+		Username: setupCtx.DoguRegistryConfiguration.Username,
+		Password: setupCtx.DoguRegistryConfiguration.Password,
 	}
 
-	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistrySecret().Endpoint, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
+	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}

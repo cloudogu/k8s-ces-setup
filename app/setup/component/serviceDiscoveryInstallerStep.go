@@ -10,7 +10,7 @@ func NewServiceDiscoveryInstallerStep(setupCtx *context.SetupContext, k8sClient 
 	return &serviceDiscoveryInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.ServiceDiscoveryURL,
-		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistrySecret()),
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistryConfiguration),
 		k8sClient:              k8sClient,
 	}, nil
 }

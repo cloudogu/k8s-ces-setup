@@ -32,15 +32,10 @@ const (
 
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
-	AppVersion           string              `yaml:"app_version"`
-	AppConfig            *Config             `yaml:"app_config"`
-	StartupConfiguration *SetupConfiguration `json:"startup_configuration"`
-	doguRegistrySecret   *DoguRegistrySecret
-}
-
-// DoguRegistrySecret return the dogu registry secret.
-func (sc *SetupContext) DoguRegistrySecret() *DoguRegistrySecret {
-	return sc.doguRegistrySecret
+	AppVersion                string              `yaml:"app_version"`
+	AppConfig                 *Config             `yaml:"app_config"`
+	StartupConfiguration      *SetupConfiguration `json:"startup_configuration"`
+	DoguRegistryConfiguration *DoguRegistrySecret
 }
 
 // SetupContextBuilder contains information to create a setup context
@@ -85,10 +80,10 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 	configureLogger(config)
 
 	return &SetupContext{
-		AppVersion:           scb.version,
-		AppConfig:            config,
-		StartupConfiguration: setupJson,
-		doguRegistrySecret:   doguRegistrySecret,
+		AppVersion:                scb.version,
+		AppConfig:                 config,
+		StartupConfiguration:      setupJson,
+		DoguRegistryConfiguration: doguRegistrySecret,
 	}, nil
 }
 

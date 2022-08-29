@@ -49,7 +49,11 @@ func TestNewExecutor(t *testing.T) {
 	// given
 	restConfigMock := &rest.Config{}
 	clientSetMock := &fake.Clientset{}
-	testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+	testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, DoguRegistryConfiguration: &context.DoguRegistrySecret{
+		Endpoint: "endpoint",
+		Username: "username",
+		Password: "password",
+	}}
 
 	// when
 	executor, err := setup.NewExecutor(restConfigMock, clientSetMock, testContext)

@@ -10,7 +10,7 @@ func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sCli
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
-		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistrySecret()),
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistryConfiguration),
 		k8sClient:              k8sClient,
 	}, nil
 }

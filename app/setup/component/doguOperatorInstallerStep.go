@@ -38,7 +38,7 @@ func NewDoguOperatorInstallerStep(setupCtx *context.SetupContext, k8sClient k8sC
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
 		k8sClient:              k8sClient,
-		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistrySecret()),
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistryConfiguration),
 	}, nil
 }
 
