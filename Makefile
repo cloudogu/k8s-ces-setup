@@ -75,8 +75,12 @@ k8s-clean: ## Cleans all resources deployed by the setup
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
 
+.PHONY: setup-etcd-port-forward
+setup-etcd-port-forward:
+	kubectl port-forward etcd-0 4001:2379 &
+
 .PHONY: run
-run: vet setup-etcd-port-forward ## Run a setup from your host.
+run: ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource

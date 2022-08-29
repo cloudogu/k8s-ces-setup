@@ -2,6 +2,7 @@ package component
 
 import (
 	"github.com/cloudogu/k8s-apply-lib/apply"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/component/mocks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
@@ -52,15 +53,16 @@ func TestDoguOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 		// given
 		var doguOpYamlBytes apply.YamlDocument = []byte("yaml result goes here")
 		mockedFileClient := &mockFileClient{}
-		mockedFileClient.On("Get", doguOperatorURL).Return([]byte(doguOpYamlBytes), nil)
+		mockedResourceRegistryClient := &mocks.ResourceRegistryClient{}
+		mockedResourceRegistryClient.On("GetResourceFileContent", doguOperatorURL).Return([]byte(doguOpYamlBytes), nil)
 		mockedK8sClient := &mockK8sClient{}
 		mockedK8sClient.On("ApplyWithOwner", doguOpYamlBytes, testTargetNamespaceName, mock.Anything).Return(nil)
 
 		installer := doguOperatorInstallerStep{
-			namespace:   testTargetNamespaceName,
-			resourceURL: doguOperatorURL,
-			fileClient:  mockedFileClient,
-			k8sClient:   mockedK8sClient,
+			namespace:              testTargetNamespaceName,
+			resourceURL:            doguOperatorURL,
+			resourceRegistryClient: mockedResourceRegistryClient,
+			k8sClient:              mockedK8sClient,
 		}
 
 		// when

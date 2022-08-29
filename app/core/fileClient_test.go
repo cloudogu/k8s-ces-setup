@@ -28,7 +28,7 @@ func Test_fileClient_Get(t *testing.T) {
 		sut := defaultHttpClient{httpClient: &http.Client{}}
 
 		// when
-		_, err := sut.Get(server.URL)
+		_, err := sut.Get(server.URL, "", "")
 
 		// then
 		require.Error(t, err)
@@ -45,7 +45,29 @@ func Test_fileClient_Get(t *testing.T) {
 		sut := defaultHttpClient{httpClient: &http.Client{}}
 
 		// when
-		actual, err := sut.Get(server.URL)
+		actual, err := sut.Get(server.URL, "", "")
+
+		// then
+		require.NoError(t, err)
+		assert.NotEmpty(t, actual)
+		assert.Equal(t, []byte(multiFileYaml()), actual)
+	})
+
+	t.Run("should return file with basic auth", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			username, password, ok := r.BasicAuth()
+			require.True(t, ok)
+			assert.Equal(t, "username", username)
+			assert.Equal(t, "password", password)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(multiFileYaml()))
+		}))
+		defer server.Close()
+
+		sut := defaultHttpClient{httpClient: &http.Client{}}
+
+		// when
+		actual, err := sut.Get(server.URL, "username", "password")
 
 		// then
 		require.NoError(t, err)

@@ -8,18 +8,18 @@ import (
 
 func NewServiceDiscoveryInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*serviceDiscoveryInstallerStep, error) {
 	return &serviceDiscoveryInstallerStep{
-		namespace:   setupCtx.AppConfig.TargetNamespace,
-		resourceURL: setupCtx.AppConfig.ServiceDiscoveryURL,
-		fileClient:  core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:   k8sClient,
+		namespace:              setupCtx.AppConfig.TargetNamespace,
+		resourceURL:            setupCtx.AppConfig.ServiceDiscoveryURL,
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistrySecret()),
+		k8sClient:              k8sClient,
 	}, nil
 }
 
 type serviceDiscoveryInstallerStep struct {
-	namespace   string
-	resourceURL string
-	fileClient  fileClient
-	k8sClient   k8sClient
+	namespace              string
+	resourceURL            string
+	resourceRegistryClient resourceRegistryClient
+	k8sClient              k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the service discovery installation step.
@@ -29,7 +29,7 @@ func (sdis *serviceDiscoveryInstallerStep) GetStepDescription() string {
 
 // PerformSetupStep installs the service discovery.
 func (sdis *serviceDiscoveryInstallerStep) PerformSetupStep() error {
-	fileContent, err := sdis.fileClient.Get(sdis.resourceURL)
+	fileContent, err := sdis.resourceRegistryClient.GetResourceFileContent(sdis.resourceURL)
 	if err != nil {
 		return err
 	}

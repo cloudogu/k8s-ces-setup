@@ -1,19 +1,15 @@
 package setup
 
 import (
-	gocontext "context"
 	"fmt"
 	"github.com/cloudogu/k8s-apply-lib/apply"
 	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"strings"
 	"time"
 
-	"github.com/cloudogu/cesapp-lib/remote"
-	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
+	"github.com/cloudogu/cesapp-lib/remote"
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 
@@ -53,17 +49,12 @@ type Executor struct {
 
 // NewExecutor creates a new setup executor with the given app configuration.
 func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *context.SetupContext) (*Executor, error) {
-	doguRegistrySecret, err := k8sClient.CoreV1().Secrets(setupCtx.AppConfig.TargetNamespace).Get(gocontext.Background(), context.SecretDoguRegistry, v1.GetOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get secret [%s]: %w", context.SecretDoguRegistry, err)
-	}
-
 	credentials := &core.Credentials{
-		Username: string(doguRegistrySecret.Data["username"]),
-		Password: string(doguRegistrySecret.Data["password"]),
+		Username: setupCtx.DoguRegistrySecret().Username,
+		Password: setupCtx.DoguRegistrySecret().Password,
 	}
 
-	doguRegistry, err := remote.New(getRemoteConfig(doguRegistrySecret, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
+	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistrySecret().Endpoint, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}
@@ -76,8 +67,7 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 	}, nil
 }
 
-func getRemoteConfig(doguRegistrySecret *corev1.Secret, urlSchema string) *core.Remote {
-	endpoint := string(doguRegistrySecret.Data["endpoint"])
+func getRemoteConfig(endpoint string, urlSchema string) *core.Remote {
 	endpoint = strings.TrimSuffix(endpoint, "/")
 	endpoint = strings.TrimSuffix(endpoint, "dogus")
 	endpoint = strings.TrimSuffix(endpoint, "/")

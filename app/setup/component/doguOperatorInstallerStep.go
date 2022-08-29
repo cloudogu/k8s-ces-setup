@@ -13,9 +13,9 @@ import (
 // namespaces follow RFC 1123 DNS-label rules, see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-label-names
 var namespacedResourcesRfc1123Regex, _ = regexp.Compile(`(\s+namespace:\s+)"?([a-z0-9][a-z0-9-]{0,61}[a-z0-9])"?`)
 
-type fileClient interface {
-	// Get retrieves a file identified by its URL and returns the contents.
-	Get(url string) ([]byte, error)
+type resourceRegistryClient interface {
+	// GetResourceFileContent retrieves a file identified by its URL and returns the contents.
+	GetResourceFileContent(resourceURL string) ([]byte, error)
 }
 
 type k8sClient interface {
@@ -26,19 +26,19 @@ type k8sClient interface {
 }
 
 type doguOperatorInstallerStep struct {
-	namespace   string
-	resourceURL string
-	fileClient  fileClient
-	k8sClient   k8sClient
+	namespace              string
+	resourceURL            string
+	k8sClient              k8sClient
+	resourceRegistryClient resourceRegistryClient
 }
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
 func NewDoguOperatorInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*doguOperatorInstallerStep, error) {
 	return &doguOperatorInstallerStep{
-		namespace:   setupCtx.AppConfig.TargetNamespace,
-		resourceURL: setupCtx.AppConfig.DoguOperatorURL,
-		fileClient:  core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:   k8sClient,
+		namespace:              setupCtx.AppConfig.TargetNamespace,
+		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
+		k8sClient:              k8sClient,
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistrySecret()),
 	}, nil
 }
 
@@ -49,7 +49,7 @@ func (dois *doguOperatorInstallerStep) GetStepDescription() string {
 
 // PerformSetupStep installs the dogu operator.
 func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
-	fileContent, err := dois.fileClient.Get(dois.resourceURL)
+	fileContent, err := dois.resourceRegistryClient.GetResourceFileContent(dois.resourceURL)
 	if err != nil {
 		return err
 	}

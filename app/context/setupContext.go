@@ -13,41 +13,51 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const SecretDoguRegistry = "k8s-dogu-operator-dogu-registry"
-const SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
-
-const SetupConfigConfigmap = "k8s-ces-setup-config"
-const SetupConfigConfigmapDevPath = "k8s/dev-resources/k8s-ces-setup.yaml"
-const SetupStartUpConfigMap = "k8s-ces-setup-json"
-const SetupStartUpConfigMapDevPath = "k8s/dev-resources/setup.json"
-const SetupStateConfigMap = "k8s-setup-config"
-const SetupStateKey = "state"
-const SetupStateInstalled = "installed"
-const SetupStateInstalling = "installing"
-const EnvironmentVariableStage = "STAGE"
-const StageDevelopment = "development"
-const EnvironmentVariableTargetNamespace = "POD_NAMESPACE"
+const (
+	SecretDoguRegistry                 = "k8s-dogu-operator-dogu-registry"
+	SecretDoguRegistryDevPath          = "k8s/dev-resources/dogu-registry-secret.yaml"
+	SecretDockerRegistry               = "k8s-dogu-operator-docker-registry"
+	SetupConfigConfigmap               = "k8s-ces-setup-config"
+	SetupConfigConfigmapDevPath        = "k8s/dev-resources/k8s-ces-setup.yaml"
+	SetupStartUpConfigMap              = "k8s-ces-setup-json"
+	SetupStartUpConfigMapDevPath       = "k8s/dev-resources/setup.json"
+	SetupStateConfigMap                = "k8s-setup-config"
+	SetupStateKey                      = "state"
+	SetupStateInstalled                = "installed"
+	SetupStateInstalling               = "installing"
+	EnvironmentVariableStage           = "STAGE"
+	StageDevelopment                   = "development"
+	EnvironmentVariableTargetNamespace = "POD_NAMESPACE"
+)
 
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
 	AppVersion           string              `yaml:"app_version"`
 	AppConfig            *Config             `yaml:"app_config"`
 	StartupConfiguration *SetupConfiguration `json:"startup_configuration"`
+	doguRegistrySecret   *DoguRegistrySecret
+}
+
+// DoguRegistrySecret return the dogu registry secret.
+func (sc *SetupContext) DoguRegistrySecret() *DoguRegistrySecret {
+	return sc.doguRegistrySecret
 }
 
 // SetupContextBuilder contains information to create a setup context
 type SetupContextBuilder struct {
-	version              string
-	DevSetupConfigPath   string
-	DevStartupConfigPath string
+	version                   string
+	DevSetupConfigPath        string
+	DevStartupConfigPath      string
+	DevDoguRegistrySecretPath string
 }
 
 // NewSetupContextBuilder creates a new builder to create a setup context. Default dev resources paths are used.
 func NewSetupContextBuilder(version string) *SetupContextBuilder {
 	return &SetupContextBuilder{
-		version:              version,
-		DevSetupConfigPath:   SetupConfigConfigmapDevPath,
-		DevStartupConfigPath: SetupStartUpConfigMapDevPath,
+		version:                   version,
+		DevSetupConfigPath:        SetupConfigConfigmapDevPath,
+		DevStartupConfigPath:      SetupStartUpConfigMapDevPath,
+		DevDoguRegistrySecretPath: SecretDoguRegistryDevPath,
 	}
 }
 
@@ -60,7 +70,7 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 		return nil, fmt.Errorf("could not read current namespace: %w", err)
 	}
 
-	config, setupJson, err := scb.getConfigurations(clientSet, targetNamespace)
+	config, setupJson, doguRegistrySecret, err := scb.getConfigurations(clientSet, targetNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -78,26 +88,39 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 		AppVersion:           scb.version,
 		AppConfig:            config,
 		StartupConfiguration: setupJson,
+		doguRegistrySecret:   doguRegistrySecret,
 	}, nil
 }
 
-func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupConfiguration, error) {
+func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupConfiguration, *DoguRegistrySecret, error) {
 	if os.Getenv(EnvironmentVariableStage) == StageDevelopment {
 		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
-		return config, setupJson, err
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
+
+		return config, setupJson, doguRegistrySecret, err
 	} else {
 		config, err := ReadConfigFromCluster(clientSet, targetNamespace)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		setupJson, err := ReadSetupConfigFromCluster(clientSet, targetNamespace)
-		return config, setupJson, err
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(clientSet, targetNamespace)
+
+		return config, setupJson, doguRegistrySecret, err
 	}
 }
 
