@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- [#22] If the resource urls from the k8s-components e.g. `dogu-operator` have the same host as the configured
+  dogu registry, basic auth will be used for those components.
+
 ## [v0.6.0] - 2022-06-13
 ### Changed
 - [#17] Update makefiles to version 6.0.3
