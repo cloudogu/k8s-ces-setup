@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.6.0
+VERSION=0.7.1
 
 GOTAG?=1.18.1
 MAKEFILES_VERSION=7.0.1
@@ -114,3 +114,7 @@ template-dev-only-image-pull-policy: $(BINARY_YQ)
 setup-release: ## Interactively starts the release workflow.
 	@echo "Starting git flow release..."
 	@build/make/release.sh setup
+
+.PHONY: setup-etcd-port-forward
+setup-etcd-port-forward:
+	kubectl port-forward etcd-0 4001:2379 &

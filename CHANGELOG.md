@@ -13,6 +13,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [#22] Update `makefiles` to version 7.0.1
 - [#22] Update `ces-build-lib` to version 1.56.0
 
+## [v0.7.1] - 2022-08-30
+### Fixed
+- Internal release bugfix
+
+## [v0.7.0] - 2022-08-30
+### Changed
+- [#20] Update internally used dependency versions
+  - Update `cesapp-lib` to version v0.4.0
+  - Update `k8s-apply-lib` to version v0.4.0
+  - Update `k8s-dogu-operator` to version v0.11.0
+
 ## [v0.6.0] - 2022-06-13
 ### Changed
 - [#17] Update makefiles to version 6.0.3
