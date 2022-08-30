@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.7.0] - 2022-08-30
 ### Changed
 - [#20] Update internally used dependency versions
   - Update `cesapp-lib` to version v0.4.0
