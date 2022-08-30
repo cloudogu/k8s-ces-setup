@@ -3,6 +3,8 @@ package context
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
@@ -140,4 +142,12 @@ func configureLogger(config *Config) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
+
+	core.GetLogger = func() core.Logger {
+		return logrus.StandardLogger()
+	}
+
+	apply.GetLogger = func() apply.Logger {
+		return logrus.StandardLogger()
+	}
 }
