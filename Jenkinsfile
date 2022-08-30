@@ -60,10 +60,6 @@ node('docker') {
                                 junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
                             }
 
-                            stage('Vet') {
-                                make 'vet'
-                            }
-
                             stage("Review dog analysis") {
                                 stageStaticAnalysisReviewDog()
                             }
