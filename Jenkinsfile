@@ -73,7 +73,7 @@ node('docker') {
             stageStaticAnalysisSonarQube()
         }
 
-        def k3d = new K3d(this, "${WORKSPACE}/k3d", env.PATH)
+        def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 
         try {
             stage('Set up k3d cluster') {
