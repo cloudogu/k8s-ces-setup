@@ -1,6 +1,6 @@
 #!groovy
 
-@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@1.51.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.56.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -12,6 +12,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
+gpg = new Gpg(this, docker)
 
 // Configuration of repository
 repositoryOwner = "cloudogu"
@@ -165,19 +166,40 @@ void stageStaticAnalysisSonarQube() {
 void stageAutomaticRelease() {
     if (gitflow.isReleaseBranch()) {
         String releaseVersion = gitWrapper.getSimpleBranchName()
-        Makefile makefile = new Makefile(this)
-        String setupVersion = makefile.getVersion()
+        String dockerReleaseVersion = releaseVersion.split("v")[1]
 
         stage('Build & Push Image') {
-            def dockerImage = docker.build("cloudogu/${repositoryName}:${setupVersion}")
-
+            def dockerImage = docker.build("cloudogu/${repositoryName}:${dockerReleaseVersion}")
             docker.withRegistry('https://registry.hub.docker.com/', 'dockerHubCredentials') {
-                dockerImage.push("${setupVersion}")
+                dockerImage.push("${dockerReleaseVersion}")
             }
         }
 
         stage('Finish Release') {
             gitflow.finishRelease(releaseVersion, productionReleaseBranch)
+        }
+
+        stage('Sign after Release') {
+            gpg.createSignature()
+        }
+
+        stage('Regenerate resources for release') {
+            new Docker(this)
+                    .image("golang:${goVersion}")
+                    .mountJenkinsUser()
+                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                            {
+                                make 'create-temporary-release-resource'
+                            }
+        }
+
+        stage('Push to Registry') {
+            Makefile makefile = new Makefile(this)
+            String setupVersion = makefile.getVersion()
+            GString targetSetupResourceYaml = "target/make/k8s/${repositoryName}_${setupVersion}.yaml"
+
+            DoguRegistry registry = new DoguRegistry(this)
+            registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", "${setupVersion}")
         }
 
         stage('Add Github-Release') {
