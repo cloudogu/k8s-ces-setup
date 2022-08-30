@@ -5,6 +5,12 @@ VERSION=0.6.0
 GOTAG?=1.18.1
 MAKEFILES_VERSION=7.0.1
 
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# This is a requirement for 'setup-envtest.sh' in the test target.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
 ## Image URL to use all building/pushing image targets
 IMAGE_DEV=${K3CES_REGISTRY_URL_PREFIX}/${ARTIFACT_ID}:${VERSION}
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
@@ -36,6 +42,8 @@ include build/make/clean.mk
 include build/make/digital-signature.mk
 include build/make/k8s.mk
 
+K8S_PRE_GENERATE_TARGETS=template-dev-only-image-pull-policy
+
 ##@ EcoSystem
 
 .PHONY: build
@@ -65,7 +73,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
 	@kubectl create ns $(K8S_CURRENT_NAMESPACE) || true
-	@kubectl ns $(K8S_CURRENT_NAMESPACE)
+	@kubens $(K8S_CURRENT_NAMESPACE)
 	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
 	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${DOCKER_REGISTRY_PASSWORD}
 	@make build
@@ -84,7 +92,8 @@ run: ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource: create-temporary-release-resource
+k8s-create-temporary-resource: create-temporary-release-resource template-dev-only-image-pull-policy
+	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
 
 .PHONY: create-temporary-release-resource
@@ -92,7 +101,12 @@ create-temporary-release-resource: $(K8S_RESOURCE_TEMP_FOLDER)
 	@cp $(K8S_SETUP_CONFIG_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@cat $(K8S_SETUP_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
-	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
+
+.PHONY: template-dev-only-image-pull-policy
+template-dev-only-image-pull-policy: $(BINARY_YQ)
+	@if [[ ${STAGE} == "development" ]]; \
+		then echo "Setting pull policy to always for development stage!" && $(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").imagePullPolicy)=\"Always\"" $(K8S_RESOURCE_TEMP_YAML); \
+	fi
 
 ##@ Release
 

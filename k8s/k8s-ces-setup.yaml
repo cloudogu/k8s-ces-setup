@@ -20,85 +20,6 @@ spec:
     app.kubernetes.io/name: k8s-ces-setup
 ---
 #
-# The deployment for the setup
-#
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: k8s-ces-setup
-  labels:
-    app: k8s-ces-setup
-    app.kubernetes.io/name: k8s-ces-setup
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: k8s-ces-setup
-  template:
-    metadata:
-      labels:
-        app: k8s-ces-setup
-        app.kubernetes.io/name: k8s-ces-setup
-    spec:
-      containers:
-        - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.6.0"
-          env:
-            - name: GIN_MODE
-              value: release
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-          startupProbe:
-            httpGet:
-              path: /api/v1/health
-              port: setup-webui
-            failureThreshold: 60
-            periodSeconds: 10
-          livenessProbe:
-            failureThreshold: 5
-            httpGet:
-              path: /api/v1/health
-              port: setup-webui
-              scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /api/v1/health
-              port: setup-webui
-              scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          ports:
-            - name: setup-webui
-              containerPort: 8080
-              protocol: TCP
-          volumeMounts:
-            - mountPath: /k8s-ces-setup.yaml
-              name: k8s-ces-setup-config
-              subPath: k8s-ces-setup.yaml
-            - mountPath: /setup.json
-              name: k8s-ces-setup-json
-              subPath: setup.json
-      volumes:
-        - configMap:
-            name: k8s-ces-setup-config
-          name: k8s-ces-setup-config
-        - configMap:
-            name: k8s-ces-setup-json
-            optional: true
-          name: k8s-ces-setup-json
-      serviceAccountName: k8s-ces-setup
-      nodeSelector:
-        kubernetes.io/os: linux
----
-#
 # The role provides the setup with all permissions  to get, list and create new namespaces.
 #
 apiVersion: rbac.authorization.k8s.io/v1
@@ -338,3 +259,83 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup-finisher
+---
+#
+# The deployment for the setup
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-ces-setup
+  labels:
+    app: k8s-ces-setup
+    app.kubernetes.io/name: k8s-ces-setup
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-ces-setup
+  template:
+    metadata:
+      labels:
+        app: k8s-ces-setup
+        app.kubernetes.io/name: k8s-ces-setup
+    spec:
+      containers:
+        - name: k8s-ces-setup
+          image: "cloudogu/k8s-ces-setup:0.6.0"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GIN_MODE
+              value: release
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+            failureThreshold: 60
+            periodSeconds: 10
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          ports:
+            - name: setup-webui
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /k8s-ces-setup.yaml
+              name: k8s-ces-setup-config
+              subPath: k8s-ces-setup.yaml
+            - mountPath: /setup.json
+              name: k8s-ces-setup-json
+              subPath: setup.json
+      volumes:
+        - configMap:
+            name: k8s-ces-setup-config
+          name: k8s-ces-setup-config
+        - configMap:
+            name: k8s-ces-setup-json
+            optional: true
+          name: k8s-ces-setup-json
+      serviceAccountName: k8s-ces-setup
+      nodeSelector:
+        kubernetes.io/os: linux
