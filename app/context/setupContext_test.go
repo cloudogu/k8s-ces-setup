@@ -65,6 +65,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder := NewSetupContextBuilder("1.2.3")
 		builder.DevStartupConfigPath = "testdata/testSetupJson.json"
 		builder.DevSetupConfigPath = "testdata/testConfig.yaml"
+		builder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
 		fakeClient := fake.NewSimpleClientset()
 
 		// when
@@ -79,6 +80,9 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Equal(t, "https://etcds.yaml", actual.AppConfig.EtcdServerResourceURL)
 		assert.Equal(t, "https://etcdc.yaml", actual.AppConfig.EtcdClientImageRepo)
 		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
+		assert.Equal(t, "user", actual.DoguRegistryConfiguration.Username)
+		assert.Equal(t, "pw", actual.DoguRegistryConfiguration.Password)
+		assert.Equal(t, "endpoint", actual.DoguRegistryConfiguration.Endpoint)
 	})
 
 	_ = os.Unsetenv(EnvironmentVariableStage)
@@ -97,7 +101,15 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 			Name:      "k8s-ces-setup-config",
 			Namespace: "myTestNamespace",
 		}, Data: configData}
-		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap)
+
+		registrySecretData := map[string]string{"endpoint": "endpoint", "username": "username", "password": "password"}
+		registrySecret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-dogu-operator-dogu-registry",
+			Namespace: "myTestNamespace"},
+			StringData: registrySecretData,
+		}
+
+		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret)
 
 		// when
 		actual, err := builder.NewSetupContext(fakeClient)
@@ -115,8 +127,14 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 			Name:      "k8s-ces-setup-json",
 			Namespace: "myTestNamespace",
 		}, Data: startupData}
+		registrySecretData := map[string]string{"endpoint": "endpoint", "username": "username", "password": "password"}
+		registrySecret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-dogu-operator-dogu-registry",
+			Namespace: "myTestNamespace"},
+			StringData: registrySecretData,
+		}
 
-		fakeClient := fake.NewSimpleClientset(startupConfigmap)
+		fakeClient := fake.NewSimpleClientset(startupConfigmap, registrySecret)
 
 		// when
 		_, err := builder.NewSetupContext(fakeClient)
@@ -134,7 +152,14 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 			Name:      "k8s-ces-setup-config",
 			Namespace: "myTestNamespace",
 		}, Data: configData}
-		fakeClient := fake.NewSimpleClientset(configConfigmap)
+		registrySecretData := map[string]string{"endpoint": "endpoint", "username": "username", "password": "password"}
+		registrySecret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-dogu-operator-dogu-registry",
+			Namespace: "myTestNamespace"},
+			StringData: registrySecretData,
+		}
+
+		fakeClient := fake.NewSimpleClientset(configConfigmap, registrySecret)
 
 		// when
 		_, err := builder.NewSetupContext(fakeClient)
@@ -142,5 +167,29 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to get setup.json configmap")
+	})
+
+	t.Run("dogu registry secret not found", func(t *testing.T) {
+		// given
+		builder := NewSetupContextBuilder("1.2.3")
+		configData := map[string]string{"k8s-ces-setup.yaml": string(configBytes)}
+		configConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-config",
+			Namespace: "myTestNamespace",
+		}, Data: configData}
+		startupData := map[string]string{"setup.json": string(setupJSONBytes)}
+		startupConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-json",
+			Namespace: "myTestNamespace",
+		}, Data: startupData}
+
+		fakeClient := fake.NewSimpleClientset(configConfigmap, startupConfigmap)
+
+		// when
+		_, err := builder.NewSetupContext(fakeClient)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "dogu registry secret k8s-dogu-operator-dogu-registry not found")
 	})
 }

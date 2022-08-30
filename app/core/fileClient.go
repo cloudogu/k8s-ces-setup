@@ -21,7 +21,7 @@ func NewFileClient(appVersion string) *defaultHttpClient {
 }
 
 // Get retrieves a file over HTTP and returns its content.
-func (dhc *defaultHttpClient) Get(url string) ([]byte, error) {
+func (dhc *defaultHttpClient) Get(url string, username string, password string) ([]byte, error) {
 	logrus.Debugf("Getting resource from %s", url)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -30,6 +30,9 @@ func (dhc *defaultHttpClient) Get(url string) ([]byte, error) {
 	}
 
 	req.Header.Set("User-Agent", "Cloudia/"+dhc.version)
+	if username != "" && password != "" {
+		req.SetBasicAuth(username, password)
+	}
 
 	resp, err := dhc.httpClient.Do(req)
 	if err != nil {

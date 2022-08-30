@@ -8,18 +8,18 @@ import (
 
 func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
 	return &etcdServerInstallerStep{
-		namespace:   setupCtx.AppConfig.TargetNamespace,
-		resourceURL: setupCtx.AppConfig.EtcdServerResourceURL,
-		fileClient:  core.NewFileClient(setupCtx.AppVersion),
-		k8sClient:   k8sClient,
+		namespace:              setupCtx.AppConfig.TargetNamespace,
+		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
+		resourceRegistryClient: core.NewResourceRegistryClient(setupCtx.AppVersion, setupCtx.DoguRegistryConfiguration),
+		k8sClient:              k8sClient,
 	}, nil
 }
 
 type etcdServerInstallerStep struct {
-	namespace   string
-	resourceURL string
-	fileClient  fileClient
-	k8sClient   k8sClient
+	namespace              string
+	resourceURL            string
+	resourceRegistryClient resourceRegistryClient
+	k8sClient              k8sClient
 }
 
 // GetStepDescription returns a human-readable description of the etcd installation step.
@@ -29,7 +29,7 @@ func (esis *etcdServerInstallerStep) GetStepDescription() string {
 
 // PerformSetupStep installs the CES etcd.
 func (esis *etcdServerInstallerStep) PerformSetupStep() error {
-	fileContent, err := esis.fileClient.Get(esis.resourceURL)
+	fileContent, err := esis.resourceRegistryClient.GetResourceFileContent(esis.resourceURL)
 	if err != nil {
 		return err
 	}

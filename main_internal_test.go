@@ -27,6 +27,7 @@ func Test_createSetupRouter(t *testing.T) {
 		contextBuilder := &context.SetupContextBuilder{}
 		contextBuilder.DevSetupConfigPath = "testdata/k8s-ces-setup-testdata.yaml"
 		contextBuilder.DevStartupConfigPath = "testdata/testSetup.json.yaml"
+		contextBuilder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
 
 		// when
 		router, err := createSetupRouter(contextBuilder)
