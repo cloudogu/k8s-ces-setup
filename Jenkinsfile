@@ -12,6 +12,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
+goVersion = "1.18"
 
 // Configuration of repository
 repositoryOwner = "cloudogu"
@@ -46,7 +47,7 @@ node('docker') {
         }
 
         docker
-                .image('golang:1.18.1')
+                .image("golang:${goVersion}")
                 .mountJenkinsUser()
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
@@ -83,16 +84,16 @@ node('docker') {
             stage('Build & Push Image') {
                 def makefile = new Makefile(this)
                 String setupVersion = makefile.getVersion()
-                cessetupImageName=k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
+                cessetupImageName = k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
 
-            def sourceDeploymentYaml="k8s/k8s-ces-setup.yaml"
+            def sourceDeploymentYaml = "k8s/k8s-ces-setup.yaml"
             stage('Update development resources') {
                 docker.image('mikefarah/yq:4.22.1')
                         .mountJenkinsUser()
                         .inside("--volume ${WORKSPACE}:/workdir -w /workdir") {
                             sh "yq -i '(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${cessetupImageName}\"' ${sourceDeploymentYaml}"
-                }
+                        }
             }
 
             stage('Deploy Setup') {
@@ -182,6 +183,22 @@ void stageAutomaticRelease() {
 
         stage('Add Github-Release') {
             releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
+        }
+
+        stage('Regenerate resources for release') {
+            new Docker(this)
+                    .image("golang:${goVersion}")
+                    .mountJenkinsUser()
+                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
+                        make 'k8s-create-temporary-resource'
+                    }
+        }
+
+        stage('Push to Registry') {
+            GString targetSetupResourceYaml = "target/make/k8s/${repositoryName}_${setupVersion}.yaml"
+
+            DoguRegistry registry = new DoguRegistry(this)
+            registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", setupVersion)
         }
     }
 }
