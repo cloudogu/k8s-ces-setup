@@ -175,10 +175,6 @@ void stageAutomaticRelease() {
             gitflow.finishRelease(releaseVersion, productionReleaseBranch)
         }
 
-        stage('Sign after Release') {
-            gpg.createSignature()
-        }
-
         stage('Regenerate resources for release') {
             new Docker(this)
                     .image("golang:${goVersion}")

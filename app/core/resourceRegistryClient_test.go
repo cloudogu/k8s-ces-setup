@@ -9,22 +9,20 @@ import (
 )
 
 func TestNewResourceRegistryClient(t *testing.T) {
-	t.Run("successful init", func(t *testing.T) {
-		// given
-		doguRegistrySecret := &context.DoguRegistrySecret{
-			Endpoint: "endpoint",
-			Username: "username",
-			Password: "password",
-		}
+	// given
+	doguRegistrySecret := &context.DoguRegistrySecret{
+		Endpoint: "endpoint",
+		Username: "username",
+		Password: "password",
+	}
 
-		// when
-		sut := NewResourceRegistryClient("1.0.0", doguRegistrySecret)
+	// when
+	sut := NewResourceRegistryClient("1.0.0", doguRegistrySecret)
 
-		// then
-		require.NotNil(t, sut)
-		assert.Equal(t, doguRegistrySecret, sut.doguRegistrySecret)
-		assert.NotNil(t, sut.fileClient)
-	})
+	// then
+	require.NotNil(t, sut)
+	assert.Equal(t, doguRegistrySecret, sut.doguRegistrySecret)
+	assert.NotNil(t, sut.fileClient)
 }
 
 func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {

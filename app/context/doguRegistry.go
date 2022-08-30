@@ -23,9 +23,7 @@ func ReadDoguRegistrySecretFromCluster(client kubernetes.Interface, namespace st
 	secret, err := client.CoreV1().Secrets(namespace).Get(context.Background(), SecretDoguRegistry, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("dogu registry secret %s not found: %w", SecretDoguRegistry, err)
-	}
-
-	if err != nil {
+	} else if err != nil {
 		return nil, fmt.Errorf("failed to get dogu registry secret %s: %w", SecretDoguRegistry, err)
 	}
 
