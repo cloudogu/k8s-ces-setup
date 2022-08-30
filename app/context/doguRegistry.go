@@ -30,9 +30,9 @@ func ReadDoguRegistrySecretFromCluster(client kubernetes.Interface, namespace st
 	}
 
 	return &DoguRegistrySecret{
-		Endpoint: secret.StringData["endpoint"],
-		Username: secret.StringData["username"],
-		Password: secret.StringData["password"],
+		Endpoint: string(secret.Data["endpoint"]),
+		Username: string(secret.Data["username"]),
+		Password: string(secret.Data["password"]),
 	}, nil
 }
 
