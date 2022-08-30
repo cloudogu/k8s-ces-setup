@@ -76,11 +76,13 @@ type configWriter struct {
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:
+		// nolint
 		err = contextWriter.write(field, value.(string))
 		if err != nil {
 			return errors.Wrapf(err, "could not set %s", value)
 		}
 	case map[string]string:
+		// nolint
 		for fieldName, fieldEntry := range value.(map[string]string) {
 			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
@@ -88,6 +90,7 @@ func (contextWriter configWriter) handleEntry(field string, value interface{}) (
 			}
 		}
 	case map[string]interface{}:
+		// nolint
 		for fieldName, fieldEntry := range value.(map[string]interface{}) {
 			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
