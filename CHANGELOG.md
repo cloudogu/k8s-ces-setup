@@ -7,8 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
-- [#20] Update `cesapp-lib` to version xxx
-- [#20] Update `k8s-apply-lib` to version xxx
+- [#20] Update internally used dependency versions
+  - Update `cesapp-lib` to version v0.4.0
+  - Update `k8s-apply-lib` to version v0.4.0
+  - Update `k8s-dogu-operator` to version v0.11.0
 
 ## [v0.6.0] - 2022-06-13
 ### Changed
