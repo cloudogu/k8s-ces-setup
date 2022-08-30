@@ -186,12 +186,7 @@ void stageAutomaticRelease() {
         }
 
         stage('Regenerate resources for release') {
-            new Docker(this)
-                    .image("golang:${goVersion}")
-                    .mountJenkinsUser()
-                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
-                        make 'k8s-create-temporary-resource'
-                    }
+            make 'create-temporary-release-resource'
         }
 
         stage('Push to Registry') {
