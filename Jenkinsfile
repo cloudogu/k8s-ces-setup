@@ -60,10 +60,6 @@ node('docker') {
                                 junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
                             }
 
-                            stage('Vet') {
-                                make 'vet'
-                            }
-
                             stage("Review dog analysis") {
                                 stageStaticAnalysisReviewDog()
                             }
@@ -73,7 +69,7 @@ node('docker') {
             stageStaticAnalysisSonarQube()
         }
 
-        K3d k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
+        def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 
         try {
             stage('Set up k3d cluster') {
@@ -186,19 +182,14 @@ void stageAutomaticRelease() {
         }
 
         stage('Regenerate resources for release') {
-            new Docker(this)
-                    .image("golang:${goVersion}")
-                    .mountJenkinsUser()
-                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
-                        make 'k8s-create-temporary-resource'
-                    }
+            make 'create-temporary-release-resource'
         }
 
         stage('Push to Registry') {
             GString targetSetupResourceYaml = "target/make/k8s/${repositoryName}_${setupVersion}.yaml"
 
             DoguRegistry registry = new DoguRegistry(this)
-            registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", setupVersion)
+            registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", "${setupVersion}")
         }
     }
 }

@@ -1,9 +1,15 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.7.1
+VERSION=0.8.0
 
 GOTAG?=1.18.1
-MAKEFILES_VERSION=6.0.3
+MAKEFILES_VERSION=7.0.1
+
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# This is a requirement for 'setup-envtest.sh' in the test target.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
 
 ## Image URL to use all building/pushing image targets
 IMAGE_DEV=${K3CES_REGISTRY_URL_PREFIX}/${ARTIFACT_ID}:${VERSION}
@@ -35,6 +41,8 @@ include build/make/static-analysis.mk
 include build/make/clean.mk
 include build/make/digital-signature.mk
 include build/make/k8s.mk
+
+K8S_PRE_GENERATE_TARGETS=template-dev-only-image-pull-policy
 
 ##@ EcoSystem
 
@@ -75,20 +83,30 @@ k8s-clean: ## Cleans all resources deployed by the setup
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
 
+.PHONY: setup-etcd-port-forward
+setup-etcd-port-forward:
+	kubectl port-forward etcd-0 4001:2379 &
+
 .PHONY: run
-run: vet setup-etcd-port-forward ## Run a setup from your host.
+run: ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource: create-temporary-release-resource
+k8s-create-temporary-resource: create-temporary-release-resource template-dev-only-image-pull-policy
+	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
 
 .PHONY: create-temporary-release-resource
-create-temporary-release-resource: ${K8S_RESOURCE_TEMP_FOLDER}
+create-temporary-release-resource: $(K8S_RESOURCE_TEMP_FOLDER)
 	@cp $(K8S_SETUP_CONFIG_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@cat $(K8S_SETUP_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
-	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
+
+.PHONY: template-dev-only-image-pull-policy
+template-dev-only-image-pull-policy: $(BINARY_YQ)
+	@if [[ ${STAGE}"X" == "development""X" ]]; \
+		then echo "Setting pull policy to always for development stage!" && $(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").imagePullPolicy)=\"Always\"" $(K8S_RESOURCE_TEMP_YAML); \
+	fi
 
 ##@ Release
 
@@ -96,7 +114,3 @@ create-temporary-release-resource: ${K8S_RESOURCE_TEMP_FOLDER}
 setup-release: ## Interactively starts the release workflow.
 	@echo "Starting git flow release..."
 	@build/make/release.sh setup
-
-.PHONY: setup-etcd-port-forward
-setup-etcd-port-forward:
-	kubectl port-forward etcd-0 4001:2379 &
