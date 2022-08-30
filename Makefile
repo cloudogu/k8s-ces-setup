@@ -73,7 +73,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
 	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
 	@kubectl create ns $(K8S_CURRENT_NAMESPACE) || true
-	@kubens $(K8S_CURRENT_NAMESPACE)
+	@kubectl ns $(K8S_CURRENT_NAMESPACE)
 	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
 	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${DOCKER_REGISTRY_PASSWORD}
 	@make build
