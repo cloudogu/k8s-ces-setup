@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#20] Update internally used dependency versions
+  - Update `cesapp-lib` to version v0.4.0
+  - Update `k8s-apply-lib` to version v0.4.0
+  - Update `k8s-dogu-operator` to version v0.11.0
 
 ## [v0.6.0] - 2022-06-13
 ### Changed
