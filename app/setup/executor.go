@@ -54,7 +54,7 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		Password: setupCtx.DoguRegistryConfiguration.Password,
 	}
 
-	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.AppConfig.RemoteRegistryURLSchema), credentials)
+	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.DoguRegistryConfiguration.URLSchema), credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
 	}

@@ -6,9 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Read dogu registry URL schema from cluster secret instead of config; #24
 
 ## [v0.8.0] - 2022-08-30
-
 ### Changed
 - [#22] If the resource urls from the k8s-components e.g. `dogu-operator` have the same host as the configured
   dogu registry, basic auth will be used for those components.

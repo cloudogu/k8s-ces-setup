@@ -28,7 +28,6 @@ data:
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
-    remote_registry_url_schema: default
 ```
 
 Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` definiert.
@@ -81,14 +80,6 @@ Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` 
 * Notwendig Konfiguration
 * Beschreibung: Setzt den verwendeten Key-Provider des Ecosystems und beeinflusst so die zu verschlüsselnde Registry-Werte.
 * Beispiel: `pkcs1v15`
-
-### remote_registry_url_schema
-
-* YAML-Key: `remote_registry_url_schema`
-* Typ: einer der folgenden Werte `default, index`
-* Notwendig Konfiguration
-* Beschreibung: Setzt das URLSchema der Remote-Registry.
-* Beispiel: `default` in normalen Umgebungen, `index` in gespiegelten Umgebungen
 
 ## Konfiguration ausbringen
 

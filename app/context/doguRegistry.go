@@ -3,6 +3,7 @@ package context
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -13,9 +14,10 @@ import (
 
 // DoguRegistrySecret defines the credentials and the endpoint for the dogu registry.
 type DoguRegistrySecret struct {
-	Endpoint string `yaml:"endpoint"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Endpoint  string `yaml:"endpoint"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	URLSchema string `yaml:"urlschema"`
 }
 
 // ReadDoguRegistrySecretFromCluster reads the dogu registry credentials from the kubernetes secret.
@@ -26,11 +28,17 @@ func ReadDoguRegistrySecretFromCluster(client kubernetes.Interface, namespace st
 	} else if err != nil {
 		return nil, fmt.Errorf("failed to get dogu registry secret %s: %w", SecretDoguRegistry, err)
 	}
-
+	urlSchema := string(secret.Data["urlschema"])
+	if urlSchema != "index" {
+		logger := apply.GetLogger()
+		logger.Info("URLSchema is not index. Setting it to default.")
+		urlSchema = "default"
+	}
 	return &DoguRegistrySecret{
-		Endpoint: string(secret.Data["endpoint"]),
-		Username: string(secret.Data["username"]),
-		Password: string(secret.Data["password"]),
+		Endpoint:  string(secret.Data["endpoint"]),
+		Username:  string(secret.Data["username"]),
+		Password:  string(secret.Data["password"]),
+		URLSchema: urlSchema,
 	}, nil
 }
 
