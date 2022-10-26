@@ -91,3 +91,11 @@ kubectl apply -f k8s-ces-setup-config.yaml
 
 Now the setup can be deployed. For more information about deploying the setup
 [here](installation_guide_en.md).
+
+## Configuration of the index-URL scheme.
+
+If you want the k8s-ces-setup to install Dogus from a Dogu registry with index-URL scheme, you have to specify this in the
+cluster secret `k8s-dogu-operator-dogu-registry`. This secret is created during the k8s-dogu-operator configuration,
+see https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md.
+The secret has to contain the key `urlschema`, which should be set to `index`. If this key is not present
+or not set to `index`, the `default` URL scheme is used.
