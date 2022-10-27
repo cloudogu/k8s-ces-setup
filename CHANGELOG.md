@@ -7,7 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
-- Read dogu registry URL schema from cluster secret instead of config; #24
+- [#24] Read dogu registry URL schema from cluster secret instead of config.
 
 ## [v0.8.0] - 2022-08-30
 ### Changed

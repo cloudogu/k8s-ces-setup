@@ -109,6 +109,3 @@ func TestReadDoguRegistrySecretFromClusterWithWrongSecretName(t *testing.T) {
 	// then
 	require.Error(t, err)
 }
-
-// default-fall
-// not found fall
