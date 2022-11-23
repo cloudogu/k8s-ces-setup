@@ -23,8 +23,8 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator/0.16.0
-    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery/0.6.0
+    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
+    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
