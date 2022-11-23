@@ -16,7 +16,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: k8s-ces-setup-config
-  namespace: default
+  namespace: ecosystem
   labels:
     app: cloudogu-ecosystem
     app.kubernetes.io/name: k8s-ces-setup
@@ -31,6 +31,7 @@ data:
 ```
 
 Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` definiert.
+Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CES installiert werden soll.
 
 ## Erklärung der Konfigurationswerte
 

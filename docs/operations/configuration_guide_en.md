@@ -31,6 +31,7 @@ data:
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
+The `namespace` entry must correspond to the namespace in the cluster where the CES is to be installed.
 
 ## Explanation of the configuration values
 
