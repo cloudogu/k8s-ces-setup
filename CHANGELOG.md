@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.8.1] - 2022-11-23
 ### Fixed
 - [#26] Use correct label for dogu resources
   - `dogu.name=name` is now valid
