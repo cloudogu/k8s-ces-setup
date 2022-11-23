@@ -29,8 +29,6 @@ type Config struct {
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
 	KeyProvider string `yaml:"key_provider"`
-	// RemoteRegistryURLSchema sets the url schema for the remote registry. It can be empty, "default" or "index"
-	RemoteRegistryURLSchema string `yaml:"remote_registry_url_schema"`
 }
 
 // ReadConfigFromCluster reads the setup config from the cluster state

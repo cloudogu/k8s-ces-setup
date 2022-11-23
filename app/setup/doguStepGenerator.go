@@ -68,7 +68,7 @@ func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
 	for _, dogu := range installedDogus {
 		// create wait step if needing a service account from a certain dogu
 		for _, serviceAccountDepedency := range dogu.ServiceAccounts {
-			labelSelector := fmt.Sprintf("dogu=%s", serviceAccountDepedency.Type)
+			labelSelector := fmt.Sprintf("dogu.name=%s", serviceAccountDepedency.Type)
 
 			if !strings.Contains(waitForDoguList, fmt.Sprintf("[%s]", labelSelector)) {
 				waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, time.Second*300)

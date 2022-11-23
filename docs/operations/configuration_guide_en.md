@@ -23,15 +23,15 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.8.0/k8s-dogu-operator_0.8.0.yaml
-    service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.3.0/k8s-service-discovery_0.3.0.yaml
+    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
+    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
-    remote_registry_url_schema: default
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
+The `namespace` entry must correspond to the namespace in the cluster where the CES is to be installed.
 
 ## Explanation of the configuration values
 
@@ -82,14 +82,6 @@ Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
 * Description: Sets the used key provider of the ecosystem and thus influences the registry values to be encrypted.
 * Example: `pkcs1v15`
 
-### remote_registry_url_schema
-
-* YAML key: `remote_registry_url_schema`
-* Type: one of the following values `default, index`.
-* Required Configuration
-* Description: Sets the URLSchema of the remote registry.
-* Example: `default` in normal environments, `index` in mirrored environments.
-
 ## Deploy configuration
 
 The created configuration can now be run via Kubectl with the following command:
@@ -100,3 +92,11 @@ kubectl apply -f k8s-ces-setup-config.yaml
 
 Now the setup can be deployed. For more information about deploying the setup
 [here](installation_guide_en.md).
+
+## Configuration of the index-URL scheme.
+
+If you want the k8s-ces-setup to install Dogus from a Dogu registry with index-URL scheme, you have to specify this in the
+cluster secret `k8s-dogu-operator-dogu-registry`. This secret is created during the k8s-dogu-operator configuration,
+see https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md.
+The secret has to contain the key `urlschema`, which should be set to `index`. If this key is not present
+or not set to `index`, the `default` URL scheme is used.

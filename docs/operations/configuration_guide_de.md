@@ -16,22 +16,22 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: k8s-ces-setup-config
-  namespace: default
+  namespace: ecosystem
   labels:
     app: cloudogu-ecosystem
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.8.0/k8s-dogu-operator_0.8.0.yaml
-    service_discovery_url: https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.3.0/k8s-service-discovery_0.3.0.yaml
+    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
+    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
-    remote_registry_url_schema: default
 ```
 
 Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` definiert.
+Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CES installiert werden soll.
 
 ## Erklärung der Konfigurationswerte
 
@@ -82,14 +82,6 @@ Unter dem Abschnitt `data`-Abschnitt wird der Inhalt einer `k8s-ces-setup.yaml` 
 * Beschreibung: Setzt den verwendeten Key-Provider des Ecosystems und beeinflusst so die zu verschlüsselnde Registry-Werte.
 * Beispiel: `pkcs1v15`
 
-### remote_registry_url_schema
-
-* YAML-Key: `remote_registry_url_schema`
-* Typ: einer der folgenden Werte `default, index`
-* Notwendig Konfiguration
-* Beschreibung: Setzt das URLSchema der Remote-Registry.
-* Beispiel: `default` in normalen Umgebungen, `index` in gespiegelten Umgebungen
-
 ## Konfiguration ausbringen
 
 Die erstellte Konfiguration kann nun via Kubectl mit dem folgenden Befehl ausgeführt werden:
@@ -100,3 +92,11 @@ kubectl apply -f k8s-ces-setup-config.yaml
 
 Nun kann das Setup ausgebracht werden. Für mehr Informationen zur Ausbringung des Setup sind
 [hier](installation_guide_de.md) beschreiben.
+
+## Konfiguration des index-URL-Schemas
+
+Soll das k8s-ces-setup Dogus aus einer Dogu-Registry mit index-URL-Schema installieren, muss dies
+im Cluster-Secret `k8s-dogu-operator-dogu-registry` hinterlegt werden. Dieses Secret wird im Umfeld des k8s-dogu-operators
+angelegt, siehe https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_de.md.
+Das Secret muss den Key `urlschema` enthalten, welcher auf `index` gesetzt sein muss. Ist dieser Key nicht vorhanden
+oder nicht auf `index` gesetzt, wird das `default`-URL-Schema benutzt.
