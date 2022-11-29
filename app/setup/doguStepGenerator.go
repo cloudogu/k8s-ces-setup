@@ -29,6 +29,9 @@ var (
 	schemeGroupVersion = schema.GroupVersion{Group: "k8s.cloudogu.com", Version: "v1"}
 )
 
+const serviceAccountKindDogu = "dogu"
+const serviceAccountKindK8s = "k8s"
+
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
 // and waiting for the dependencies before doing so.
 type doguStepGenerator struct {
@@ -68,12 +71,15 @@ func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
 	for _, dogu := range installedDogus {
 		// create wait step if needing a service account from a certain dogu
 		for _, serviceAccountDepedency := range dogu.ServiceAccounts {
-			labelSelector := fmt.Sprintf("dogu.name=%s", serviceAccountDepedency.Type)
-
-			if !strings.Contains(waitForDoguList, fmt.Sprintf("[%s]", labelSelector)) {
-				waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, time.Second*300)
-				steps = append(steps, waitForDependencyStep)
-				waitForDoguList += fmt.Sprintf("[%s]", labelSelector)
+			switch serviceAccountDepedency.Kind {
+			case "":
+				fallthrough
+			case serviceAccountKindDogu:
+				steps = dsg.createWaitStepForDogu(serviceAccountDepedency, waitForDoguList, steps)
+			case serviceAccountKindK8s:
+				steps = dsg.createWaitStepForOperator(serviceAccountDepedency, waitForDoguList, steps)
+			default:
+				//return fmt.Errorf("error")
 			}
 		}
 
@@ -81,6 +87,22 @@ func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
 		installStep := dogus.NewInstallDogusStep(dsg.RestClient, dogu, dsg.namespace)
 		steps = append(steps, installStep)
 	}
+
+	return steps
+}
+
+func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDepedency core.ServiceAccount, waitForDoguList string, steps []ExecutorStep) []ExecutorStep {
+	labelSelector := fmt.Sprintf("dogu.name=%s", serviceAccountDepedency.Type)
+
+	if !strings.Contains(waitForDoguList, fmt.Sprintf("[%s]", labelSelector)) {
+		waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, time.Second*300)
+		steps = append(steps, waitForDependencyStep)
+		waitForDoguList += fmt.Sprintf("[%s]", labelSelector)
+	}
+	return steps
+}
+
+func (dsg *doguStepGenerator) createWaitStepForOperator(depedency core.ServiceAccount, list string, steps []ExecutorStep) []ExecutorStep {
 
 	return steps
 }
