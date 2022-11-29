@@ -1,22 +1,20 @@
-package setup_test
+package setup
 
 import (
 	"testing"
 
-	"github.com/cloudogu/cesapp-lib/core"
-
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/stretchr/testify/mock"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/cloudogu/cesapp-lib/remote/mocks"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
+
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/cesapp-lib/remote/mocks"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 func TestNewDoguStepGenerator(t *testing.T) {
@@ -30,7 +28,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		mockRegistry := &mocks.Registry{}
 
 		// when
-		_, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// then
 		require.Error(t, err)
@@ -39,9 +37,9 @@ func TestNewDoguStepGenerator(t *testing.T) {
 
 	t.Run("creating new generator fails by creating rest client on AddToScheme", func(t *testing.T) {
 		// given
-		orifignalAddToScheme := setup.AddToScheme
-		defer func() { setup.AddToScheme = orifignalAddToScheme }()
-		setup.AddToScheme = func(s *runtime.Scheme) error {
+		originalAddToScheme := AddToScheme
+		defer func() { AddToScheme = originalAddToScheme }()
+		AddToScheme = func(s *runtime.Scheme) error {
 			return assert.AnError
 		}
 
@@ -52,7 +50,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		mockRegistry := &mocks.Registry{}
 
 		// when
-		_, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// then
 		require.Error(t, err)
@@ -69,7 +67,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		mockRegistry.On("Get", mock.Anything).Return(nil, assert.AnError)
 
 		// when
-		_, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// then
 		require.Error(t, err)
@@ -89,7 +87,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		mockRegistry.On("Get", "official/cas").Return(doguCas, nil)
 
 		// when
-		generator, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		generator, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// then
 		require.NoError(t, err)
@@ -116,13 +114,12 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		mockRegistry.On("Get", "official/postgres").Return(doguPostgres, nil)
 		mockRegistry.On("GetVersion", "official/postfix", "1.0.0-1").Return(doguPostfix, nil)
 		mockRegistry.On("GetVersion", "official/redmine", "10.0.0-5").Return(doguRedmine, nil)
-		generator, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// when
-		doguSteps := generator.GenerateSteps()
+		doguSteps, _ := generator.GenerateSteps()
 
 		// then
-		require.NoError(t, err)
 		assert.NotNil(t, generator)
 		assert.Len(t, doguSteps, 5)
 		assert.Equal(t, "Installing dogu [cas]", doguSteps[0].GetStepDescription())
@@ -149,13 +146,12 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		mockRegistry.On("Get", "official/postgres").Return(doguPostgres, nil)
 		mockRegistry.On("GetVersion", "official/postfix", "1.0.0-1").Return(doguPostfix, nil)
 		mockRegistry.On("GetVersion", "official/redmine", "10.0.0-5").Return(doguRedmine, nil)
-		generator, err := setup.NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
 
 		// when
-		doguSteps := generator.GenerateSteps()
+		doguSteps, _ := generator.GenerateSteps()
 
 		// then
-		require.NoError(t, err)
 		assert.NotNil(t, generator)
 		assert.Len(t, doguSteps, 9)
 		assert.Equal(t, "Installing dogu [ldap]", doguSteps[0].GetStepDescription())
@@ -168,4 +164,136 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		assert.Equal(t, "Wait for pod with selector dogu.name=postfix to be ready", doguSteps[7].GetStepDescription())
 		assert.Equal(t, "Installing dogu [redmine]", doguSteps[8].GetStepDescription())
 	})
+}
+
+func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
+	singleFakeStep := &fakeExecutorStep{}
+	t.Run("generates wait step to wait for dogus", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		dogus := context.Dogus{}
+
+		clusterConfig := &rest.Config{}
+		serviceAccount := core.ServiceAccount{
+			Type: "postfix",
+			Kind: "",
+		}
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, nil, "ns")
+		waitList := map[string]bool{"dogu.name=ldap": true}
+		allStepsTillNow := []ExecutorStep{singleFakeStep}
+
+		// when
+		actualSteps := generator.createWaitStepForDogu(serviceAccount, waitList, allStepsTillNow)
+
+		// then
+		assert.NotNil(t, actualSteps)
+		assert.Len(t, actualSteps, 2)
+		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+		assert.Contains(t, "Wait for pod with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
+	})
+	t.Run("generates wait step to wait for dogus (explicit kind)", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		dogus := context.Dogus{}
+
+		clusterConfig := &rest.Config{}
+		serviceAccount := core.ServiceAccount{
+			Type: "postfix",
+			Kind: "dogu",
+		}
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, nil, "ns")
+		waitList := map[string]bool{"dogu.name=ldap": true}
+		allStepsTillNow := []ExecutorStep{singleFakeStep}
+
+		// when
+		actualSteps := generator.createWaitStepForDogu(serviceAccount, waitList, allStepsTillNow)
+
+		// then
+		assert.NotNil(t, actualSteps)
+		assert.Len(t, actualSteps, 2)
+		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+		assert.Contains(t, "Wait for pod with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
+	})
+	t.Run("does not generate wait step because there is already a similar waiting step", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		dogus := context.Dogus{}
+
+		clusterConfig := &rest.Config{}
+		serviceAccount := core.ServiceAccount{
+			Type: "postfix",
+			Kind: "",
+		}
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, nil, "ns")
+		waitList := map[string]bool{"dogu.name=postfix": true}
+		allStepsTillNow := []ExecutorStep{singleFakeStep}
+
+		// when
+		actualSteps := generator.createWaitStepForDogu(serviceAccount, waitList, allStepsTillNow)
+
+		// then
+		assert.NotNil(t, actualSteps)
+		assert.Len(t, actualSteps, 1)
+		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+	})
+}
+
+func Test_doguStepGenerator_createWaitStepForK8sComponent(t *testing.T) {
+	singleFakeStep := &fakeExecutorStep{}
+	t.Run("generates wait step to wait for dogus", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		dogus := context.Dogus{}
+
+		clusterConfig := &rest.Config{}
+		serviceAccount := core.ServiceAccount{
+			Type: "k8s-dogu-operator",
+			Kind: "k8s",
+		}
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, nil, "ns")
+		waitList := map[string]bool{"dogu.name=ldap": true}
+		allStepsTillNow := []ExecutorStep{singleFakeStep}
+
+		// when
+		actualSteps := generator.createWaitStepForK8sComponent(serviceAccount, waitList, allStepsTillNow)
+
+		// then
+		assert.NotNil(t, actualSteps)
+		assert.Len(t, actualSteps, 2)
+		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+		assert.Contains(t, "Wait for pod with selector app.kubernetes.io/name=k8s-dogu-operator to be ready", actualSteps[1].GetStepDescription())
+	})
+	t.Run("does not generate wait step because there is already a similar waiting step", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		dogus := context.Dogus{}
+
+		clusterConfig := &rest.Config{}
+		serviceAccount := core.ServiceAccount{
+			Type: "k8s-dogu-operator",
+			Kind: "k8s",
+		}
+		generator, _ := NewDoguStepGenerator(clientMock, clusterConfig, dogus, nil, "ns")
+		waitList := map[string]bool{"app.kubernetes.io/name=k8s-dogu-operator": true}
+		allStepsTillNow := []ExecutorStep{singleFakeStep}
+
+		// when
+		actualSteps := generator.createWaitStepForK8sComponent(serviceAccount, waitList, allStepsTillNow)
+
+		// then
+		assert.NotNil(t, actualSteps)
+		assert.Len(t, actualSteps, 1)
+		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+	})
+}
+
+type fakeExecutorStep struct {
+}
+
+func (f *fakeExecutorStep) GetStepDescription() string {
+	return "Wait for pod with selector dogu.name=your-most-favorite to be ready"
+}
+
+func (f *fakeExecutorStep) PerformSetupStep() error {
+	return nil
 }

@@ -1,6 +1,11 @@
 package component
 
 import (
+	"bytes"
+	"testing"
+	"time"
+
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
@@ -8,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
-	"testing"
-	"time"
 )
 
 func TestNewWaitForPodStep(t *testing.T) {
@@ -134,4 +137,55 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, "failed to cast event object to pod", err.Error())
 	})
+}
+
+func TestPodTimeoutInSeconds(t *testing.T) {
+	t.Run("should return default and create log on bogus env var", func(t *testing.T) {
+		// given
+		t.Setenv(podTimeOutInSecondsEnvVar, "10arg")
+		logger, cleanup := mockLogrus()
+		defer cleanup()
+
+		// when
+		actual := PodTimeoutInSeconds()
+
+		// then
+		assert.Equal(t, 300*time.Second, actual)
+		assert.Contains(t, logger.String(), "Failed to parse seconds into pod timeout POD_TIMEOUT_SECS=10arg (fallback to 300)")
+	})
+	t.Run("should return default and create log on negativ timeout", func(t *testing.T) {
+		// given
+		t.Setenv(podTimeOutInSecondsEnvVar, "-10")
+		logger, cleanup := mockLogrus()
+		defer cleanup()
+
+		// when
+		actual := PodTimeoutInSeconds()
+
+		// then
+		assert.Equal(t, 300*time.Second, actual)
+		assert.Contains(t, logger.String(), "Found negative pod timeout POD_TIMEOUT_SECS=-10 (fallback to 300)")
+	})
+
+	t.Run("should return 10 seconds", func(t *testing.T) {
+		// given
+		t.Setenv(podTimeOutInSecondsEnvVar, "10")
+		logger, cleanup := mockLogrus()
+		defer cleanup()
+
+		// when
+		actual := PodTimeoutInSeconds()
+
+		// then
+		assert.Equal(t, 10*time.Second, actual)
+		assert.NotContains(t, logger.String(), "Failed to parse seconds into pod timeout POD_TIMEOUT_SECS")
+	})
+}
+
+func mockLogrus() (fakeLogger *bytes.Buffer, cleanup func()) {
+	fakeLogger = new(bytes.Buffer)
+	originalOut := logrus.StandardLogger().Out
+	logrus.SetOutput(fakeLogger)
+
+	return fakeLogger, func() { logrus.SetOutput(originalOut) }
 }
