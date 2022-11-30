@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.9.0] - 2022-11-30
+### Fixed
+- [#28] Setup wrongly assumed that all service accounts are of type dogu when creating step to wait for 
+  for them. Now only steps for dogu service accounts are created. 
+
 ## [v0.8.1] - 2022-11-23
 ### Fixed
 - [#26] Use correct label for dogu resources

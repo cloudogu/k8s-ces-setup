@@ -1,6 +1,5 @@
 #!groovy
-
-@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.56.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.60.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -84,16 +83,32 @@ node('docker') {
             }
 
             def sourceDeploymentYaml = "k8s/k8s-ces-setup.yaml"
-            stage('Update development resources') {
+
+            stage('Patch setup YAML to use local image') {
                 docker.image('mikefarah/yq:4.22.1')
                         .mountJenkinsUser()
                         .inside("--volume ${WORKSPACE}:/workdir -w /workdir") {
                             sh "yq -i '(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${cessetupImageName}\"' ${sourceDeploymentYaml}"
+                            // avoid RBAC errors during installing the CRD because of empty ns vs default ns in the ClusterRoleBinding
+                            sh "sed -i 's/{{ .Namespace }}/default/g' ${sourceDeploymentYaml}"
                         }
             }
 
-            stage('Deploy Setup') {
+            stage('Configure Setup') {
+                k3d.assignExternalIP()
+                def commitSha = getCurrentCommit()
+                k3d.configureSetup(commitSha, [
+                        dependencies: ["official/postfix", "k8s/nginx-ingress"],
+                        defaultDogu : ""
+                ])
+            }
+
+            stage('Install and Trigger Setup (trigger warning: setup)') {
                 k3d.kubectl("apply -f ${sourceDeploymentYaml}")
+            }
+
+            stage("wait for k8s-specific dogu (it has special needs)") {
+                k3d.waitForDeploymentRollout("nginx-ingress", 300, 10)
             }
 
             stage('Restore development resources') {
@@ -101,6 +116,9 @@ node('docker') {
             }
 
             stageAutomaticRelease()
+        } catch(Exception e) {
+            k3d.collectAndArchiveLogs()
+            throw e
         } finally {
             stage('Remove k3d cluster') {
                 k3d.deleteK3d()
@@ -119,9 +137,12 @@ void stageLintK8SResources() {
                     }
 }
 
-void stageStaticAnalysisReviewDog() {
-    def commitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+String getCurrentCommit() {
+    return sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+}
 
+void stageStaticAnalysisReviewDog() {
+    def commitSha=getCurrentCommit()
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
         withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
             make 'static-analysis'

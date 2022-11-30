@@ -4,10 +4,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"net"
 	"net/mail"
 	"strings"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 type namingValidator struct{}
@@ -34,31 +35,9 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 	}
 
 	if certificateType == "external" {
-		cert := naming.Certificate
-		if cert == "" {
-			return getPropertyNotSetError("certificate")
-		}
-
-		certs := SplitPemCertificates(cert)
-		for i, cert := range certs {
-			block, _ := pem.Decode([]byte(cert))
-			if block == nil {
-				return fmt.Errorf("failed to decode %d-th certificate in [certificate] property", i)
-			}
-			_, err := x509.ParseCertificate(block.Bytes)
-			if err != nil {
-				return fmt.Errorf("failed to parse %d-th certificate in [certificate] property: %w", i, err)
-			}
-		}
-
-		key := naming.CertificateKey
-		if key == "" {
-			return getPropertyNotSetError("certificate key")
-		}
-
-		keyBlock, _ := pem.Decode([]byte(key))
-		if keyBlock == nil {
-			return fmt.Errorf("failed to parse certificate key")
+		err := validateCertificates(naming)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -82,6 +61,36 @@ func (nv *namingValidator) ValidateNaming(naming context.Naming) error {
 		}
 	}
 
+	return nil
+}
+
+func validateCertificates(naming context.Naming) error {
+	cert := naming.Certificate
+	if cert == "" {
+		return getPropertyNotSetError("certificate")
+	}
+
+	certs := SplitPemCertificates(cert)
+	for i, cert := range certs {
+		block, _ := pem.Decode([]byte(cert))
+		if block == nil {
+			return fmt.Errorf("failed to decode %d-th certificate in [certificate] property", i)
+		}
+		_, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return fmt.Errorf("failed to parse %d-th certificate in [certificate] property: %w", i, err)
+		}
+	}
+
+	key := naming.CertificateKey
+	if key == "" {
+		return getPropertyNotSetError("certificate key")
+	}
+
+	keyBlock, _ := pem.Decode([]byte(key))
+	if keyBlock == nil {
+		return fmt.Errorf("failed to parse certificate key")
+	}
 	return nil
 }
 

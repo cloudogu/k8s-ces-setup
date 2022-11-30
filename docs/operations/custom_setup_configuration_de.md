@@ -28,7 +28,7 @@ Eine komplette Beschreibung der einzelnen Regionen und ihrer Konfigurationswerte
 Das `k8s-ces-setup` unterscheidet sich zum [ces-setup](https://github.com/cloudogu/ces-setup) dabei, dass ein EcoSystem nicht auf einer einzelnen VM läuft, sondern innerhalb eines Kubernetes-Cluster auf mehreren VMs.
 Eine `setup.json` von dem `ces-setup` kann ohne Probleme als Setup Konfiguration für das `k8s-ces-setup` benutzt werden.
 
-**Hinweis**: Es ist jedoch zu beachten, dass einige Regionen/Konfigurationswerte im `k8s-ces-setup` hinfällig oder noch nicht unterstützt werden. 
+**Hinweis**: Es ist jedoch zu beachten, dass einige Regionen/Konfigurationswerte im `k8s-ces-setup` hinfällig oder noch nicht unterstützt werden. Außerdem wurde das `official/nginx`-Dogu durch `k8s/nginx-static` und `k8s/nginx-ingress` ersetzt.
 
 ### Region Token
 

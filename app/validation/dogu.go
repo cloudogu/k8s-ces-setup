@@ -6,10 +6,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/remote"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-	corev1 "k8s.io/api/core/v1"
 )
 
 type doguValidator struct {
@@ -75,28 +76,39 @@ func (dv *doguValidator) validateDoguDependencies(dogus []*core.Dogu, dependenci
 			return fmt.Errorf("dogu dependency %s ist not selected", depName)
 		}
 
-		if dependency.Version != "" {
-			doguVersion, err := core.ParseVersion(dependentDogu.Version)
-			if err != nil {
-				return errors.Wrapf(err, "failed to parse version of dependency %s", dependency.Name)
-			}
+		if dependency.Version == "" {
+			continue
+		}
 
-			comparator, err := core.ParseVersionComparator(dependency.Version)
-			if err != nil {
-				return errors.Wrapf(err, "failed to parse ParseVersionComparator of version %s for doguDependency %s", dependency.Version, dependency.Name)
-			}
-
-			allows, err := comparator.Allows(doguVersion)
-			if err != nil {
-				return errors.Wrapf(err, "An error occurred when comparing the versions")
-			}
-			if !allows {
-				return errors.Errorf("%s parsed Version does not fulfill version requirement of %s dogu %s", dependentDogu.Version, dependency.Version, dependency.Name)
-			}
+		allows, err := isDependencyVersionAllowed(dependentDogu, dependency)
+		if err != nil {
+			return err
+		}
+		if !allows {
+			return errors.Errorf("%s parsed Version does not fulfill version requirement of %s dogu %s", dependentDogu.Version, dependency.Version, dependency.Name)
 		}
 	}
 
 	return nil
+}
+
+func isDependencyVersionAllowed(dependentDogu *core.Dogu, dependency core.Dependency) (bool, error) {
+	doguVersion, err := core.ParseVersion(dependentDogu.Version)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to parse version of dependency %s", dependency.Name)
+	}
+
+	comparator, err := core.ParseVersionComparator(dependency.Version)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to parse ParseVersionComparator of version %s for doguDependency %s", dependency.Version, dependency.Name)
+	}
+
+	allows, err := comparator.Allows(doguVersion)
+	if err != nil {
+		return false, errors.Wrapf(err, "An error occurred when comparing the versions")
+	}
+
+	return allows, nil
 }
 
 func (dv *doguValidator) getDoguFromSelection(dogus []*core.Dogu, doguName string) (*core.Dogu, error) {

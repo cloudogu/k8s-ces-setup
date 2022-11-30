@@ -3,11 +3,22 @@ package component
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"time"
 )
+
+// DefaultPodWaitTimeOut5Minutes contains the period  when a
+var DefaultPodWaitTimeOut5Minutes = time.Second * 300
+
+// podTimeOutInSecondsEnvVar contains the name of the environment variable that may replace the default pod wait timeout.
+// An environment variable with this name must contain the seconds as reasonably sized integer (=< int64)
+const podTimeOutInSecondsEnvVar = "POD_TIMEOUT_SECS"
 
 type waitForPodStep struct {
 	clientSet     kubernetes.Interface
@@ -64,4 +75,29 @@ func (wfps *waitForPodStep) isPodReady() error {
 	}
 
 	return fmt.Errorf("pod is not ready: timeout reached")
+}
+
+// PodTimeoutInSeconds returns either DefaultPodWaitTimeOut5Minutes or a positive integer if set as EnvVar
+// POD_TIMEOUT_SECS. See also podTimeOutInSecondsEnvVar
+func PodTimeoutInSeconds() time.Duration {
+	if podTimeoutRaw, ok := os.LookupEnv(podTimeOutInSecondsEnvVar); ok {
+		logrus.Infof("Custom pod timeout found")
+
+		podTimeout, err := strconv.ParseInt(podTimeoutRaw, 10, 32)
+		if err != nil {
+			logrus.Errorf("Failed to parse seconds into pod timeout %s=%s (fallback to %0.f): %s",
+				podTimeOutInSecondsEnvVar, podTimeoutRaw, DefaultPodWaitTimeOut5Minutes.Seconds(), err.Error())
+			return DefaultPodWaitTimeOut5Minutes
+		}
+
+		if podTimeout < 0 {
+			logrus.Errorf("Found negative pod timeout %s=%d (fallback to %0.f)",
+				podTimeOutInSecondsEnvVar, podTimeout, DefaultPodWaitTimeOut5Minutes.Seconds())
+			return DefaultPodWaitTimeOut5Minutes
+		}
+
+		return time.Duration(podTimeout) * time.Second
+	}
+
+	return DefaultPodWaitTimeOut5Minutes
 }
