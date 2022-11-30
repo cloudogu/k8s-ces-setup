@@ -3,11 +3,13 @@ package data
 import (
 	gocontext "context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/validation"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
 
 type writeRegistryConfigEncryptedStep struct {
@@ -60,13 +62,14 @@ func (wrces *writeRegistryConfigEncryptedStep) appendLdapMapperConfig(resultConf
 		return
 	}
 
-	if isDoguInstalled(wrces.configuration.Dogus.Install, "ldap-mapper") {
-		if resultConfigs["ldap-mapper"] == nil {
-			resultConfigs["ldap-mapper"] = map[string]string{"backend.password": wrces.configuration.UserBackend.Password,
+	const ldapMapperDoguName = "ldap-mapper"
+	if isDoguInstalled(wrces.configuration.Dogus.Install, ldapMapperDoguName) {
+		if resultConfigs[ldapMapperDoguName] == nil {
+			resultConfigs[ldapMapperDoguName] = map[string]string{"backend.password": wrces.configuration.UserBackend.Password,
 				"backend.connection_dn": wrces.configuration.UserBackend.ConnectionDN}
 		} else {
-			resultConfigs["ldap-mapper"]["backend.password"] = wrces.configuration.UserBackend.Password
-			resultConfigs["ldap-mapper"]["backend.connection_dn"] = wrces.configuration.UserBackend.ConnectionDN
+			resultConfigs[ldapMapperDoguName]["backend.password"] = wrces.configuration.UserBackend.Password
+			resultConfigs[ldapMapperDoguName]["backend.connection_dn"] = wrces.configuration.UserBackend.ConnectionDN
 		}
 	}
 }
