@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const encodeErrorMsg = "failed to encode certificate"
-
 type sslGenerator struct {
 }
 
@@ -49,13 +47,14 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		return "", "", err
 	}
 
+	formattedEncodeErrorMsg := "failed to encode certificate: %w"
 	certPEM := new(bytes.Buffer)
 	err = pem.Encode(certPEM, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: certBytes,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
+		return "", "", fmt.Errorf(formattedEncodeErrorMsg, err)
 	}
 
 	caCertPEM := new(bytes.Buffer)
@@ -64,7 +63,7 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		Bytes: caCertBytes,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
+		return "", "", fmt.Errorf(formattedEncodeErrorMsg, err)
 	}
 
 	certPrivKeyPEM := new(bytes.Buffer)
@@ -73,7 +72,7 @@ func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certE
 		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("%s: %w", encodeErrorMsg, err)
+		return "", "", fmt.Errorf(formattedEncodeErrorMsg, err)
 	}
 
 	chain := fmt.Sprintf("%s%s", certPEM.String(), caCertPEM.String())
