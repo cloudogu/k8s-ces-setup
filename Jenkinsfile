@@ -1,6 +1,5 @@
 #!groovy
-
-@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.56.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.59.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -101,6 +100,9 @@ node('docker') {
             }
 
             stageAutomaticRelease()
+        } catch(Exception e) {
+            k3d.collectAndArchiveLogs()
+            throw e
         } finally {
             stage('Remove k3d cluster') {
                 k3d.deleteK3d()
@@ -119,9 +121,12 @@ void stageLintK8SResources() {
                     }
 }
 
-void stageStaticAnalysisReviewDog() {
-    def commitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+String getCurrentCommit() {
+    return sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+}
 
+void stageStaticAnalysisReviewDog() {
+    def commitSha=getCurrentCommit()
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
         withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
             make 'static-analysis'
