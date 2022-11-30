@@ -37,36 +37,36 @@ node('docker') {
             make 'clean'
         }
 
-//        stage('Lint - Dockerfile') {
-//            lintDockerfile()
-//        }
-//
-//        stage("Lint - k8s Resources") {
-//            stageLintK8SResources()
-//        }
+        stage('Lint - Dockerfile') {
+            lintDockerfile()
+        }
+
+        stage("Lint - k8s Resources") {
+            stageLintK8SResources()
+        }
 
         docker
                 .image("golang:${goVersion}")
                 .mountJenkinsUser()
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
-//                            stage('Build') {
-//                                make 'compile'
-//                            }
-//
-//                            stage('Unit Tests') {
-//                                make 'unit-test'
-//                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
-//                            }
-//
-//                            stage("Review dog analysis") {
-//                                stageStaticAnalysisReviewDog()
-//                            }
+                            stage('Build') {
+                                make 'compile'
+                            }
+
+                            stage('Unit Tests') {
+                                make 'unit-test'
+                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
+                            }
+
+                            stage("Review dog analysis") {
+                                stageStaticAnalysisReviewDog()
+                            }
                         }
 
-//        stage('SonarQube') {
-//            stageStaticAnalysisSonarQube()
-//        }
+        stage('SonarQube') {
+            stageStaticAnalysisSonarQube()
+        }
 
         def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 
@@ -83,11 +83,14 @@ node('docker') {
             }
 
             def sourceDeploymentYaml = "k8s/k8s-ces-setup.yaml"
-            stage('Update development resources') {
+
+            stage('Patch setup YAML to use local image') {
                 docker.image('mikefarah/yq:4.22.1')
                         .mountJenkinsUser()
                         .inside("--volume ${WORKSPACE}:/workdir -w /workdir") {
                             sh "yq -i '(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${cessetupImageName}\"' ${sourceDeploymentYaml}"
+                            // avoid RBAC errors during installing the CRD because of empty ns vs default ns in the ClusterRoleBinding
+                            sh "sed -i 's/{{ .Namespace }}/default/g' ${sourceDeploymentYaml}"
                         }
             }
 
