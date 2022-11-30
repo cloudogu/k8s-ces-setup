@@ -3,30 +3,39 @@ package setup
 import (
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/cloudogu/cesapp-lib/core"
-
-	"github.com/cloudogu/cesapp-lib/remote"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/cesapp-lib/remote"
+	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+
+	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
 )
 
 var (
 	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
 	AddToScheme        = SchemeBuilder.AddToScheme
 	schemeGroupVersion = schema.GroupVersion{Group: "k8s.cloudogu.com", Version: "v1"}
+)
+
+const (
+	serviceAccountKindDogu = "dogu"
+	serviceAccountKindK8s  = "k8s"
+)
+
+const (
+	v1LabelDogu         = "dogu.name"
+	v1LabelK8sComponent = "app.kubernetes.io/name"
 )
 
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
@@ -60,27 +69,53 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 }
 
 // GenerateSteps generates dogu installation steps for all configured dogus.
-func (dsg *doguStepGenerator) GenerateSteps() []ExecutorStep {
+func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
 	steps := []ExecutorStep{}
 
 	installedDogus := core.SortDogusByDependency(*dsg.Dogus)
-	waitForDoguList := ""
+	waitList := map[string]bool{}
 	for _, dogu := range installedDogus {
 		// create wait step if needing a service account from a certain dogu
 		for _, serviceAccountDepedency := range dogu.ServiceAccounts {
-			labelSelector := fmt.Sprintf("dogu.name=%s", serviceAccountDepedency.Type)
-
-			if !strings.Contains(waitForDoguList, fmt.Sprintf("[%s]", labelSelector)) {
-				waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, time.Second*300)
-				steps = append(steps, waitForDependencyStep)
-				waitForDoguList += fmt.Sprintf("[%s]", labelSelector)
+			switch serviceAccountDepedency.Kind {
+			case "":
+				fallthrough
+			case serviceAccountKindDogu:
+				steps = dsg.createWaitStepForDogu(serviceAccountDepedency, waitList, steps)
+			case serviceAccountKindK8s:
+				steps = dsg.createWaitStepForK8sComponent(serviceAccountDepedency, waitList, steps)
+			default:
+				return nil, fmt.Errorf("unexpected service account kind %s occurred for service account %s in dogu %s", serviceAccountDepedency.Kind, serviceAccountDepedency.Type, dogu.Name)
 			}
 		}
 
-		// create install step
 		installStep := dogus.NewInstallDogusStep(dsg.RestClient, dogu, dsg.namespace)
 		steps = append(steps, installStep)
 	}
+
+	return steps, nil
+}
+
+func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
+	labelSelector := fmt.Sprintf("%s=%s", v1LabelDogu, serviceAccountDependency.Type)
+
+	return dsg.createWaitStep(waitList, labelSelector, steps)
+}
+
+func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
+	labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, serviceAccountDependency.Type)
+
+	return dsg.createWaitStep(waitList, labelSelector, steps)
+}
+
+func (dsg *doguStepGenerator) createWaitStep(waitList map[string]bool, labelSelector string, steps []ExecutorStep) []ExecutorStep {
+	if waitList[labelSelector] {
+		return steps
+	}
+
+	waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, component.PodTimeoutInSeconds())
+	steps = append(steps, waitForDependencyStep)
+	waitList[labelSelector] = true
 
 	return steps
 }

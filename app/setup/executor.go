@@ -2,10 +2,10 @@ package setup
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cloudogu/k8s-apply-lib/apply"
 	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-	"strings"
-	"time"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
@@ -135,7 +135,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(etcdSrvInstallerStep)
-	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, time.Second*300))
+	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, component.PodTimeoutInSeconds()))
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	e.RegisterSetupStep(doguOpInstallerStep)
 	e.RegisterSetupStep(serviceDisInstallerStep)
@@ -167,7 +167,11 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
 
-	doguSteps := doguStepGenerator.GenerateSteps()
+	doguSteps, err := doguStepGenerator.GenerateSteps()
+	if err != nil {
+		return fmt.Errorf("could not register installation steps: %w", err)
+	}
+
 	for _, step := range doguSteps {
 		e.RegisterSetupStep(step)
 	}

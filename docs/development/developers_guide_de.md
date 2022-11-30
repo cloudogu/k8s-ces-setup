@@ -44,7 +44,7 @@ curl --request GET --url http://192.168.56.2:30080/api/v1/health
 curl -I --request POST --url http://192.168.56.2:30080/api/v1/setup
 ```
 
-## Pre-Setup-Zustang herstellen
+## Pre-Setup-Zustand herstellen
 
 Manchmal ist es notwendig, die Zeit wieder auf Anfang zurückzudrehen, z. B. um Installationsroutinen zu überprüfen. Dies lässt sich mit den folgenden Befehlen erreichen (auf den **aktuellen Namespace** achten):
 

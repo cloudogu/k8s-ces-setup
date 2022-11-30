@@ -6,12 +6,13 @@ import (
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 
-	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/cloudogu/cesapp-lib/registry"
+	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 // SetupExecutor is uses to register all necessary steps and executes them
@@ -81,7 +82,7 @@ func (s *Starter) StartSetup() error {
 
 	err, errCausingAction := s.SetupExecutor.PerformSetup()
 	if err != nil {
-		return fmt.Errorf("error while initializing namespace for setup [%s]: %w", errCausingAction, err)
+		return fmt.Errorf("error while performing setup [%s]: %w", errCausingAction, err)
 	}
 
 	err = setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalled)

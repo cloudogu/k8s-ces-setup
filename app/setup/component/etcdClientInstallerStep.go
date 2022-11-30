@@ -3,10 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
-	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 func NewEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx *ctx.SetupContext) *etcdClientInstallerStep {
@@ -56,6 +58,7 @@ func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 	const etcdAPIVersion = "2"
 	etcdClientLabels := make(map[string]string)
 	etcdClientLabels["run"] = etcdClientName
+	etcdClientLabels["app"] = "ces"
 	mountServiceAccountToken := true
 
 	etcdPod := &corev1.Pod{
