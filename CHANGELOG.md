@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.9.0] - 2022-11-30
 ### Fixed
 - [#28] Setup wrongly assumed that all service accounts are of type dogu when creating step to wait for 
   for them. Now only steps for dogu service accounts are created. 
