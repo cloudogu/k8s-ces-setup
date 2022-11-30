@@ -1,5 +1,5 @@
 #!groovy
-@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.59.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@5e20260a3722b4954e4082bf29ad2125b1460886'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -37,36 +37,36 @@ node('docker') {
             make 'clean'
         }
 
-        stage('Lint - Dockerfile') {
-            lintDockerfile()
-        }
-
-        stage("Lint - k8s Resources") {
-            stageLintK8SResources()
-        }
+//        stage('Lint - Dockerfile') {
+//            lintDockerfile()
+//        }
+//
+//        stage("Lint - k8s Resources") {
+//            stageLintK8SResources()
+//        }
 
         docker
                 .image("golang:${goVersion}")
                 .mountJenkinsUser()
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
-                            stage('Build') {
-                                make 'compile'
-                            }
-
-                            stage('Unit Tests') {
-                                make 'unit-test'
-                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
-                            }
-
-                            stage("Review dog analysis") {
-                                stageStaticAnalysisReviewDog()
-                            }
+//                            stage('Build') {
+//                                make 'compile'
+//                            }
+//
+//                            stage('Unit Tests') {
+//                                make 'unit-test'
+//                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
+//                            }
+//
+//                            stage("Review dog analysis") {
+//                                stageStaticAnalysisReviewDog()
+//                            }
                         }
 
-        stage('SonarQube') {
-            stageStaticAnalysisSonarQube()
-        }
+//        stage('SonarQube') {
+//            stageStaticAnalysisSonarQube()
+//        }
 
         def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 
@@ -91,8 +91,21 @@ node('docker') {
                         }
             }
 
-            stage('Deploy Setup') {
+            stage('Configure Setup') {
+                k3d.assignExternalIP()
+                def commitSha = getCurrentCommit()
+                k3d.configureSetup(commitSha, [
+                        dependencies: ["official/postfix", "k8s/nginx-ingress"],
+                        defaultDogu : ""
+                ])
+            }
+
+            stage('Install and Trigger Setup (trigger warning: setup)') {
                 k3d.kubectl("apply -f ${sourceDeploymentYaml}")
+            }
+
+            stage("wait for k8s-specific dogu (it has special needs)") {
+                k3d.waitForDeploymentRollout("nginx-ingress", 300, 10)
             }
 
             stage('Restore development resources') {
