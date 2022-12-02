@@ -20,7 +20,7 @@ type RegistryConfigurationWriter struct {
 	Registry registry.Registry
 }
 
-// NewRegistryConfigurationWriter creates a new configuration Writer.
+// NewRegistryConfigurationWriter creates a new configuration writer.
 func NewRegistryConfigurationWriter(registry registry.Registry) *RegistryConfigurationWriter {
 	return &RegistryConfigurationWriter{Registry: registry}
 }
