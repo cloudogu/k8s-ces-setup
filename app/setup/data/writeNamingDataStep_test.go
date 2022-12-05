@@ -1,18 +1,20 @@
 package data_test
 
 import (
+	gocontext "context"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
-
-	"github.com/stretchr/testify/mock"
-
-	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 )
 
 func TestNewWriteNamingDataStep(t *testing.T) {
@@ -22,9 +24,10 @@ func TestNewWriteNamingDataStep(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
+		fakeClient := fake.NewSimpleClientset()
 
 		// when
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// then
 		assert.NotNil(t, myStep)
@@ -39,7 +42,9 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		fakeClient := fake.NewSimpleClientset()
+
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		description := myStep.GetStepDescription()
@@ -58,8 +63,9 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		testConfig := &context.SetupConfiguration{}
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
+		fakeClient := fake.NewSimpleClientset()
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		err := myStep.PerformSetupStep()
@@ -98,7 +104,9 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		fakeClient := fake.NewSimpleClientset()
+
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		err := myStep.PerformSetupStep()
@@ -106,6 +114,12 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
+
+		tlsSecret, err := fakeClient.CoreV1().Secrets("ecosystem").Get(gocontext.Background(), "ecosystem-certificate", metav1.GetOptions{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []byte("myCertificate"), tlsSecret.Data[v1.TLSCertKey])
+		assert.Equal(t, []byte("myCertificateKey"), tlsSecret.Data[v1.TLSPrivateKeyKey])
 	})
 
 	// TODO add tests for internal ip when addressed
