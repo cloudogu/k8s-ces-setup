@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.10.0] - 2022-12-05
+### Fixed
+- [#30] The `ecosystem-certificate` TLS secret will now be created during setup.
+
 ## [v0.9.0] - 2022-11-30
 ### Fixed
 - [#28] Setup wrongly assumed that all service accounts are of type dogu when creating step to wait for 

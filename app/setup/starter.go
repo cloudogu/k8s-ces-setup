@@ -3,14 +3,12 @@ package setup
 import (
 	gocontext "context"
 	"fmt"
-
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/app/cesregistry"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
@@ -43,12 +41,7 @@ func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setu
 	}
 
 	namespace := setupContext.AppConfig.TargetNamespace
-	registryInformation := core.Registry{
-		Type:      "etcd",
-		Endpoints: []string{fmt.Sprintf("http://%s:4001", component.GetNodeMasterFileContent(namespace))},
-	}
-
-	etcdRegistry, err := registry.New(registryInformation)
+	etcdRegistry, err := cesregistry.CreateEtcd(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create registry: %w", err)
 	}

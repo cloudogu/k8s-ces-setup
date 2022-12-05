@@ -1,12 +1,9 @@
 package ssl
 
 import (
-	"fmt"
+	"github.com/cloudogu/k8s-ces-setup/app/cesregistry"
 	"net/http"
 	"strconv"
-
-	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -26,10 +23,7 @@ func SetupAPI(router gin.IRoutes, namespace string) {
 			return
 		}
 
-		etcdRegistry, err := registry.New(core.Registry{
-			Type:      "etcd",
-			Endpoints: []string{fmt.Sprintf("http://%s:4001", namespace)},
-		})
+		etcdRegistry, err := cesregistry.CreateEtcd(namespace)
 		if err != nil {
 			handleError(ctx, http.StatusBadRequest, err, "Creating etcd registry")
 			return
