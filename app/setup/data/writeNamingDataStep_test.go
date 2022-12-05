@@ -3,16 +3,15 @@ package data_test
 import (
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
-
-	"github.com/stretchr/testify/mock"
-
-	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 )
 
 func TestNewWriteNamingDataStep(t *testing.T) {
@@ -22,9 +21,10 @@ func TestNewWriteNamingDataStep(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
+		fakeClient := fake.NewSimpleClientset()
 
 		// when
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// then
 		assert.NotNil(t, myStep)
@@ -39,7 +39,9 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 		// given
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		testConfig := &context.SetupConfiguration{}
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		fakeClient := fake.NewSimpleClientset()
+
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		description := myStep.GetStepDescription()
@@ -53,13 +55,15 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
+	fakeClient := fake.NewSimpleClientset()
+
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{}
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		err := myStep.PerformSetupStep()
@@ -98,7 +102,7 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
 
-		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig)
+		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
 		// when
 		err := myStep.PerformSetupStep()
