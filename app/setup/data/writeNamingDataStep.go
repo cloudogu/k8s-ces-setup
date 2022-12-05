@@ -12,6 +12,8 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
+const tlsSecretName = "ecosystem-certificate"
+
 type writeNamingDataStep struct {
 	writer        RegistryWriter
 	configuration *context.SetupConfiguration
@@ -52,7 +54,7 @@ func (wnds *writeNamingDataStep) PerformSetupStep() error {
 
 	secret := &v1.Secret{
 		ObjectMeta: controllerruntime.ObjectMeta{
-			Name:      "ecosystem-certificate",
+			Name:      tlsSecretName,
 			Namespace: wnds.namespace,
 		},
 		Data: map[string][]byte{
