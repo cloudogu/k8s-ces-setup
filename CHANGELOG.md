@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.10.0] - 2022-12-05
 ### Fixed
 - [#30] The `ecosystem-certificate` TLS secret will now be created during setup.
 
