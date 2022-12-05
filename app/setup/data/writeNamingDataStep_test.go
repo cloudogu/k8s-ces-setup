@@ -55,13 +55,12 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 
-	fakeClient := fake.NewSimpleClientset()
-
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{}
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
+		fakeClient := fake.NewSimpleClientset()
 
 		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
@@ -101,6 +100,8 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 
 		mockRegistryWriter := &mocks.RegistryWriter{}
 		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
+
+		fakeClient := fake.NewSimpleClientset()
 
 		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
 
