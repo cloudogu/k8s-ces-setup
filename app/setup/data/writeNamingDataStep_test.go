@@ -1,6 +1,9 @@
 package data_test
 
 import (
+	gocontext "context"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
 	"k8s.io/client-go/kubernetes/fake"
@@ -111,6 +114,12 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
+
+		tlsSecret, err := fakeClient.CoreV1().Secrets("ecosystem").Get(gocontext.Background(), "ecosystem-certificate", metav1.GetOptions{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []byte("myCertificate"), tlsSecret.Data[v1.TLSCertKey])
+		assert.Equal(t, []byte("myCertificateKey"), tlsSecret.Data[v1.TLSPrivateKeyKey])
 	})
 
 	// TODO add tests for internal ip when addressed
