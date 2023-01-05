@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [#32] Fixed a permission issue where the setup finisher cronjob was not allowed to execute his finisher script.
 
 ## [v0.10.0] - 2022-12-05
 ### Fixed
