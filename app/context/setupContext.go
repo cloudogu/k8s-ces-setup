@@ -3,9 +3,10 @@ package context
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/k8s-apply-lib/apply"
-	"os"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -129,7 +130,7 @@ func GetSetupStateConfigMap(client kubernetes.Interface, namespace string) (*cor
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      SetupStateConfigMap,
 				Namespace: namespace,
-				Labels:    map[string]string{"app.kubernetes.io/name": "k8s-ces-setup"},
+				Labels:    map[string]string{"app": "ces", "app.kubernetes.io/name": "k8s-ces-setup"},
 			},
 		}
 

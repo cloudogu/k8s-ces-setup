@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#34] add/update label for consistent mass deletion of CES K8s resources
+  - select any k8s-ces-setup components like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
+  - select all CES components like this: `kubectl get deploy,pod,... -l app=ces`
 
 ## [v0.10.0] - 2022-12-05
 ### Fixed
@@ -14,7 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [v0.9.0] - 2022-11-30
 ### Fixed
 - [#28] Setup wrongly assumed that all service accounts are of type dogu when creating step to wait for 
-  for them. Now only steps for dogu service accounts are created. 
+  them. Now only steps for dogu service accounts are created. 
 
 ## [v0.8.1] - 2022-11-23
 ### Fixed

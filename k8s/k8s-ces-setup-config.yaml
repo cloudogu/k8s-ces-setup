@@ -6,7 +6,7 @@ kind: ConfigMap
 metadata:
   name: k8s-ces-setup-config
   labels:
-    app: cloudogu-ecosystem
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
