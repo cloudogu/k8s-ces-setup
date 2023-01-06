@@ -8,7 +8,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Changed
 - [#34] add/update label for consistent mass deletion of CES K8s resources
-  - select any k8s-ces-setup components like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
+  - select any k8s-ces-setup related resources like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
   - select all CES components like this: `kubectl get deploy,pod,... -l app=ces`
 
 ### Fixed
