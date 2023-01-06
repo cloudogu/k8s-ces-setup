@@ -11,6 +11,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - select any k8s-ces-setup components like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
   - select all CES components like this: `kubectl get deploy,pod,... -l app=ces`
 
+### Fixed
+- [#32] Fixed a permission issue where the setup finisher cronjob was not allowed to execute his finisher script.
+
 ## [v0.10.0] - 2022-12-05
 ### Fixed
 - [#30] The `ecosystem-certificate` TLS secret will now be created during setup.
