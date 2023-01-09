@@ -174,7 +174,7 @@ kind: CronJob
 metadata:
   name: k8s-ces-setup-finisher
   labels:
-    app: k8s-ces-setup
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup
 spec:
   schedule: "* * * * *"
@@ -211,7 +211,7 @@ kind: ConfigMap
 metadata:
   name: k8s-ces-setup-cleanup-script
   labels:
-    app: k8s-ces-setup
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup
 data:
   entrypoint.sh: "#!/bin/bash\nSTATE=$(kubectl get configmap k8s-setup-config -o jsonpath='{.data.state}');\nif [[ ${STATE} == \"installed\" ]]; then \n  kubectl delete configmap k8s-ces-setup-json || true\n  kubectl delete configmap k8s-setup-config || true\n  kubectl delete deployments,services,configmaps,secrets,roles,rolebindings,serviceaccounts -l app.kubernetes.io/name=k8s-ces-setup || true\n  kubectl patch cronjob cleanup -p '{\"spec\" : {\"suspend\" : true }}'\n  kubectl delete configmap k8s-ces-setup-cleanup-script\n  kubectl delete cronjob k8s-ces-setup-finisher\n  kubectl delete serviceaccount k8s-ces-setup-finisher\n  kubectl delete rolebinding k8s-ces-setup-finisher\nelse \n  echo \"setup seems not to be installed or successfully executed\";\nfi"
@@ -221,7 +221,7 @@ kind: Role
 metadata:
   name: k8s-ces-setup-finisher
   labels:
-    app: ces-finisher
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup-finisher
 rules:
   - apiGroups:
@@ -251,7 +251,7 @@ kind: ServiceAccount
 metadata:
   name: k8s-ces-setup-finisher
   labels:
-    app: ces-finisher
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup-finisher
 automountServiceAccountToken: true
 ---
@@ -260,7 +260,7 @@ kind: RoleBinding
 metadata:
   name: k8s-ces-setup-finisher
   labels:
-    app: ces-finisher
+    app: ces
     app.kubernetes.io/name: k8s-ces-setup-finisher
 roleRef:
   apiGroup: rbac.authorization.k8s.io
