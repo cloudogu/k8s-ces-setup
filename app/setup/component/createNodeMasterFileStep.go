@@ -52,7 +52,10 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 	if errors.IsNotFound(err) {
 		// create new
 		configMap = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{Name: nodeMasterFileConfigMapName},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   nodeMasterFileConfigMapName,
+				Labels: map[string]string{"app": "ces", "app.kubernetes.io/name": "k8s-ces-setup"},
+			},
 			Data: map[string]string{
 				"node_master": nodeMasterFileContent,
 			},
