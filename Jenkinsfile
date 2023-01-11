@@ -1,5 +1,5 @@
 #!groovy
-@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.60.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@75aea4e5b978e48143839db67032e61c7b4a0328'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -98,7 +98,7 @@ node('docker') {
                 k3d.assignExternalIP()
                 def commitSha = getCurrentCommit()
                 k3d.configureSetup(commitSha, [
-                        dependencies: ["official/postfix", "k8s/nginx-ingress"],
+                        dependencies: ["k8s/nginx-ingress"],
                         defaultDogu : ""
                 ])
             }
