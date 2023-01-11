@@ -58,7 +58,7 @@ func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
 	const etcdAPIVersion = "2"
 	etcdClientLabels := make(map[string]string)
 	etcdClientLabels["app"] = "ces"
-	etcdClientLabels["app.kubernetes.io/name"] = "etcd-client"
+	etcdClientLabels["app.kubernetes.io/name"] = etcdClientName
 	mountServiceAccountToken := true
 
 	etcdPod := &corev1.Pod{
