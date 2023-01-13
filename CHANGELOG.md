@@ -7,6 +7,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.11.0] - 2023-01-13
+### Changed
+- [#34] Add/Update label for consistent mass deletion of CES K8s resources
+  - Select any k8s-ces-setup related resources like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
+  - Select all CES components like this: `kubectl get deploy,pod,... -l app=ces`
+  - Update `ces-build-lib` to 1.61.0
+
+### Fixed
+- [#32] Fixed a permission issue where the setup finisher cronjob was not allowed to execute his finisher script.
+
 ## [v0.10.0] - 2022-12-05
 ### Fixed
 - [#30] The `ecosystem-certificate` TLS secret will now be created during setup.
@@ -14,7 +24,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [v0.9.0] - 2022-11-30
 ### Fixed
 - [#28] Setup wrongly assumed that all service accounts are of type dogu when creating step to wait for 
-  for them. Now only steps for dogu service accounts are created. 
+  them. Now only steps for dogu service accounts are created. 
 
 ## [v0.8.1] - 2022-11-23
 ### Fixed

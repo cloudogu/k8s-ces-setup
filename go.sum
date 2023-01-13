@@ -87,8 +87,8 @@ github.com/cloudogu/cesapp-lib v0.9.0 h1:0yT7jpLKtu2X6qKG5s2UdgIojsQoyluidPRG2Tw
 github.com/cloudogu/cesapp-lib v0.9.0/go.mod h1:PTQqI3xs1ReJMXYE6BGTF33yAfmS4J7P8UiE4AwDMDY=
 github.com/cloudogu/k8s-apply-lib v0.4.0 h1:4jYj0gTDSvW0qs9d5yM5w8aOsMu5Sx+PBCwJwa5sMss=
 github.com/cloudogu/k8s-apply-lib v0.4.0/go.mod h1:WHCe588o8e1vzNdLGV6N4E0g7BarbPXPpW4y8U0/lxE=
-github.com/cloudogu/k8s-dogu-operator v0.11.0 h1:XB8QXch5/10BFWDNzlEpSK5ZeWYVZCix0zHDtKzP5V4=
-github.com/cloudogu/k8s-dogu-operator v0.11.0/go.mod h1:4DkeOw7Fen/i3T3V2WuWSlbpvcKHbhM78Y7wHiHIfjQ=
+github.com/cloudogu/k8s-dogu-operator v0.20.0 h1:YRwOAoOyaVqo32BFZNpfx+oOY2FaQiluaLGb59rDOkw=
+github.com/cloudogu/k8s-dogu-operator v0.20.0/go.mod h1:Zh8jeUHVIGc+6G91Ay/GASbw6CMUrZd+yNOQaeFWInE=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cockroachdb/datadriven v0.0.0-20200714090401-bf6692d28da5/go.mod h1:h6jFvWxBdQXxjopDMZyH2UVceIRfR84bdzbkoKrsWNo=
 github.com/cockroachdb/errors v1.2.4/go.mod h1:rQD95gz6FARkaKkQXUksEje/d9a6wBJoCr5oaCLELYA=
