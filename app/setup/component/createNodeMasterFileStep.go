@@ -54,7 +54,7 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 		configMap = &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:   nodeMasterFileConfigMapName,
-				Labels: map[string]string{"app": "ces", "app.kubernetes.io/name": "k8s-ces-setup"},
+				Labels: map[string]string{"app": "ces"},
 			},
 			Data: map[string]string{
 				"node_master": nodeMasterFileContent,

@@ -56,7 +56,7 @@ func (wnds *writeNamingDataStep) PerformSetupStep() error {
 		ObjectMeta: controllerruntime.ObjectMeta{
 			Name:      tlsSecretName,
 			Namespace: wnds.namespace,
-			Labels:    map[string]string{"app": "ces", "app.kubernetes.io/name": "k8s-ces-setup"},
+			Labels:    map[string]string{"app": "ces"},
 		},
 		Data: map[string][]byte{
 			v1.TLSCertKey:       []byte(wnds.configuration.Naming.Certificate),
