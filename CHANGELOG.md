@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Update makefiles to version 7.2.0
 
 ## [v0.11.0] - 2023-01-13
 ### Changed
@@ -13,7 +15,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - Select any k8s-ces-setup related resources like this: `kubectl get deploy,pod,... -l app=ces,app.kubernetes.io/name=k8s-ces-setup`
   - Select all CES components like this: `kubectl get deploy,pod,... -l app=ces`
   - Update `ces-build-lib` to 1.61.0
-- Update makefiles to version 7.2.0
 
 ### Fixed
 - [#32] Fixed a permission issue where the setup finisher cronjob was not allowed to execute his finisher script.
