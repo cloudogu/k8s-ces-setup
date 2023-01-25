@@ -28,9 +28,6 @@ Dogu-operator-resource:
 
 The command `make help` prints all available targets and their descriptions on the command line.
 
-For the Makefiles to work with respect to the cluster, the root path of the development environment must be entered in the
-Makefiles under the environment variable `K8S_CLUSTER_ROOT`.
-
 ## Debugging
 
 It is possible to interact with a cluster-deployed setup:
