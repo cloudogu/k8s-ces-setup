@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - Update makefiles to version 7.2.0
+- Update `ces-build-lib` to 1.62.0
 
 ## [v0.11.0] - 2023-01-13
 ### Changed
