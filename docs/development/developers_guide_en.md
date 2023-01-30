@@ -9,7 +9,8 @@ First, development files should be created to be used instead of the cluster val
 Dogu-operator-resource:
 - place a suitable YAML file (e.g. `dev-dogu-operator.yaml`) under `k8s/dev-resources/`.
 - `make serve-local-yaml` returns all resources in the directory
-   - Test: [http://localhost:9876/](http://localhost:9876/)
+   <!-- markdown-link-check-disable-next-line -->
+   - Test: http://localhost:9876/
    - a DNS/host alias is useful to communicate from the local K8s cluster to this HTTP server
    - the target needs Python3
 
