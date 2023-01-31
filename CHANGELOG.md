@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.11.1] - 2023-01-31
+### Fixed
+- [#36] Fixed an issue where the finisher cronjob starts infinite jobs if the pod e.g. can't pull an image.
+
+### Changed
+- Update makefiles to version 7.2.0
+- Update `ces-build-lib` to 1.62.0
+
 ## [v0.11.0] - 2023-01-13
 ### Changed
 - [#34] Add/Update label for consistent mass deletion of CES K8s resources
