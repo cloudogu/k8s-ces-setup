@@ -9,6 +9,7 @@ Zuerst sollten Entwicklungsdateien angelegt werden, die anstelle der Cluster-Wer
 Dogu-Operator-Resource:
 - eine passende YAML-Datei (z. B. `dev-dogu-operator.yaml`) unter `k8s/dev-resources/` ablegen
 - `make serve-local-yaml` liefert alle Ressourcen in dem Verzeichnis aus
+<!-- markdown-link-check-disable-next-line -->
   - Test: [http://localhost:9876/](http://localhost:9876/)
   - ein DNS-/Host-Alias ist hilfreich, um vom lokalen K8s-Cluster mit diesem HTTP-Server zu kommunizieren 
   - das Target benötigt Python3
@@ -16,6 +17,7 @@ Dogu-Operator-Resource:
 `k8s/dev-config/k8s-ces-setup.yaml`:
 - `namespace` legt fest, in welchem Namespace das Cloudogu EcoSystem installiert werden soll
 - `dogu_operator_url` legt die Dogu-Operator-Resource fest
+  <!-- markdown-link-check-disable-next-line -->
   - z. B. `http://192.168.56.1:9876/dev-dogu-operator.yaml` (siehe oben)
 
 ### Ausführung mit `go run` oder einer IDE

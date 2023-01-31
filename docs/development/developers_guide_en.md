@@ -17,6 +17,7 @@ Dogu-operator-resource:
 `k8s/dev-config/k8s-ces-setup.yaml`:
 - `namespace` specifies in which namespace the Cloudogu EcoSystem should be installed
 - `dogu_operator_url` specifies the Dogu operator resource
+   <!-- markdown-link-check-disable-next-line -->
    - e.g. `http://192.168.56.1:9876/dev-dogu-operator.yaml` (see above)
 
 ### execution with `go run` or an IDE
