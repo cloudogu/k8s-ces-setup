@@ -373,10 +373,7 @@ spec:
               subPath: setup.json
             - name: dogu-registry-cert
               mountPath: /etc/ssl/certs/dogu-registry-cert.pem
-              subPath: "dogu-registry-cert.pem"
-            - name: docker-registry-cert
-              mountPath: /etc/ssl/certs/docker-registry-cert.pem
-              subPath: "docker-registry-cert.pem"
+              subPath: dogu-registry-cert.pem
       volumes:
         - configMap:
             name: k8s-ces-setup-config
@@ -385,10 +382,6 @@ spec:
             name: k8s-ces-setup-json
             optional: true
           name: k8s-ces-setup-json
-        - name: docker-registry-cert
-          secret:
-            secretName: docker-registry-cert
-            optional: true
         - name: dogu-registry-cert
           secret:
             secretName: dogu-registry-cert
