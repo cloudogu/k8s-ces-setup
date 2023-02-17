@@ -1,6 +1,6 @@
 ## Verwendung von selbst signierten Zertifikaten
 
-Falls die konfigurierte Dogu-Registry ein selbst signiertes Zertifikat verwendet muss dieses über ein Secret wie bei dem
+Falls die konfigurierte Dogu-Registry ein selbst signiertes Zertifikat verwendet, muss dieses über ein Secret wie bei dem
 k8s-dogu-operator konfiguriert werden.
 
 ```bash
