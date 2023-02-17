@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.12.0] - 2023-02-17
 ### Added
 - Add optional volume mount for selfsigned cert of the dogu registry; #38
 
