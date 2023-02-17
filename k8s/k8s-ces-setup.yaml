@@ -371,6 +371,9 @@ spec:
             - mountPath: /setup.json
               name: k8s-ces-setup-json
               subPath: setup.json
+            - name: dogu-registry-cert
+              mountPath: /etc/ssl/certs/dogu-registry-cert.pem
+              subPath: dogu-registry-cert.pem
       volumes:
         - configMap:
             name: k8s-ces-setup-config
@@ -379,6 +382,10 @@ spec:
             name: k8s-ces-setup-json
             optional: true
           name: k8s-ces-setup-json
+        - name: dogu-registry-cert
+          secret:
+            secretName: dogu-registry-cert
+            optional: true
       serviceAccountName: k8s-ces-setup
       nodeSelector:
         kubernetes.io/os: linux
