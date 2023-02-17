@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.12.0] - 2023-02-17
+### Added
+- Add optional volume mount for selfsigned cert of the dogu registry; #38
+
 ## [v0.11.1] - 2023-01-31
 ### Fixed
 - [#36] Fixed an issue where the finisher cronjob starts infinite jobs if the pod e.g. can't pull an image.
