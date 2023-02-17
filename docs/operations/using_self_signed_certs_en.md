@@ -7,4 +7,4 @@ kubectl --namespace <cesNamespace> create secret generic dogu-registry-cert --fr
 ```
 
 When the controller is restarted, the certificates are mounted to `/etc/ssl/certs/<cert_name>.pem` and are
-available for used Http functions of the controller.
+available for used Https functions of the controller.
