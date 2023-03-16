@@ -3,7 +3,6 @@ package data_test
 import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -30,12 +29,15 @@ func Test_generateSSLStep_GetStepDescription(t *testing.T) {
 }
 
 func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
+	fqdn := "192.168.56.2"
+	altDNSNames := []string{fqdn, "local.cloudogu.com"}
 	t.Run("success", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: "192.168.56.2", Domain: "myces"}}
+		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
-		generatorMock := &mocks.SSLGenerator{}
-		generatorMock.On("GenerateSelfSignedCert", "192.168.56.2", "myces", data.CertExpireDays).Return("cert", "key", nil)
+		generatorMock := &data.MockSSLGenerator{}
+		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
+			"Lower Saxony", "Brunswick", altDNSNames).Return("cert", "key", nil)
 		step.SslGenerator = generatorMock
 
 		// when
@@ -50,10 +52,11 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("failed to generate certificate", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: "192.168.56.2", Domain: "myces"}}
+		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
-		generatorMock := &mocks.SSLGenerator{}
-		generatorMock.On("GenerateSelfSignedCert", "192.168.56.2", "myces", data.CertExpireDays).Return("cert", "key", assert.AnError)
+		generatorMock := &data.MockSSLGenerator{}
+		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
+			"Lower Saxony", "Brunswick", altDNSNames).Return("cert", "key", assert.AnError)
 		step.SslGenerator = generatorMock
 
 		// when
