@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/core/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -34,9 +33,9 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 			Password: "password",
 		}
 		sut := NewResourceRegistryClient("1.0.0", doguRegistrySecret)
-		fileClientMock := &mocks.FileClient{}
+		fileClientMock := newMockFileClient(t)
 		byteResult := []byte("test")
-		fileClientMock.On("Get", "https://url.de/api/v23/k8s/component/0.23.0", "username", "password").Return(byteResult, nil)
+		fileClientMock.EXPECT().Get("https://url.de/api/v23/k8s/component/0.23.0", "username", "password").Return(byteResult, nil)
 		sut.fileClient = fileClientMock
 
 		// when
@@ -46,7 +45,6 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, content)
 		assert.Equal(t, byteResult, content)
-		fileClientMock.AssertExpectations(t)
 	})
 
 	t.Run("should return byte slice on success with different host as dogu registry", func(t *testing.T) {
@@ -57,9 +55,9 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 			Password: "password",
 		}
 		sut := NewResourceRegistryClient("1.0.0", doguRegistrySecret)
-		fileClientMock := &mocks.FileClient{}
+		fileClientMock := newMockFileClient(t)
 		byteResult := []byte("test")
-		fileClientMock.On("Get", "https://url.de/api/v23/k8s/component/0.23.0", "", "").Return(byteResult, nil)
+		fileClientMock.EXPECT().Get("https://url.de/api/v23/k8s/component/0.23.0", "", "").Return(byteResult, nil)
 		sut.fileClient = fileClientMock
 
 		// when
@@ -69,7 +67,6 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, content)
 		assert.Equal(t, byteResult, content)
-		fileClientMock.AssertExpectations(t)
 	})
 
 	t.Run("should return error when get an error from the file client", func(t *testing.T) {
@@ -80,8 +77,8 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 			Password: "password",
 		}
 		sut := NewResourceRegistryClient("1.0.0", doguRegistrySecret)
-		fileClientMock := &mocks.FileClient{}
-		fileClientMock.On("Get", "https://url.de/api/v23/k8s/component/0.23.0", "", "").Return(nil, assert.AnError)
+		fileClientMock := newMockFileClient(t)
+		fileClientMock.EXPECT().Get("https://url.de/api/v23/k8s/component/0.23.0", "", "").Return(nil, assert.AnError)
 		sut.fileClient = fileClientMock
 
 		// when
@@ -91,6 +88,5 @@ func TestResourceRegistryClient_GetResourceFileContent(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, content)
 		assert.Contains(t, err.Error(), "failed to get file content from https://url.de/api/v23/k8s/component/0.23.0")
-		fileClientMock.AssertExpectations(t)
 	})
 }

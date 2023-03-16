@@ -7,7 +7,6 @@ import (
 
 	remoteMocks "github.com/cloudogu/cesapp-lib/remote/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/validation/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -41,16 +40,16 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 	t.Run("successful validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{Dogus: context.Dogus{Completed: true}, Naming: context.Naming{Completed: true}, UserBackend: context.UserBackend{Completed: true}, Admin: context.User{Completed: true}}
-		doguValidatorMock := &mocks.DoguValidator{}
-		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
-		namingValidatorMock := &mocks.NamingValidator{}
-		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
-		userBackendValidatorMock := &mocks.UserBackendValidator{}
-		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
-		adminValidatorMock := &mocks.AdminValidator{}
-		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(nil)
-		registryConfigEncryptedValidatorMock := &mocks.RegistryConfigEncryptedValidator{}
-		registryConfigEncryptedValidatorMock.On("ValidateRegistryConfigEncrypted", mock.Anything).Return(nil)
+		doguValidatorMock := NewMockDoguValidator(t)
+		doguValidatorMock.EXPECT().ValidateDogus(mock.Anything).Return(nil)
+		namingValidatorMock := NewMockNamingValidator(t)
+		namingValidatorMock.EXPECT().ValidateNaming(mock.Anything).Return(nil)
+		userBackendValidatorMock := NewMockUserBackendValidator(t)
+		userBackendValidatorMock.EXPECT().ValidateUserBackend(mock.Anything).Return(nil)
+		adminValidatorMock := NewMockAdminValidator(t)
+		adminValidatorMock.EXPECT().ValidateAdmin(mock.Anything, mock.Anything).Return(nil)
+		registryConfigEncryptedValidatorMock := NewMockRegistryConfigEncryptedValidator(t)
+		registryConfigEncryptedValidatorMock.EXPECT().ValidateRegistryConfigEncrypted(mock.Anything).Return(nil)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
@@ -64,13 +63,13 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, userBackendValidatorMock, adminValidatorMock, registryConfigEncryptedValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 
 	t.Run("error during dogu validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{Dogus: context.Dogus{Completed: true}}
-		doguValidatorMock := &mocks.DoguValidator{}
+		doguValidatorMock := NewMockDoguValidator(t)
 		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(assert.AnError)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
@@ -82,16 +81,16 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate dogu section")
-		mock.AssertExpectationsForObjects(t, doguValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 
 	t.Run("error during naming validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{Naming: context.Naming{Completed: true}}
-		namingValidatorMock := &mocks.NamingValidator{}
-		doguValidatorMock := &mocks.DoguValidator{}
-		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
-		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(assert.AnError)
+		namingValidatorMock := NewMockNamingValidator(t)
+		doguValidatorMock := NewMockDoguValidator(t)
+		doguValidatorMock.EXPECT().ValidateDogus(mock.Anything).Return(nil)
+		namingValidatorMock.EXPECT().ValidateNaming(mock.Anything).Return(assert.AnError)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
@@ -103,18 +102,18 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate naming section")
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 
 	t.Run("error during user backend validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{UserBackend: context.UserBackend{Completed: true}}
-		doguValidatorMock := &mocks.DoguValidator{}
-		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
-		namingValidatorMock := &mocks.NamingValidator{}
-		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
-		userBackendValidatorMock := &mocks.UserBackendValidator{}
-		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(assert.AnError)
+		doguValidatorMock := NewMockDoguValidator(t)
+		doguValidatorMock.EXPECT().ValidateDogus(mock.Anything).Return(nil)
+		namingValidatorMock := NewMockNamingValidator(t)
+		namingValidatorMock.EXPECT().ValidateNaming(mock.Anything).Return(nil)
+		userBackendValidatorMock := NewMockUserBackendValidator(t)
+		userBackendValidatorMock.EXPECT().ValidateUserBackend(mock.Anything).Return(assert.AnError)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
@@ -127,20 +126,20 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate user backend section")
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock, userBackendValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 
 	t.Run("error during admin user validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{Admin: context.User{Completed: true}}
-		doguValidatorMock := &mocks.DoguValidator{}
-		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
-		namingValidatorMock := &mocks.NamingValidator{}
-		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
-		userBackendValidatorMock := &mocks.UserBackendValidator{}
-		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
-		adminValidatorMock := &mocks.AdminValidator{}
-		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(assert.AnError)
+		doguValidatorMock := NewMockDoguValidator(t)
+		doguValidatorMock.EXPECT().ValidateDogus(mock.Anything).Return(nil)
+		namingValidatorMock := NewMockNamingValidator(t)
+		namingValidatorMock.EXPECT().ValidateNaming(mock.Anything).Return(nil)
+		userBackendValidatorMock := NewMockUserBackendValidator(t)
+		userBackendValidatorMock.EXPECT().ValidateUserBackend(mock.Anything).Return(nil)
+		adminValidatorMock := NewMockAdminValidator(t)
+		adminValidatorMock.EXPECT().ValidateAdmin(mock.Anything, mock.Anything).Return(assert.AnError)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
@@ -154,22 +153,22 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate admin user section")
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock, userBackendValidatorMock, adminValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 
 	t.Run("error during registry config encrypted validation", func(t *testing.T) {
 		// given
 		configuration := &context.SetupConfiguration{Admin: context.User{Completed: true}}
-		doguValidatorMock := &mocks.DoguValidator{}
-		doguValidatorMock.On("ValidateDogus", mock.Anything).Return(nil)
-		namingValidatorMock := &mocks.NamingValidator{}
-		namingValidatorMock.On("ValidateNaming", mock.Anything).Return(nil)
-		userBackendValidatorMock := &mocks.UserBackendValidator{}
-		userBackendValidatorMock.On("ValidateUserBackend", mock.Anything).Return(nil)
-		adminValidatorMock := &mocks.AdminValidator{}
-		adminValidatorMock.On("ValidateAdmin", mock.Anything, mock.Anything).Return(nil)
-		registryConfigEncryptedValidatorMock := &mocks.RegistryConfigEncryptedValidator{}
-		registryConfigEncryptedValidatorMock.On("ValidateRegistryConfigEncrypted", mock.Anything).Return(assert.AnError)
+		doguValidatorMock := NewMockDoguValidator(t)
+		doguValidatorMock.EXPECT().ValidateDogus(mock.Anything).Return(nil)
+		namingValidatorMock := NewMockNamingValidator(t)
+		namingValidatorMock.EXPECT().ValidateNaming(mock.Anything).Return(nil)
+		userBackendValidatorMock := NewMockUserBackendValidator(t)
+		userBackendValidatorMock.EXPECT().ValidateUserBackend(mock.Anything).Return(nil)
+		adminValidatorMock := NewMockAdminValidator(t)
+		adminValidatorMock.EXPECT().ValidateAdmin(mock.Anything, mock.Anything).Return(nil)
+		registryConfigEncryptedValidatorMock := NewMockRegistryConfigEncryptedValidator(t)
+		registryConfigEncryptedValidatorMock.EXPECT().ValidateRegistryConfigEncrypted(mock.Anything).Return(assert.AnError)
 		mockRegistry := &remoteMocks.Registry{}
 		validator := NewStartupConfigurationValidator(mockRegistry)
 		validator.doguValidator = doguValidatorMock
@@ -184,6 +183,6 @@ func Test_validator_ValidateConfiguration(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to validate registry config encrypted section")
-		mock.AssertExpectationsForObjects(t, namingValidatorMock, doguValidatorMock, userBackendValidatorMock, adminValidatorMock, registryConfigEncryptedValidatorMock)
+		mock.AssertExpectationsForObjects(t, mockRegistry)
 	})
 }

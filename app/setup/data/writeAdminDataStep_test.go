@@ -13,7 +13,6 @@ import (
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 )
 
 func TestNewWriteAdminDataStep(t *testing.T) {
@@ -21,7 +20,7 @@ func TestNewWriteAdminDataStep(t *testing.T) {
 
 	t.Run("successfully create new admin data step", func(t *testing.T) {
 		// given
-		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		testConfig := &context.SetupConfiguration{}
 
 		// when
@@ -29,7 +28,6 @@ func TestNewWriteAdminDataStep(t *testing.T) {
 
 		// then
 		assert.NotNil(t, myStep)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
@@ -38,7 +36,7 @@ func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 
 	t.Run("successfully get admin data step description", func(t *testing.T) {
 		// given
-		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		testConfig := &context.SetupConfiguration{}
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
@@ -47,7 +45,6 @@ func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 
 		// then
 		assert.Equal(t, "Write admin data to the registry", description)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
@@ -57,8 +54,8 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{}
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
@@ -67,7 +64,6 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully set values for external ldap data", func(t *testing.T) {
@@ -83,8 +79,8 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 			},
 		}
 
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(registryConfig).Return(nil)
 
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
@@ -93,7 +89,6 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully set values for embedded ldap data", func(t *testing.T) {
@@ -119,8 +114,8 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 			},
 		}
 
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(registryConfig).Return(nil)
 
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
@@ -129,6 +124,5 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }

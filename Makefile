@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.12.0
 
 GOTAG?=1.18.1
-MAKEFILES_VERSION=7.2.0
+MAKEFILES_VERSION=7.5.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -41,6 +41,7 @@ include build/make/static-analysis.mk
 include build/make/clean.mk
 include build/make/digital-signature.mk
 include build/make/k8s.mk
+include build/make/mocks.mk
 
 K8S_PRE_GENERATE_TARGETS=template-dev-only-image-pull-policy
 
