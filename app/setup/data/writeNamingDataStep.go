@@ -3,6 +3,7 @@ package data
 import (
 	gocontext "context"
 	"fmt"
+	"strconv"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +42,7 @@ func (wnds *writeNamingDataStep) PerformSetupStep() error {
 			"certificate/server.crt": wnds.configuration.Naming.Certificate,
 			"certificate/server.key": wnds.configuration.Naming.CertificateKey,
 			"mail_address":           wnds.configuration.Naming.MailAddress,
-			"k8s/use_internal_ip":    wnds.configuration.Naming.UseInternalIp,
+			"k8s/use_internal_ip":    strconv.FormatBool(wnds.configuration.Naming.UseInternalIp),
 			"k8s/internal_ip":        wnds.configuration.Naming.InternalIp,
 		},
 		"postfix": map[string]interface{}{

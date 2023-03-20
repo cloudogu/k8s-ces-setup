@@ -93,7 +93,7 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 				"certificate/server.crt": "myCertificate",
 				"certificate/server.key": "myCertificateKey",
 				"mail_address":           "my@mail.address",
-				"k8s/use_internal_ip":    true,
+				"k8s/use_internal_ip":    "true",
 				"k8s/internal_ip":        "1.2.3.4",
 			},
 			"postfix": map[string]interface{}{
