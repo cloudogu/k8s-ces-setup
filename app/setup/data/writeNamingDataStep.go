@@ -41,6 +41,8 @@ func (wnds *writeNamingDataStep) PerformSetupStep() error {
 			"certificate/server.crt": wnds.configuration.Naming.Certificate,
 			"certificate/server.key": wnds.configuration.Naming.CertificateKey,
 			"mail_address":           wnds.configuration.Naming.MailAddress,
+			"k8s/use_internal_ip":    wnds.configuration.Naming.UseInternalIp,
+			"k8s/internal_ip":        wnds.configuration.Naming.InternalIp,
 		},
 		"postfix": map[string]interface{}{
 			"relayhost": wnds.configuration.Naming.RelayHost,
