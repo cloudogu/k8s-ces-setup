@@ -8,10 +8,6 @@ import (
 
 const (
 	expireDays = 365
-	country    = "DE"
-	province   = "Lower Saxony"
-	locality   = "Brunswick"
-	localDns   = "local.cloudogu.com"
 )
 
 type generateSSLStep struct {
@@ -43,8 +39,7 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 	if naming.CertificateType == "external" {
 		return nil
 	}
-	altDNSNames := []string{naming.Fqdn, localDns}
-	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, expireDays, country, province, locality, altDNSNames)
+	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, expireDays, ssl.Country, ssl.Province, ssl.Locality, nil)
 	if err != nil {
 		return fmt.Errorf("failed to generate self-signed certificate and key: %w", err)
 	}
