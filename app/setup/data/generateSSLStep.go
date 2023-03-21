@@ -39,7 +39,7 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 	if naming.CertificateType == "external" {
 		return nil
 	}
-	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, expireDays, ssl.Country, ssl.Province, ssl.Locality, nil)
+	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, expireDays, ssl.Country, ssl.Province, ssl.Locality, []string{})
 	if err != nil {
 		return fmt.Errorf("failed to generate self-signed certificate and key: %w", err)
 	}

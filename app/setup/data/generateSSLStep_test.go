@@ -30,14 +30,13 @@ func Test_generateSSLStep_GetStepDescription(t *testing.T) {
 
 func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 	fqdn := "192.168.56.2"
-	altDNSNames := []string{fqdn, "local.cloudogu.com"}
 	t.Run("success", func(t *testing.T) {
 		// given
 		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
-			"Lower Saxony", "Brunswick", altDNSNames).Return("cert", "key", nil)
+			"Lower Saxony", "Brunswick", []string{}).Return("cert", "key", nil)
 		step.SslGenerator = generatorMock
 
 		// when
@@ -56,7 +55,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
-			"Lower Saxony", "Brunswick", altDNSNames).Return("cert", "key", assert.AnError)
+			"Lower Saxony", "Brunswick", []string{}).Return("cert", "key", assert.AnError)
 		step.SslGenerator = generatorMock
 
 		// when
