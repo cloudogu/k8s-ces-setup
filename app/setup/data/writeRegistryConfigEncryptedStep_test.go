@@ -4,7 +4,6 @@ import (
 	gocontext "context"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -49,8 +48,8 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
-		writerMock := &mocks.MapWriter{}
-		writerMock.On("WriteConfigToStringDataMap", mock.Anything).Return(emptyMap, nil)
+		writerMock := data.NewMockMapWriter(t)
+		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(emptyMap, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
 		step.Writer = writerMock
 
@@ -79,8 +78,8 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset()
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap"] = map[string]string{"admin_password": "overrideThis", "fromUser": "user"}
-		writerMock := &mocks.MapWriter{}
-		writerMock.On("WriteConfigToStringDataMap", mock.Anything).Return(registryConfigEncrypted, nil)
+		writerMock := data.NewMockMapWriter(t)
+		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(registryConfigEncrypted, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
 		step.Writer = writerMock
 
@@ -112,8 +111,8 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap-mapper"] = map[string]string{"backend.password": "overrideThis", "backend.connection_dn": "overrideThis", "fromUser": "user"}
 		registryConfigEncrypted["cas"] = map[string]string{"password": "overrideThis", "fromUser": "user"}
-		writerMock := &mocks.MapWriter{}
-		writerMock.On("WriteConfigToStringDataMap", mock.Anything).Return(registryConfigEncrypted, nil)
+		writerMock := data.NewMockMapWriter(t)
+		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(registryConfigEncrypted, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
 		step.Writer = writerMock
 
@@ -149,8 +148,8 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
-		writerMock := &mocks.MapWriter{}
-		writerMock.On("WriteConfigToStringDataMap", mock.Anything).Return(emptyMap, nil)
+		writerMock := data.NewMockMapWriter(t)
+		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(emptyMap, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
 		step.Writer = writerMock
 
@@ -179,8 +178,8 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 	t.Run("fail to write config to map", func(t *testing.T) {
 		// given
 		setupConfig := &context.SetupConfiguration{}
-		writerMock := &mocks.MapWriter{}
-		writerMock.On("WriteConfigToStringDataMap", mock.Anything).Return(nil, assert.AnError)
+		writerMock := data.NewMockMapWriter(t)
+		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(nil, assert.AnError)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, nil, "test")
 		step.Writer = writerMock
 

@@ -7,8 +7,6 @@ import (
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/cloudogu/k8s-ces-setup/app/ssl"
-
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/cloudogu/k8s-ces-setup/app/health"
@@ -85,21 +83,19 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 		}()
 	}
 
-	return createRouter(clusterConfig, clientSet, setupContext.AppConfig.TargetNamespace, setupContextBuilder), nil
+	return createRouter(clusterConfig, clientSet, setupContextBuilder), nil
 }
 
-func createRouter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, namespace string, setupContextBuilder *context.SetupContextBuilder) *gin.Engine {
+func createRouter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) *gin.Engine {
 	router := gin.New()
 	router.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
 
-	setupAPI(router, clusterConfig, k8sClient, namespace, setupContextBuilder)
+	setupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
 	return router
 }
 
 // SetupAPI configures the individual endpoints of the API
-func setupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, namespace string, setupContextBuilder *context.SetupContextBuilder) {
+func setupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
 	health.SetupAPI(router, Version)
 	setup.SetupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
-	// TODO in Dogu-Operator verschieben
-	ssl.SetupAPI(router, namespace)
 }

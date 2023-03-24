@@ -2,12 +2,12 @@ package data
 
 import (
 	"fmt"
+	"github.com/cloudogu/cesapp-lib/ssl"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/ssl"
 )
 
 const (
-	CertExpireDays = 365
+	expireDays = 365
 )
 
 type generateSSLStep struct {
@@ -17,7 +17,8 @@ type generateSSLStep struct {
 
 // SSLGenerator is used to generate a self-signed certificate for a specific fqdn and domain
 type SSLGenerator interface {
-	GenerateSelfSignedCert(fqdn string, domain string, certExpireDays int) (string, string, error)
+	GenerateSelfSignedCert(fqdn string, domain string, certExpireDays int, country string,
+		province string, locality string, altDNSNames []string) (string, string, error)
 }
 
 // NewGenerateSSLStep creates a new setup step which on generates ssl certificates
@@ -38,8 +39,7 @@ func (gss *generateSSLStep) PerformSetupStep() error {
 	if naming.CertificateType == "external" {
 		return nil
 	}
-
-	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, CertExpireDays)
+	cert, key, err := gss.SslGenerator.GenerateSelfSignedCert(naming.Fqdn, naming.Domain, expireDays, ssl.Country, ssl.Province, ssl.Locality, []string{})
 	if err != nil {
 		return fmt.Errorf("failed to generate self-signed certificate and key: %w", err)
 	}

@@ -2,7 +2,6 @@ package component
 
 import (
 	"github.com/cloudogu/k8s-apply-lib/apply"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component/mocks"
 	"github.com/stretchr/testify/mock"
 	"testing"
 
@@ -51,10 +50,10 @@ func TestEtcdServerInstallerStep_PerformSetupStep(t *testing.T) {
 		// given
 		var yamlBytes apply.YamlDocument = []byte("yaml result goes here")
 
-		mockedResourceRegistryClient := &mocks.ResourceRegistryClient{}
-		mockedResourceRegistryClient.On("GetResourceFileContent", etcdServerResourceURL).Return([]byte(yamlBytes), nil)
-		mockedK8sClient := &mockK8sClient{}
-		mockedK8sClient.On("ApplyWithOwner", yamlBytes, testTargetNamespaceName, mock.Anything).Return(nil)
+		mockedResourceRegistryClient := newMockResourceRegistryClient(t)
+		mockedResourceRegistryClient.EXPECT().GetResourceFileContent(etcdServerResourceURL).Return(yamlBytes, nil)
+		mockedK8sClient := newMockK8sClient(t)
+		mockedK8sClient.EXPECT().ApplyWithOwner(yamlBytes, testTargetNamespaceName, mock.Anything).Return(nil)
 
 		installer := etcdServerInstallerStep{
 			namespace:              testTargetNamespaceName,
@@ -68,7 +67,5 @@ func TestEtcdServerInstallerStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mockedResourceRegistryClient.AssertExpectations(t)
-		mockedK8sClient.AssertExpectations(t)
 	})
 }
