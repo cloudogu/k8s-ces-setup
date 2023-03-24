@@ -108,10 +108,3 @@ template-dev-only-image-pull-policy: $(BINARY_YQ)
 	@if [[ ${STAGE}"X" == "development""X" ]]; \
 		then echo "Setting pull policy to always for development stage!" && $(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").imagePullPolicy)=\"Always\"" $(K8S_RESOURCE_TEMP_YAML); \
 	fi
-
-##@ Release
-
-.PHONY: setup-release
-setup-release: ## Interactively starts the release workflow.
-	@echo "Starting git flow release..."
-	@build/make/release.sh setup
