@@ -6,8 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.13.0] - 2023-03-24
 ### Removed
-- [#40] Remove ssl api to generate selfsigned certificates. It will be available in the `k8s-service-discovery`.
+- [#41] Remove SSL API which generated selfsigned certificates. The API is made available in [`k8s-service-discovery`](https://github.com/cloudogu/k8s-service-discovery).
 
 ## [v0.12.0] - 2023-02-17
 ### Added
