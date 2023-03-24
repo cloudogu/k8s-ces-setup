@@ -22,7 +22,7 @@ type Naming struct {
 	RelayHost       string `json:"relayHost"`
 	MailAddress     string `json:"mailAddress"`
 	Completed       bool   `json:"completed"`
-	UseInternalIp   bool   `json:"useInternalIp"` //todo look at this
+	UseInternalIp   bool   `json:"useInternalIp"`
 	InternalIp      string `json:"internalIp"`
 }
 

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -22,13 +21,14 @@ func TestStarter_StartSetup(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(nil)
-		executorMock.On("RegisterValidationStep").Return(nil)
-		executorMock.On("RegisterComponentSetupSteps").Return(nil)
-		executorMock.On("RegisterDataSetupSteps", mock.Anything).Return(nil)
-		executorMock.On("RegisterDoguInstallationSteps").Return(nil)
-		executorMock.On("PerformSetup").Return(nil, "")
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
+		expect.RegisterDoguInstallationSteps().Return(nil)
+		expect.PerformSetup().Return(nil, "")
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -36,7 +36,6 @@ func TestStarter_StartSetup(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 
 	t.Run("failed because setup is busy", func(t *testing.T) {
@@ -77,8 +76,8 @@ func TestStarter_StartSetup(t *testing.T) {
 
 	t.Run("failed to register ssl generate step", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(assert.AnError)
+		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterSSLGenerationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -87,14 +86,14 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to register ssl generation setup step")
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 
 	t.Run("failed to register validation steps", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(nil)
-		executorMock.On("RegisterValidationStep").Return(assert.AnError)
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -103,15 +102,15 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to register validation setup steps")
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 
 	t.Run("failed to register component setup steps", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(nil)
-		executorMock.On("RegisterValidationStep").Return(nil)
-		executorMock.On("RegisterComponentSetupSteps").Return(assert.AnError)
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -120,16 +119,16 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to register component setup steps")
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 
 	t.Run("failed to register data setup steps", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(nil)
-		executorMock.On("RegisterValidationStep").Return(nil)
-		executorMock.On("RegisterComponentSetupSteps").Return(nil)
-		executorMock.On("RegisterDataSetupSteps", mock.Anything).Return(assert.AnError)
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything).Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -138,17 +137,17 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to register data setup steps")
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 
 	t.Run("failed to register dogu installation steps", func(t *testing.T) {
 		// given
-		executorMock := &mocks.SetupExecutor{}
-		executorMock.On("RegisterSSLGenerationStep").Return(nil)
-		executorMock.On("RegisterValidationStep").Return(nil)
-		executorMock.On("RegisterComponentSetupSteps").Return(nil)
-		executorMock.On("RegisterDataSetupSteps", mock.Anything).Return(nil)
-		executorMock.On("RegisterDoguInstallationSteps").Return(assert.AnError)
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
+		expect.RegisterDoguInstallationSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
@@ -157,6 +156,5 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to register dogu installation steps")
-		mock.AssertExpectationsForObjects(t, executorMock)
 	})
 }

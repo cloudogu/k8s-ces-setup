@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.13.0] - 2023-03-24
+### Removed
+- [#41] Remove SSL API which generated selfsigned certificates. The API is made available in [`k8s-service-discovery`](https://github.com/cloudogu/k8s-service-discovery).
+
 ## [v0.12.0] - 2023-02-17
 ### Added
 - Add optional volume mount for selfsigned cert of the dogu registry; #38

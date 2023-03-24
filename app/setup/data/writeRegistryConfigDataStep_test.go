@@ -3,8 +3,6 @@ package data_test
 import (
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data/mocks"
-
 	"github.com/stretchr/testify/mock"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +18,7 @@ func TestNewWriteRegistryConfigDataStep(t *testing.T) {
 
 	t.Run("successfully create new registry config data step", func(t *testing.T) {
 		// given
-		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		testConfig := &context.SetupConfiguration{}
 
 		// when
@@ -28,7 +26,6 @@ func TestNewWriteRegistryConfigDataStep(t *testing.T) {
 
 		// then
 		assert.NotNil(t, myStep)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
@@ -37,7 +34,7 @@ func Test_writeRegistryConfigDataStep_GetStepDescription(t *testing.T) {
 
 	t.Run("successfully get registry config data step description", func(t *testing.T) {
 		// given
-		mockRegistryWriter := &mocks.RegistryWriter{}
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		testConfig := &context.SetupConfiguration{}
 		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
@@ -46,7 +43,6 @@ func Test_writeRegistryConfigDataStep_GetStepDescription(t *testing.T) {
 
 		// then
 		assert.Equal(t, "Write registry config data to the registry", description)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 }
 
@@ -56,8 +52,8 @@ func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupConfiguration{}
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistryWriter.On("WriteConfigToRegistry", mock.Anything).Return(assert.AnError)
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
 		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
@@ -66,7 +62,6 @@ func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, mockRegistryWriter)
 	})
 
 	t.Run("successfully apply all registry config entries", func(t *testing.T) {
@@ -86,8 +81,8 @@ func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 		}
 		testConfig := &context.SetupConfiguration{RegistryConfig: registryConfig}
 
-		mockRegistryWriter := &mocks.RegistryWriter{}
-		mockRegistryWriter.On("WriteConfigToRegistry", registryConfig).Return(nil)
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(registryConfig).Return(nil)
 
 		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 

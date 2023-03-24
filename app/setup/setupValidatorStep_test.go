@@ -7,8 +7,6 @@ import (
 
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/mocks"
-
 	remoteMocks "github.com/cloudogu/cesapp-lib/remote/mocks"
 	"github.com/stretchr/testify/assert"
 
@@ -57,8 +55,8 @@ func Test_setupValidatorStep_GetStepDescription(t *testing.T) {
 func Test_setupValidatorStep_PerformSetupStep(t *testing.T) {
 	t.Run("sucessful performing step", func(t *testing.T) {
 		// given
-		validatorMock := &mocks.ConfigurationValidator{}
-		validatorMock.On("ValidateConfiguration", mock.Anything).Return(nil)
+		validatorMock := setup.NewMockConfigurationValidator(t)
+		validatorMock.EXPECT().ValidateConfiguration(mock.Anything).Return(nil)
 		ctx := getSetupCtx()
 		registryMock := &remoteMocks.Registry{}
 		step := setup.NewValidatorStep(registryMock, &ctx)
@@ -69,6 +67,5 @@ func Test_setupValidatorStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, validatorMock)
 	})
 }
