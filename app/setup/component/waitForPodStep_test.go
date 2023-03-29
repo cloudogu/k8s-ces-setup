@@ -109,7 +109,7 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 		assert.Contains(t, "pod is not ready: timeout reached", err.Error())
 	})
 
-	t.Run("failed to cast runtime object (no pod)", func(t *testing.T) {
+	t.Run("watch event other than pod should fail because of timeout", func(t *testing.T) {
 		// given
 		pod := &v1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test", Labels: labels}}
 		clientset := fake.NewSimpleClientset(pod)
@@ -135,7 +135,7 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, "failed to cast event object to pod", err.Error())
+		assert.ErrorContains(t, err, "pod is not ready: timeout reached")
 	})
 }
 

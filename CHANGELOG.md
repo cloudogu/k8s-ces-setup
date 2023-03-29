@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#44] Improve logging in wait for pod step. API error doesn't throw an error now so that the wait functionality
+will be canceled by the timeout.
 
 ## [v0.13.0] - 2023-03-24
 ### Removed
