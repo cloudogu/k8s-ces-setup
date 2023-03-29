@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.13.1] - 2023-03-29
+### Changed
+- [#44] Improve logging in wait for pod step. API error doesn't throw an error now so that the wait functionality
+will be canceled by the timeout.
+
 ## [v0.13.0] - 2023-03-24
 ### Removed
 - [#41] Remove SSL API which generated selfsigned certificates. The API is made available in [`k8s-service-discovery`](https://github.com/cloudogu/k8s-service-discovery).

@@ -31,7 +31,7 @@ func Test_requestHandler_getHealth(t *testing.T) {
 
 	// when
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", endpointGetHealth, nil)
+	req, _ := http.NewRequest("GET", EndpointGetHealth, nil)
 	r.ServeHTTP(w, req)
 
 	// then

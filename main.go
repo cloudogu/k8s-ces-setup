@@ -23,7 +23,8 @@ const setupPort = 8080
 
 var (
 	// Version of the application. Is automatically adapted at compile time.
-	Version = "development"
+	Version           = "development"
+	doNotLogEndpoints = []string{health.EndpointGetHealth}
 )
 
 type osExiter struct {
@@ -88,7 +89,7 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 
 func createRouter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) *gin.Engine {
 	router := gin.New()
-	router.Use(ginlogrus.Logger(logrus.StandardLogger()), gin.Recovery())
+	router.Use(ginlogrus.Logger(logrus.StandardLogger(), doNotLogEndpoints...), gin.Recovery())
 
 	setupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
 	return router

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
 	"time"
 
@@ -49,7 +50,8 @@ func (wfps *waitForPodStep) PerformSetupStep() error {
 
 // isPodReady does a watch on a pod and returns nil if the pod is ready and the configured timout is not reached
 func (wfps *waitForPodStep) isPodReady() error {
-	watch, err := wfps.clientSet.CoreV1().Pods(wfps.namespace).Watch(context.Background(), v1.ListOptions{LabelSelector: wfps.labelSelector})
+	backgroundCtx := context.Background()
+	watch, err := wfps.clientSet.CoreV1().Pods(wfps.namespace).Watch(backgroundCtx, v1.ListOptions{LabelSelector: wfps.labelSelector})
 	if err != nil {
 		return fmt.Errorf("failed to create watch on pod: %w", err)
 	}
@@ -62,8 +64,11 @@ func (wfps *waitForPodStep) isPodReady() error {
 
 	for event := range watch.ResultChan() {
 		pod, ok := event.Object.(*corev1.Pod)
+		logger := log.FromContext(backgroundCtx)
 		if !ok {
-			return fmt.Errorf("failed to cast event object to pod")
+			logger.Error(fmt.Errorf("failed to cast event to pod: selector=[%s] type=[%s]; object=[%+v]",
+				wfps.labelSelector, event.Type, event.Object), "error wait for pod")
+			continue
 		}
 
 		for _, cd := range pod.Status.Conditions {

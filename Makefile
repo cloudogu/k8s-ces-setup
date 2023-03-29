@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.13.0
+VERSION=0.13.1
 
 GOTAG?=1.18.1
 MAKEFILES_VERSION=7.5.0
@@ -42,6 +42,7 @@ include build/make/clean.mk
 include build/make/digital-signature.mk
 include build/make/k8s.mk
 include build/make/mocks.mk
+include build/make/release.mk
 
 K8S_PRE_GENERATE_TARGETS=template-dev-only-image-pull-policy
 
