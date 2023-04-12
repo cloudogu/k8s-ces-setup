@@ -1,15 +1,14 @@
-package setup_test
+package setup
 
 import (
 	"errors"
-	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 
+	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 
+	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
-
-	"github.com/cloudogu/k8s-ces-setup/app/setup"
 	"k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/stretchr/testify/assert"
@@ -56,7 +55,7 @@ func TestNewExecutor(t *testing.T) {
 	}}
 
 	// when
-	executor, err := setup.NewExecutor(restConfigMock, clientSetMock, testContext)
+	executor, err := NewExecutor(restConfigMock, clientSetMock, testContext)
 
 	// then
 	require.Nil(t, err)
@@ -68,7 +67,7 @@ func TestExecutor_RegisterSetupStep(t *testing.T) {
 
 	t.Run("Register multiple setup steps", func(t *testing.T) {
 		// given
-		executor := setup.Executor{}
+		executor := Executor{}
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", false)
 		step3 := newSimpleSetupStep("Step3", false)
@@ -98,7 +97,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 
 	t.Run("Perform setup with multiple successful setup steps", func(t *testing.T) {
 		// given
-		executor := setup.Executor{}
+		executor := Executor{}
 
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", false)
@@ -120,7 +119,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 
 	t.Run("Perform setup with error on setup step", func(t *testing.T) {
 		// given
-		executor := setup.Executor{}
+		executor := Executor{}
 
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", true)
@@ -147,7 +146,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given
 		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
-		executor := &setup.Executor{
+		executor := &Executor{
 			ClusterConfig: &rest.Config{},
 			SetupContext:  testContext,
 		}
@@ -162,7 +161,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 	t.Run("failed to create applier", func(t *testing.T) {
 		// given
 		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
-		executor := &setup.Executor{
+		executor := &Executor{
 			SetupContext:  testContext,
 			ClusterConfig: &rest.Config{ExecProvider: &api.ExecConfig{}, AuthProvider: &api.AuthProviderConfig{}},
 		}
@@ -174,4 +173,52 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create k8s apply client")
 	})
+}
+
+func Test_getRemoteConfig(t *testing.T) {
+	type args struct {
+		endpoint  string
+		urlSchema string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *core.Remote
+	}{
+		{
+			name: "test default url schema",
+			args: args{endpoint: "https://example.com/", urlSchema: "default"},
+			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+		},
+		{
+			name: "test default url schema with 'dogus' suffix",
+			args: args{endpoint: "https://example.com/dogus", urlSchema: "default"},
+			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+		},
+		{
+			name: "test default url schema with 'dogus/' suffix",
+			args: args{endpoint: "https://example.com/dogus/", urlSchema: "default"},
+			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+		},
+		{
+			name: "test non-default url schema",
+			args: args{endpoint: "https://example.com/", urlSchema: "non-default"},
+			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "non-default", CacheDir: "/tmp"},
+		},
+		{
+			name: "test non-default url schema with 'dogus' suffix",
+			args: args{endpoint: "https://example.com/dogus", urlSchema: "non-default"},
+			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "non-default", CacheDir: "/tmp"},
+		},
+		{
+			name: "test non-default url schema with 'dogus/' suffix",
+			args: args{endpoint: "https://example.com/dogus/", urlSchema: "non-default"},
+			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "non-default", CacheDir: "/tmp"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, getRemoteConfig(tt.args.endpoint, tt.args.urlSchema), "getRemoteConfig(%v, %v)", tt.args.endpoint, tt.args.urlSchema)
+		})
+	}
 }
