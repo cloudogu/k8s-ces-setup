@@ -202,18 +202,18 @@ func Test_getRemoteConfig(t *testing.T) {
 		},
 		{
 			name: "test non-default url schema",
-			args: args{endpoint: "https://example.com/", urlSchema: "non-default"},
-			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "non-default", CacheDir: "/tmp"},
+			args: args{endpoint: "https://example.com/", urlSchema: "index"},
+			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "index", CacheDir: "/tmp"},
 		},
 		{
 			name: "test non-default url schema with 'dogus' suffix",
-			args: args{endpoint: "https://example.com/dogus", urlSchema: "non-default"},
-			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "non-default", CacheDir: "/tmp"},
+			args: args{endpoint: "https://example.com/dogus", urlSchema: "index"},
+			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
 		},
 		{
 			name: "test non-default url schema with 'dogus/' suffix",
-			args: args{endpoint: "https://example.com/dogus/", urlSchema: "non-default"},
-			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "non-default", CacheDir: "/tmp"},
+			args: args{endpoint: "https://example.com/dogus/", urlSchema: "index"},
+			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
 		},
 	}
 	for _, tt := range tests {
