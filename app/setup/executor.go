@@ -2,10 +2,9 @@ package setup
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/cloudogu/k8s-apply-lib/apply"
 	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
@@ -69,8 +68,10 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 
 func getRemoteConfig(endpoint string, urlSchema string) *core.Remote {
 	endpoint = strings.TrimSuffix(endpoint, "/")
-	endpoint = strings.TrimSuffix(endpoint, "dogus")
-	endpoint = strings.TrimSuffix(endpoint, "/")
+	if urlSchema == "default" {
+		endpoint = strings.TrimSuffix(endpoint, "dogus")
+		endpoint = strings.TrimSuffix(endpoint, "/")
+	}
 
 	return &core.Remote{
 		Endpoint:  endpoint,

@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@1.62.0')
+@Library('github.com/cloudogu/ces-build-lib@1.64.0')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -45,7 +45,7 @@ node('docker') {
         }
 
         stage('Check Markdown Links') {
-            Markdown markdown = new Markdown(this)
+            Markdown markdown = new Markdown(this, "3.11.0")
             markdown.check()
         }
 
