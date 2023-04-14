@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.13.2] - 2023-04-14
 ### Fixed
-- [#46] Trim dogus suffix only on url schema default
+- [#46] Trim "dogus/" suffix only on URL "default" schema
+  - this change avoids removing the endpoint suffix for the "index" schema
 
 ## [v0.13.1] - 2023-03-29
 ### Changed
