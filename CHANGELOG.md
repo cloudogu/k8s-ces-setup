@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.13.2] - 2023-04-14
+### Fixed
+- [#46] Trim "dogus/" suffix only on URL "default" schema
+  - this change avoids removing the endpoint suffix for the "index" schema
+
 ## [v0.13.1] - 2023-03-29
 ### Changed
 - [#44] Improve logging in wait for pod step. API error doesn't throw an error now so that the wait functionality
