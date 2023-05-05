@@ -64,13 +64,13 @@ func TestEtcdClientInstallerStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		actual, err := clientSetMock.CoreV1().Pods(testTargetNamespaceName).Get(context.Background(), "etcd-client", metav1.GetOptions{})
+		actual, err := clientSetMock.AppsV1().Deployments(testTargetNamespaceName).Get(context.Background(), "etcd-client", metav1.GetOptions{})
 		require.NoError(t, err)
 		assert.Equal(t, "etcd-client", actual.GetName())
-		require.Len(t, actual.Spec.Containers, 1)
-		assert.Equal(t, "registryurl/registryname/repo:tag", actual.Spec.Containers[0].Image)
-		assert.Equal(t, "sleep infinity", strings.Join(actual.Spec.Containers[0].Command, " "))
-		assert.Contains(t, actual.Spec.Containers[0].Env, v1.EnvVar{Name: "ETCDCTL_API", Value: "2"})
-		assert.Contains(t, actual.Spec.Containers[0].Env, v1.EnvVar{Name: "ETCDCTL_ENDPOINTS", Value: "http://etcd.myfavouritenamespace-1.svc.cluster.local:4001"})
+		require.Len(t, actual.Spec.Template.Spec.Containers, 1)
+		assert.Equal(t, "registryurl/registryname/repo:tag", actual.Spec.Template.Spec.Containers[0].Image)
+		assert.Equal(t, "sleep infinity", strings.Join(actual.Spec.Template.Spec.Containers[0].Command, " "))
+		assert.Contains(t, actual.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: "ETCDCTL_API", Value: "2"})
+		assert.Contains(t, actual.Spec.Template.Spec.Containers[0].Env, v1.EnvVar{Name: "ETCDCTL_ENDPOINTS", Value: "http://etcd.myfavouritenamespace-1.svc.cluster.local:4001"})
 	})
 }

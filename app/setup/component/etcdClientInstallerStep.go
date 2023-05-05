@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	appsv1 "k8s.io/api/apps/v1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +46,7 @@ func (ecis *etcdClientInstallerStep) PerformSetupStep() error {
 }
 
 func (ecis *etcdClientInstallerStep) installClient() error {
-	err := ecis.createPod(ecis.etcdServiceUrl)
+	err := ecis.createDeployment(ecis.etcdServiceUrl)
 	if err != nil {
 		return err
 	}
@@ -53,47 +54,66 @@ func (ecis *etcdClientInstallerStep) installClient() error {
 	return nil
 }
 
-func (ecis *etcdClientInstallerStep) createPod(etcdServiceUrl string) error {
+func (ecis *etcdClientInstallerStep) createDeployment(etcdServiceUrl string) error {
 	etcdClientName := "etcd-client"
 	const etcdAPIVersion = "2"
 	etcdClientLabels := make(map[string]string)
 	etcdClientLabels["app"] = "ces"
 	etcdClientLabels["app.kubernetes.io/name"] = etcdClientName
-	mountServiceAccountToken := true
 
-	etcdPod := &corev1.Pod{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   etcdClientName,
-			Labels: etcdClientLabels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    etcdClientName,
-					Image:   ecis.imageURL,
-					Command: []string{"sleep", "infinity"},
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ETCDCTL_API",
-							Value: etcdAPIVersion,
-						},
-						{
-							Name:  "ETCDCTL_ENDPOINTS",
-							Value: etcdServiceUrl,
-						},
-					},
-				},
-			},
-			AutomountServiceAccountToken: &mountServiceAccountToken,
-		},
-		Status: corev1.PodStatus{},
-	}
+	deployment := ecis.getEtcdClientDeployment(etcdServiceUrl, etcdClientName, etcdClientLabels, etcdAPIVersion)
 
-	_, err := ecis.clientSet.CoreV1().Pods(ecis.targetNamespace).Create(context.Background(), etcdPod, metav1.CreateOptions{})
+	_, err := ecis.clientSet.AppsV1().Deployments(ecis.targetNamespace).Create(context.Background(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("cannot create etcd pod in namespace %s with clientset: %w", ecis.targetNamespace, err)
+		return fmt.Errorf("cannot create etcd deployment in namespace %s with clientset: %w", ecis.targetNamespace, err)
 	}
 
 	return nil
+}
+
+func (ecis *etcdClientInstallerStep) getEtcdClientDeployment(etcdServiceUrl string, etcdClientName string,
+	etcdClientLabels map[string]string, etcdAPIVersion string) *appsv1.Deployment {
+	deploymentObjMeta := metav1.ObjectMeta{
+		Name:      etcdClientName,
+		Namespace: ecis.targetNamespace,
+		Labels:    etcdClientLabels,
+	}
+
+	podObjMeta := metav1.ObjectMeta{
+		Name:   etcdClientName,
+		Labels: etcdClientLabels,
+	}
+
+	replicas := int32(1)
+
+	podSpec := corev1.PodSpec{
+		Containers: []corev1.Container{
+			{
+				Name:    etcdClientName,
+				Image:   ecis.imageURL,
+				Command: []string{"sleep", "infinity"},
+				Env: []corev1.EnvVar{
+					{
+						Name:  "ETCDCTL_API",
+						Value: etcdAPIVersion,
+					},
+					{
+						Name:  "ETCDCTL_ENDPOINTS",
+						Value: etcdServiceUrl,
+					},
+				},
+			},
+		},
+	}
+
+	deployment := &appsv1.Deployment{ObjectMeta: deploymentObjMeta, Spec: appsv1.DeploymentSpec{
+		Selector: &metav1.LabelSelector{MatchLabels: etcdClientLabels},
+		Replicas: &replicas,
+		Template: corev1.PodTemplateSpec{
+			ObjectMeta: podObjMeta,
+			Spec:       podSpec,
+		},
+	}}
+
+	return deployment
 }
