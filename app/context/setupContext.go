@@ -17,19 +17,33 @@ import (
 )
 
 const (
-	SecretDoguRegistry                 = "k8s-dogu-operator-dogu-registry"
-	SecretDoguRegistryDevPath          = "k8s/dev-resources/dogu-registry-secret.yaml"
-	SecretDockerRegistry               = "k8s-dogu-operator-docker-registry"
-	SetupConfigConfigmap               = "k8s-ces-setup-config"
-	SetupConfigConfigmapDevPath        = "k8s/dev-resources/k8s-ces-setup.yaml"
-	SetupStartUpConfigMap              = "k8s-ces-setup-json"
-	SetupStartUpConfigMapDevPath       = "k8s/dev-resources/setup.json"
-	SetupStateConfigMap                = "k8s-setup-config"
-	SetupStateKey                      = "state"
-	SetupStateInstalled                = "installed"
-	SetupStateInstalling               = "installing"
-	EnvironmentVariableStage           = "STAGE"
-	StageDevelopment                   = "development"
+	// SecretDoguRegistry is the name of the secret containing the dogu registry credentials.
+	SecretDoguRegistry = "k8s-dogu-operator-dogu-registry"
+	// SecretDoguRegistryDevPath is the path to the secret containing the dogu registry credentials. This is used for development.
+	SecretDoguRegistryDevPath = "k8s/dev-resources/dogu-registry-secret.yaml"
+	// SecretDockerRegistry is the name of the secret containing the docker registry credentials.
+	SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
+	// SetupConfigConfigmap is the name of the config map containing the setup config.
+	SetupConfigConfigmap = "k8s-ces-setup-config"
+	// SetupConfigConfigmapDevPath is the path to the config map containing the setup config. This is used for development.
+	SetupConfigConfigmapDevPath = "k8s/dev-resources/k8s-ces-setup.yaml"
+	// SetupStartUpConfigMap is the name of the config map containing the setup.json.
+	SetupStartUpConfigMap = "k8s-ces-setup-json"
+	// SetupStartUpConfigMapDevPath is the path to the config map containing the setup.json. This is used for development.
+	SetupStartUpConfigMapDevPath = "k8s/dev-resources/setup.json"
+	// SetupStateConfigMap is the name of the config map containing the setup state.
+	SetupStateConfigMap = "k8s-setup-config"
+	// SetupStateKey is the key by which the setup state can be referenced.
+	SetupStateKey = "state"
+	// SetupStateInstalled means the setup installed the Cloudogu EcoSystem successfully.
+	SetupStateInstalled = "installed"
+	// SetupStateInstalling means the setup is currently installing the Cloudogu EcoSystem.
+	SetupStateInstalling = "installing"
+	// EnvironmentVariableStage is the name of the environment variable by which the development stage can be set.
+	EnvironmentVariableStage = "STAGE"
+	// StageDevelopment is the value that EnvironmentVariableStage must have in order to start the setup in development mode.
+	StageDevelopment = "development"
+	// EnvironmentVariableTargetNamespace is the name of the environment variable which discerns where the setup should deploy the Cloudogu EcoSystem.
 	EnvironmentVariableTargetNamespace = "POD_NAMESPACE"
 )
 
