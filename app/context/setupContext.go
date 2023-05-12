@@ -103,8 +103,11 @@ func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface
 		}
 
 		doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
+		if err != nil {
+			return nil, nil, nil, err
+		}
 
-		return config, setupJson, doguRegistrySecret, err
+		return config, setupJson, doguRegistrySecret, nil
 	} else {
 		config, err := ReadConfigFromCluster(clientSet, targetNamespace)
 		if err != nil {
@@ -138,6 +141,8 @@ func GetSetupStateConfigMap(client kubernetes.Interface, namespace string) (*cor
 		if err != nil {
 			return nil, fmt.Errorf("failed to create configmap [%s]: %w", SetupStateConfigMap, err)
 		}
+	} else if err != nil {
+		return nil, fmt.Errorf("failed to get configmap [%s]: %w", SetupConfigConfigmap, err)
 	}
 
 	if configMap.Data == nil {
