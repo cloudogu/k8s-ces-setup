@@ -61,6 +61,25 @@ func (ubv *userBackendValidator) validateActiveDirectoryServer(backend context.U
 }
 
 func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBackend) error {
+	err := ubv.validateBackendLocation(backend)
+	if err != nil {
+		return err
+	}
+
+	err = ubv.validateBackendAuth(backend)
+	if err != nil {
+		return err
+	}
+
+	err = ubv.validateBackendGroups(backend)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ubv *userBackendValidator) validateBackendLocation(backend context.UserBackend) error {
 	if backend.Server != "activeDirectory" && backend.Server != "custom" {
 		return getInvalidOptionError("server", "activeDirectory", "custom")
 	}
@@ -70,20 +89,11 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 			return err
 		}
 	}
-	if backend.AttributeGivenName == "" {
-		return getPropertyNotSetError("attributeGivenName")
-	}
-	if backend.AttributeSurname == "" {
-		return getPropertyNotSetError("attributeSurName")
-	}
 	if backend.BaseDN == "" {
 		return getPropertyNotSetError("baseDn")
 	}
 	if backend.ConnectionDN == "" {
 		return getPropertyNotSetError("connectionDn")
-	}
-	if backend.Password == "" {
-		return getPropertyNotSetError("password")
 	}
 	if backend.Host == "" {
 		return getPropertyNotSetError("host")
@@ -97,6 +107,25 @@ func (ubv *userBackendValidator) validateExternalBackend(backend context.UserBac
 	if backend.Encryption != "none" && backend.Encryption != "ssl" && backend.Encryption != "sslAny" && backend.Encryption != "startTLS" && backend.Encryption != "startTLSAny" {
 		return getInvalidOptionError("encryption", "none", "ssl", "sslAny", "startTLS", "startTLSAny")
 	}
+
+	return nil
+}
+
+func (ubv *userBackendValidator) validateBackendAuth(backend context.UserBackend) error {
+	if backend.Password == "" {
+		return getPropertyNotSetError("password")
+	}
+	if backend.AttributeGivenName == "" {
+		return getPropertyNotSetError("attributeGivenName")
+	}
+	if backend.AttributeSurname == "" {
+		return getPropertyNotSetError("attributeSurName")
+	}
+
+	return nil
+}
+
+func (ubv *userBackendValidator) validateBackendGroups(backend context.UserBackend) error {
 	if backend.GroupBaseDN == "" {
 		return getPropertyNotSetError("groupBaseDN")
 	}
