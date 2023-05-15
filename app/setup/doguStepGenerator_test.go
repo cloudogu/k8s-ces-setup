@@ -4,10 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
 
@@ -18,7 +15,7 @@ import (
 )
 
 func TestNewDoguStepGenerator(t *testing.T) {
-	t.Run("creating new generator fails by creating rest client on client config", func(t *testing.T) {
+	t.Run("creating new generator fails by creating ecosystem client from client config", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
@@ -32,29 +29,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "annot create kubernetes RestClient")
-	})
-
-	t.Run("creating new generator fails by creating rest client on addToScheme", func(t *testing.T) {
-		// given
-		originalAddToScheme := addToScheme
-		defer func() { addToScheme = originalAddToScheme }()
-		addToScheme = func(s *runtime.Scheme) error {
-			return assert.AnError
-		}
-
-		clientMock := fake.NewSimpleClientset()
-		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas"}}
-
-		mockRegistry := &mocks.Registry{}
-
-		// when
-		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
-
-		// then
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		assert.ErrorContains(t, err, "failed to create K8s EcoSystem client")
 	})
 
 	t.Run("creating new generator fails by retrieving dogu from registry", func(t *testing.T) {
@@ -64,7 +39,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas"}}
 
 		mockRegistry := &mocks.Registry{}
-		mockRegistry.On("Get", mock.Anything).Return(nil, assert.AnError)
+		mockRegistry.On("Get", "official/ldap").Return(nil, assert.AnError)
 
 		// when
 		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
@@ -72,6 +47,25 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
+		assert.ErrorContains(t, err, "failed to get latest version of dogu [official/ldap]")
+	})
+
+	t.Run("creating new generator fails by retrieving versioned dogu from registry", func(t *testing.T) {
+		// given
+		clientMock := fake.NewSimpleClientset()
+		clusterConfig := &rest.Config{}
+		dogus := context.Dogus{Install: []string{"official/ldap:1.2.3-4", "official/cas:4.3.2-1"}}
+
+		mockRegistry := &mocks.Registry{}
+		mockRegistry.On("GetVersion", "official/ldap", "1.2.3-4").Return(nil, assert.AnError)
+
+		// when
+		_, err := NewDoguStepGenerator(clientMock, clusterConfig, dogus, mockRegistry, "mynamespace")
+
+		// then
+		require.Error(t, err)
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.ErrorContains(t, err, "failed to get version [1.2.3-4] of dogu [official/ldap]")
 	})
 
 	t.Run("create new generator", func(t *testing.T) {
