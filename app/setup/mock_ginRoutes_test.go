@@ -52,8 +52,8 @@ type mockGinRoutes_Any_Call struct {
 }
 
 // Any is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) Any(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_Any_Call {
 	return &mockGinRoutes_Any_Call{Call: _e.mock.On("Any",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -111,8 +111,8 @@ type mockGinRoutes_DELETE_Call struct {
 }
 
 // DELETE is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) DELETE(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_DELETE_Call {
 	return &mockGinRoutes_DELETE_Call{Call: _e.mock.On("DELETE",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -170,8 +170,8 @@ type mockGinRoutes_GET_Call struct {
 }
 
 // GET is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) GET(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_GET_Call {
 	return &mockGinRoutes_GET_Call{Call: _e.mock.On("GET",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -229,8 +229,8 @@ type mockGinRoutes_HEAD_Call struct {
 }
 
 // HEAD is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) HEAD(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_HEAD_Call {
 	return &mockGinRoutes_HEAD_Call{Call: _e.mock.On("HEAD",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -288,9 +288,9 @@ type mockGinRoutes_Handle_Call struct {
 }
 
 // Handle is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 string
-//  - _a2 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 string
+//   - _a2 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) Handle(_a0 interface{}, _a1 interface{}, _a2 ...interface{}) *mockGinRoutes_Handle_Call {
 	return &mockGinRoutes_Handle_Call{Call: _e.mock.On("Handle",
 		append([]interface{}{_a0, _a1}, _a2...)...)}
@@ -315,6 +315,66 @@ func (_c *mockGinRoutes_Handle_Call) Return(_a0 gin.IRoutes) *mockGinRoutes_Hand
 }
 
 func (_c *mockGinRoutes_Handle_Call) RunAndReturn(run func(string, string, ...gin.HandlerFunc) gin.IRoutes) *mockGinRoutes_Handle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Match provides a mock function with given fields: _a0, _a1, _a2
+func (_m *mockGinRoutes) Match(_a0 []string, _a1 string, _a2 ...gin.HandlerFunc) gin.IRoutes {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 gin.IRoutes
+	if rf, ok := ret.Get(0).(func([]string, string, ...gin.HandlerFunc) gin.IRoutes); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.IRoutes)
+		}
+	}
+
+	return r0
+}
+
+// mockGinRoutes_Match_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Match'
+type mockGinRoutes_Match_Call struct {
+	*mock.Call
+}
+
+// Match is a helper method to define mock.On call
+//   - _a0 []string
+//   - _a1 string
+//   - _a2 ...gin.HandlerFunc
+func (_e *mockGinRoutes_Expecter) Match(_a0 interface{}, _a1 interface{}, _a2 ...interface{}) *mockGinRoutes_Match_Call {
+	return &mockGinRoutes_Match_Call{Call: _e.mock.On("Match",
+		append([]interface{}{_a0, _a1}, _a2...)...)}
+}
+
+func (_c *mockGinRoutes_Match_Call) Run(run func(_a0 []string, _a1 string, _a2 ...gin.HandlerFunc)) *mockGinRoutes_Match_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gin.HandlerFunc, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(gin.HandlerFunc)
+			}
+		}
+		run(args[0].([]string), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *mockGinRoutes_Match_Call) Return(_a0 gin.IRoutes) *mockGinRoutes_Match_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *mockGinRoutes_Match_Call) RunAndReturn(run func([]string, string, ...gin.HandlerFunc) gin.IRoutes) *mockGinRoutes_Match_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -348,8 +408,8 @@ type mockGinRoutes_OPTIONS_Call struct {
 }
 
 // OPTIONS is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) OPTIONS(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_OPTIONS_Call {
 	return &mockGinRoutes_OPTIONS_Call{Call: _e.mock.On("OPTIONS",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -407,8 +467,8 @@ type mockGinRoutes_PATCH_Call struct {
 }
 
 // PATCH is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) PATCH(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_PATCH_Call {
 	return &mockGinRoutes_PATCH_Call{Call: _e.mock.On("PATCH",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -466,8 +526,8 @@ type mockGinRoutes_POST_Call struct {
 }
 
 // POST is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) POST(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_POST_Call {
 	return &mockGinRoutes_POST_Call{Call: _e.mock.On("POST",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -525,8 +585,8 @@ type mockGinRoutes_PUT_Call struct {
 }
 
 // PUT is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 ...gin.HandlerFunc
+//   - _a0 string
+//   - _a1 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) PUT(_a0 interface{}, _a1 ...interface{}) *mockGinRoutes_PUT_Call {
 	return &mockGinRoutes_PUT_Call{Call: _e.mock.On("PUT",
 		append([]interface{}{_a0}, _a1...)...)}
@@ -577,8 +637,8 @@ type mockGinRoutes_Static_Call struct {
 }
 
 // Static is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 string
+//   - _a0 string
+//   - _a1 string
 func (_e *mockGinRoutes_Expecter) Static(_a0 interface{}, _a1 interface{}) *mockGinRoutes_Static_Call {
 	return &mockGinRoutes_Static_Call{Call: _e.mock.On("Static", _a0, _a1)}
 }
@@ -622,8 +682,8 @@ type mockGinRoutes_StaticFS_Call struct {
 }
 
 // StaticFS is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 http.FileSystem
+//   - _a0 string
+//   - _a1 http.FileSystem
 func (_e *mockGinRoutes_Expecter) StaticFS(_a0 interface{}, _a1 interface{}) *mockGinRoutes_StaticFS_Call {
 	return &mockGinRoutes_StaticFS_Call{Call: _e.mock.On("StaticFS", _a0, _a1)}
 }
@@ -667,8 +727,8 @@ type mockGinRoutes_StaticFile_Call struct {
 }
 
 // StaticFile is a helper method to define mock.On call
-//  - _a0 string
-//  - _a1 string
+//   - _a0 string
+//   - _a1 string
 func (_e *mockGinRoutes_Expecter) StaticFile(_a0 interface{}, _a1 interface{}) *mockGinRoutes_StaticFile_Call {
 	return &mockGinRoutes_StaticFile_Call{Call: _e.mock.On("StaticFile", _a0, _a1)}
 }
@@ -686,6 +746,52 @@ func (_c *mockGinRoutes_StaticFile_Call) Return(_a0 gin.IRoutes) *mockGinRoutes_
 }
 
 func (_c *mockGinRoutes_StaticFile_Call) RunAndReturn(run func(string, string) gin.IRoutes) *mockGinRoutes_StaticFile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// StaticFileFS provides a mock function with given fields: _a0, _a1, _a2
+func (_m *mockGinRoutes) StaticFileFS(_a0 string, _a1 string, _a2 http.FileSystem) gin.IRoutes {
+	ret := _m.Called(_a0, _a1, _a2)
+
+	var r0 gin.IRoutes
+	if rf, ok := ret.Get(0).(func(string, string, http.FileSystem) gin.IRoutes); ok {
+		r0 = rf(_a0, _a1, _a2)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(gin.IRoutes)
+		}
+	}
+
+	return r0
+}
+
+// mockGinRoutes_StaticFileFS_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StaticFileFS'
+type mockGinRoutes_StaticFileFS_Call struct {
+	*mock.Call
+}
+
+// StaticFileFS is a helper method to define mock.On call
+//   - _a0 string
+//   - _a1 string
+//   - _a2 http.FileSystem
+func (_e *mockGinRoutes_Expecter) StaticFileFS(_a0 interface{}, _a1 interface{}, _a2 interface{}) *mockGinRoutes_StaticFileFS_Call {
+	return &mockGinRoutes_StaticFileFS_Call{Call: _e.mock.On("StaticFileFS", _a0, _a1, _a2)}
+}
+
+func (_c *mockGinRoutes_StaticFileFS_Call) Run(run func(_a0 string, _a1 string, _a2 http.FileSystem)) *mockGinRoutes_StaticFileFS_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string), args[2].(http.FileSystem))
+	})
+	return _c
+}
+
+func (_c *mockGinRoutes_StaticFileFS_Call) Return(_a0 gin.IRoutes) *mockGinRoutes_StaticFileFS_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *mockGinRoutes_StaticFileFS_Call) RunAndReturn(run func(string, string, http.FileSystem) gin.IRoutes) *mockGinRoutes_StaticFileFS_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -718,7 +824,7 @@ type mockGinRoutes_Use_Call struct {
 }
 
 // Use is a helper method to define mock.On call
-//  - _a0 ...gin.HandlerFunc
+//   - _a0 ...gin.HandlerFunc
 func (_e *mockGinRoutes_Expecter) Use(_a0 ...interface{}) *mockGinRoutes_Use_Call {
 	return &mockGinRoutes_Use_Call{Call: _e.mock.On("Use",
 		append([]interface{}{}, _a0...)...)}
