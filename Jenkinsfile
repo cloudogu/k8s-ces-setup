@@ -55,7 +55,7 @@ node('docker') {
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
                             stage('Build') {
-                                make 'clean compile'
+                                make 'dist-clean compile'
                             }
 
                             stage('Unit Tests') {
