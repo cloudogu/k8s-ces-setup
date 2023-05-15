@@ -8,7 +8,9 @@ import (
 )
 
 const (
+	// DsTypeEmbedded is used to set up the EcoSystem with an embedded user backend (e.g. the ldap dogu).
 	DsTypeEmbedded = "embedded"
+	// DsTypeExternal is used to set up the EcoSystem with an external user backend.
 	DsTypeExternal = "external"
 	searchFilter   = "(objectClass=person)"
 )
