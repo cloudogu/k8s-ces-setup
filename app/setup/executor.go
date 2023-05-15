@@ -21,7 +21,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const K8sSetupFieldManagerName = "k8s-ces-setup"
+const k8sSetupFieldManagerName = "k8s-ces-setup"
 
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
@@ -104,7 +104,7 @@ func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 
 // RegisterComponentSetupSteps adds all setups steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, K8sSetupFieldManagerName)
+	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s apply client: %w", err)
 	}

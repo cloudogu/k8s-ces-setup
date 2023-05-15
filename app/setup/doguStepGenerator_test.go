@@ -35,11 +35,11 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		assert.Contains(t, err.Error(), "annot create kubernetes RestClient")
 	})
 
-	t.Run("creating new generator fails by creating rest client on AddToScheme", func(t *testing.T) {
+	t.Run("creating new generator fails by creating rest client on addToScheme", func(t *testing.T) {
 		// given
-		originalAddToScheme := AddToScheme
-		defer func() { AddToScheme = originalAddToScheme }()
-		AddToScheme = func(s *runtime.Scheme) error {
+		originalAddToScheme := addToScheme
+		defer func() { addToScheme = originalAddToScheme }()
+		addToScheme = func(s *runtime.Scheme) error {
 			return assert.AnError
 		}
 

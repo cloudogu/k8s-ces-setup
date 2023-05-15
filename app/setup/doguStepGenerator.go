@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme        = SchemeBuilder.AddToScheme
+	schemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
+	addToScheme        = schemeBuilder.AddToScheme
 	schemeGroupVersion = schema.GroupVersion{Group: "k8s.cloudogu.com", Version: "v1"}
 )
 
@@ -142,7 +142,7 @@ func getDoguByString(registry remote.Registry, doguString string) (*core.Dogu, e
 }
 
 func getDoguRestClient(config *rest.Config) (*rest.RESTClient, error) {
-	err := AddToScheme(scheme.Scheme)
+	err := addToScheme(scheme.Scheme)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add scheme: %w", err)
 	}
