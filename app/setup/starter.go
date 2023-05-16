@@ -19,9 +19,9 @@ type SetupExecutor interface {
 	RegisterSSLGenerationStep() error
 	// RegisterValidationStep registers all validation steps
 	RegisterValidationStep() error
-	// RegisterComponentSetupSteps adds all setups steps responsible to install vital components into the ecosystem.
+	// RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 	RegisterComponentSetupSteps() error
-	// RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
+	// RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 	RegisterDataSetupSteps(registry.Registry) error
 	// RegisterDoguInstallationSteps creates install steps for the dogu install list
 	RegisterDoguInstallationSteps() error

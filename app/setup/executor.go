@@ -102,7 +102,7 @@ func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 	return nil, ""
 }
 
-// RegisterComponentSetupSteps adds all setups steps responsible to install vital components into the ecosystem.
+// RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
 	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
 	if err != nil {
@@ -144,7 +144,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	return nil
 }
 
-// RegisterDataSetupSteps adds all setups steps responsible to read, write, or verify data needed by the setup.
+// RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
 	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
 
