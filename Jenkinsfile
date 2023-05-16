@@ -33,7 +33,7 @@ node('docker') {
 
         stage('Checkout') {
             checkout scm
-            make 'clean'
+            make 'dist-clean'
         }
 
         stage('Lint - Dockerfile') {
@@ -55,7 +55,7 @@ node('docker') {
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
                             stage('Build') {
-                                make 'dist-clean compile'
+                                make 'compile'
                             }
 
                             stage('Unit Tests') {
