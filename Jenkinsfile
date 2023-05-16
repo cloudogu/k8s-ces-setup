@@ -33,7 +33,7 @@ node('docker') {
 
         stage('Checkout') {
             checkout scm
-            make 'clean'
+            make 'dist-clean'
         }
 
         stage('Lint - Dockerfile') {

@@ -54,13 +54,13 @@ type MockSSLGenerator_GenerateSelfSignedCert_Call struct {
 }
 
 // GenerateSelfSignedCert is a helper method to define mock.On call
-//   - fqdn string
-//   - domain string
-//   - certExpireDays int
-//   - country string
-//   - province string
-//   - locality string
-//   - altDNSNames []string
+//  - fqdn string
+//  - domain string
+//  - certExpireDays int
+//  - country string
+//  - province string
+//  - locality string
+//  - altDNSNames []string
 func (_e *MockSSLGenerator_Expecter) GenerateSelfSignedCert(fqdn interface{}, domain interface{}, certExpireDays interface{}, country interface{}, province interface{}, locality interface{}, altDNSNames interface{}) *MockSSLGenerator_GenerateSelfSignedCert_Call {
 	return &MockSSLGenerator_GenerateSelfSignedCert_Call{Call: _e.mock.On("GenerateSelfSignedCert", fqdn, domain, certExpireDays, country, province, locality, altDNSNames)}
 }

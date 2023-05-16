@@ -40,7 +40,7 @@ type MockUserBackendValidator_ValidateUserBackend_Call struct {
 }
 
 // ValidateUserBackend is a helper method to define mock.On call
-//   - backend context.UserBackend
+//  - backend context.UserBackend
 func (_e *MockUserBackendValidator_Expecter) ValidateUserBackend(backend interface{}) *MockUserBackendValidator_ValidateUserBackend_Call {
 	return &MockUserBackendValidator_ValidateUserBackend_Call{Call: _e.mock.On("ValidateUserBackend", backend)}
 }

@@ -3,21 +3,26 @@ package dogus
 import (
 	gocontext "context"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cloudogu/cesapp-lib/core"
 
+	"github.com/cloudogu/k8s-dogu-operator/api/ecoSystem"
 	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-	"k8s.io/client-go/rest"
 )
 
+type ecoSystemClient interface {
+	ecoSystem.EcoSystemV1Alpha1Interface
+}
+
 type installDogusStep struct {
-	client    rest.Interface
+	client    ecoSystemClient
 	dogu      *core.Dogu
 	namespace string
 }
 
-// NewInstallDogusStep creates a new step responsible to apply a dogu resource to the cluster, and, thus, starting the dogu instllation.
-func NewInstallDogusStep(client rest.Interface, dogu *core.Dogu, namespace string) *installDogusStep {
+// NewInstallDogusStep creates a new step responsible to apply a dogu resource to the cluster, and, thus, starting the dogu installation.
+func NewInstallDogusStep(client ecoSystemClient, dogu *core.Dogu, namespace string) *installDogusStep {
 	return &installDogusStep{client: client, dogu: dogu, namespace: namespace}
 }
 
@@ -34,8 +39,7 @@ func (ids *installDogusStep) PerformSetupStep() error {
 	}
 
 	cr := getDoguCr(ids.dogu.GetSimpleName(), ids.dogu.GetFullName(), doguVersion.Raw, ids.namespace)
-	result := ids.client.Post().Namespace(ids.namespace).Resource("dogus").Body(cr).Do(gocontext.Background())
-	err = result.Error()
+	_, err = ids.client.Dogus(ids.namespace).Create(gocontext.Background(), cr, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to apply dogu %s: %w", ids.dogu.GetSimpleName(), err)
 	}
@@ -47,7 +51,7 @@ func getDoguCr(name string, namespaceName string, version string, k8sNamespace s
 	cr := &v1.Dogu{}
 	labels := make(map[string]string)
 	labels["app"] = "ces"
-	labels["dogu"] = name
+	labels["dogu.name"] = name
 	cr.Name = name
 	cr.Namespace = k8sNamespace
 	cr.Spec.Name = namespaceName
