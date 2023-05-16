@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// DefaultKeyProvider is the standard with which keys and certificates get created in the Cloudogu EcoSystem.
 	DefaultKeyProvider = "pkcs1v15"
 )
 

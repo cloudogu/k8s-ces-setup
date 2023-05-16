@@ -15,11 +15,17 @@ import (
 
 // SetupExecutor is uses to register all necessary steps and executes them
 type SetupExecutor interface {
+	// RegisterSSLGenerationStep registers all ssl steps
 	RegisterSSLGenerationStep() error
+	// RegisterValidationStep registers all validation steps
 	RegisterValidationStep() error
+	// RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 	RegisterComponentSetupSteps() error
+	// RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 	RegisterDataSetupSteps(registry.Registry) error
+	// RegisterDoguInstallationSteps creates install steps for the dogu install list
 	RegisterDoguInstallationSteps() error
+	// PerformSetup starts the setup and executes all registered setup steps
 	PerformSetup() (error, string)
 }
 

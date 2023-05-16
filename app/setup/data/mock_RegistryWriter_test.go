@@ -40,7 +40,7 @@ type MockRegistryWriter_WriteConfigToRegistry_Call struct {
 }
 
 // WriteConfigToRegistry is a helper method to define mock.On call
-//   - registryConfig context.CustomKeyValue
+//  - registryConfig context.CustomKeyValue
 func (_e *MockRegistryWriter_Expecter) WriteConfigToRegistry(registryConfig interface{}) *MockRegistryWriter_WriteConfigToRegistry_Call {
 	return &MockRegistryWriter_WriteConfigToRegistry_Call{Call: _e.mock.On("WriteConfigToRegistry", registryConfig)}
 }

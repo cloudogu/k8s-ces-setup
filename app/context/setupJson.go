@@ -14,62 +14,126 @@ import (
 
 // Naming settings such as fqdn, hostname and domain.
 type Naming struct {
-	Fqdn            string `json:"fqdn"`
-	Domain          string `json:"domain"`
+	// Fqdn contains the complete fully qualified domain name of the Cloudogu EcoSystem.
+	Fqdn string `json:"fqdn"`
+	// Domain is primarily used to send emails from within the EcoSystem.
+	Domain string `json:"domain"`
+	// CertificateType is the type of certificate used to connect to the EcoSystem.
 	CertificateType string `json:"certificateType"`
-	Certificate     string `json:"certificate"`
-	CertificateKey  string `json:"certificateKey"`
-	RelayHost       string `json:"relayHost"`
-	MailAddress     string `json:"mailAddress"`
-	Completed       bool   `json:"completed"`
-	UseInternalIp   bool   `json:"useInternalIp"`
-	InternalIp      string `json:"internalIp"`
+	// Certificate is a PEM-formatted certificate used to connect to the EcoSystem.
+	// This is only necessary if CertificateType is set to "external".
+	Certificate string `json:"certificate"`
+	// CertificateKey is a PEM-formatted certificate key for the EcoSystem.
+	// This is only necessary if CertificateType is set to "external".
+	CertificateKey string `json:"certificateKey"`
+	// RelayHost over which mails get sent from the EcoSystem.
+	RelayHost string `json:"relayHost"`
+	// MailAddress is used by all dogus to send mail.
+	MailAddress string `json:"mailAddress"`
+	// Completed indicates that the Naming step should not be shown in the UI of the setup.
+	Completed bool `json:"completed"`
+	// UseInternalIp configures if InternalIp should be used.
+	UseInternalIp bool `json:"useInternalIp"`
+	// InternalIp is useful if an external loadbalancer with its own IP is configured in front of the Cloudogu EcoSystem.
+	// It can be set to let dogus communicate directly within the Cloudogu EcoSystem without the detour over the load balancer.
+	InternalIp string `json:"internalIp"`
 }
 
 // UserBackend contains configuration for the directory service.
 type UserBackend struct {
-	DsType             string `json:"dsType"`
-	Server             string `json:"server"`
-	AttributeID        string `json:"attributeID"`
+	// DsType is the type of the UserBackend. If set to "embedded", the ldap dogu will be installed and used as a user backend.
+	// If set to "external", the credentials for an external user backend have to be set.
+	DsType string `json:"dsType"`
+	// Server contains the type of user backend server. Can either be "activeDirectory" or "custom".
+	// This is only necessary if DsType is set to "external".
+	Server string `json:"server"`
+	// AttributeID contains the name of the attribute describing the user id in the user backend.
+	// Must be "uid" if DsType is "embedded". Must be "sAMAccountName", if DsType is "external" and Server is "activeDirectory".
+	AttributeID string `json:"attributeID"`
+	// AttributeGivenName contains the name of the attribute describing the given name of a user.
+	// This is only necessary if DsType is set to "external".
 	AttributeGivenName string `json:"attributeGivenName"`
-	AttributeSurname   string `json:"attributeSurname"`
-	AttributeFullname  string `json:"attributeFullname"`
-	AttributeMail      string `json:"attributeMail"`
-	AttributeGroup     string `json:"attributeGroup"`
-	BaseDN             string `json:"baseDN"`
-	SearchFilter       string `json:"searchFilter"`
-	ConnectionDN       string `json:"connectionDN"`
-	Password           string `json:"password"`
-	Host               string `json:"host"`
-	Port               string `json:"port"`
-	LoginID            string `json:"loginID"`
-	LoginPassword      string `json:"loginPassword"`
-	Encryption         string `json:"encryption"`
-	Completed          bool   `json:"completed"`
+	// AttributeSurname contains the name of the attribute describing the surname of a user.
+	// This is only necessary if DsType is set to "external".
+	AttributeSurname string `json:"attributeSurname"`
+	// AttributeFullname contains the name of the attribute describing the full name of a user.
+	// Must be "cn" if DsType is "embedded" or Server is "activeDirectory".
+	AttributeFullname string `json:"attributeFullname"`
+	// AttributeMail contains the name of the attribute describing the mail address of a user.
+	// Must be "mail" if DsType is "embedded" or Server is "activeDirectory".
+	AttributeMail string `json:"attributeMail"`
+	// AttributeGroup contains the name of the attribute managing the membership of the user to a particular group.
+	// Must be "memberOf" if DsType is "embedded" or Server is "activeDirectory".
+	AttributeGroup string `json:"attributeGroup"`
+	// BaseDN is the distinguished name from which the server is searched for users.
+	// This is only necessary if DsType is set to "external".
+	BaseDN string `json:"baseDN"`
+	// SearchFilter is restricting which object classes should be searched.
+	// Must be "(objectClass=person)" if DsType is "embedded" or Server is "activeDirectory".
+	SearchFilter string `json:"searchFilter"`
+	// ConnectionDN is the distinguished name of a user that is authorized to read in the user backend.
+	// This is only necessary if DsType is set to "external".
+	ConnectionDN string `json:"connectionDN"`
+	// Password of the user in ConnectionDN.
+	// This is only necessary if DsType is set to "external".
+	Password string `json:"password"`
+	// Host address of the external user backend.
+	// This is only necessary if DsType is set to "external".
+	// Must be "ldap" if DsType is "embedded".
+	Host string `json:"host"`
+	// Port of the external user backend.
+	// This is only necessary if DsType is set to "external".
+	// Must be "389" if DsType is "embedded".
+	Port          string `json:"port"`
+	LoginID       string `json:"loginID"`
+	LoginPassword string `json:"loginPassword"`
+	// Encryption determines if and how communication with the user backend should be encrypted.
+	// Can be "none", "ssl", "sslAny", "startTLS" or "startTLSAny".
+	// This is only necessary if DsType is set to "external".
+	Encryption string `json:"encryption"`
+	// Completed indicates that the UserBackend step should not be shown in the UI of the setup.
+	Completed bool `json:"completed"`
 
-	GroupBaseDN               string `json:"groupBaseDN"`
-	GroupSearchFilter         string `json:"groupSearchFilter"`
-	GroupAttributeName        string `json:"groupAttributeName"`
+	// GroupBaseDN is the distinguished name for the group mapping.
+	// This is only necessary if DsType is set to "external".
+	GroupBaseDN string `json:"groupBaseDN"`
+	// GroupSearchFilter is restricting which object classes should be searched for the group mapping.
+	// This is only necessary if DsType is set to "external".
+	GroupSearchFilter string `json:"groupSearchFilter"`
+	// GroupAttributeName contains the name of the attribute of the group name.
+	// This is only necessary if DsType is set to "external".
+	GroupAttributeName string `json:"groupAttributeName"`
+	// GroupAttributeDescription contains the name of the attribute for the group description.
+	// This is only necessary if DsType is set to "external".
 	GroupAttributeDescription string `json:"groupAttributeDescription"`
-	GroupAttributeMember      string `json:"groupAttributeMember"`
+	// GroupAttributeMember contains the name of the attribute for the group members.
+	// This is only necessary if DsType is set to "external".
+	GroupAttributeMember string `json:"groupAttributeMember"`
 }
 
-// User account for a ces instance.
+// User account for a Cloudogu EcoSystem instance.
 type User struct {
-	Username        string `json:"username"`
-	Mail            string `json:"mail"`
-	Password        string `json:"password"`
-	AdminGroup      string `json:"adminGroup"`
-	Completed       bool   `json:"completed"`
-	AdminMember     bool   `json:"adminMember"`
-	SendWelcomeMail bool   `json:"sendWelcomeMail"`
+	Username string `json:"username"`
+	Mail     string `json:"mail"`
+	Password string `json:"password"`
+	// AdminGroup is the name of the group in the user backend that should gain admin privileges.
+	AdminGroup string `json:"adminGroup"`
+	// Completed indicates that this step should not be shown in the UI of the setup.
+	Completed bool `json:"completed"`
+	// AdminMember determines if this user should become a member of the AdminGroup.
+	AdminMember     bool `json:"adminMember"`
+	SendWelcomeMail bool `json:"sendWelcomeMail"`
 }
 
 // Dogus struct defines which dogus are installed and which one is the default.
 type Dogus struct {
-	DefaultDogu string   `json:"defaultDogu"`
-	Install     []string `json:"install"`
-	Completed   bool     `json:"completed"`
+	// DefaultDogu is the dogu that a call to the EcoSystem in the browser should be redirected to.
+	DefaultDogu string `json:"defaultDogu"`
+	// Install contains a list of all dogus that should be installed during the setup.
+	// Entries may contain a version. If they do not, the latest version will be used.
+	Install []string `json:"install"`
+	// Completed indicates that this step should not be shown in the UI of the setup.
+	Completed bool `json:"completed"`
 }
 
 // CustomKeyValue is a map of string -> map pairs.
@@ -77,11 +141,17 @@ type CustomKeyValue map[string]map[string]interface{}
 
 // SetupConfiguration is the main struct for the configuration of the setup.
 type SetupConfiguration struct {
-	Naming                  Naming         `json:"naming"`
-	Dogus                   Dogus          `json:"dogus"`
-	Admin                   User           `json:"admin"`
-	UserBackend             UserBackend    `json:"userBackend"`
-	RegistryConfig          CustomKeyValue `json:"registryConfig"`
+	// Naming configures for example FQDN, mail and certificate configuration of the EcoSystem.
+	Naming Naming `json:"naming"`
+	// Dogus configures the installed dogus.
+	Dogus Dogus `json:"dogus"`
+	// Admin configures the admin user of the EcoSystem.
+	Admin User `json:"admin"`
+	// UserBackend configures where and how users are stored.
+	UserBackend UserBackend `json:"userBackend"`
+	// RegistryConfig contains custom registry configuration that is to be applied to the EcoSystem.
+	RegistryConfig CustomKeyValue `json:"registryConfig"`
+	// RegistryConfigEncrypted also contains custom registry configuration but with encrypted values.
 	RegistryConfigEncrypted CustomKeyValue `json:"registryConfigEncrypted"`
 }
 

@@ -11,6 +11,7 @@ import (
 	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
+// NewEtcdClientInstallerStep creates step to install the etcd client.
 func NewEtcdClientInstallerStep(clientSet kubernetes.Interface, setupCtx *ctx.SetupContext) *etcdClientInstallerStep {
 	etcdServiceUrl := fmt.Sprintf("http://etcd.%s.svc.cluster.local:4001", setupCtx.AppConfig.TargetNamespace)
 

@@ -5,27 +5,14 @@ import (
 	"strings"
 
 	"k8s.io/client-go/kubernetes"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/remote"
-	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
-)
-
-var (
-	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes)
-	AddToScheme        = SchemeBuilder.AddToScheme
-	schemeGroupVersion = schema.GroupVersion{Group: "k8s.cloudogu.com", Version: "v1"}
+	"github.com/cloudogu/k8s-dogu-operator/api/ecoSystem"
 )
 
 const (
@@ -41,21 +28,21 @@ const (
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
 // and waiting for the dependencies before doing so.
 type doguStepGenerator struct {
-	Client     kubernetes.Interface
-	RestClient *rest.RESTClient
-	Dogus      *[]*core.Dogu
-	Registry   remote.Registry
-	namespace  string
+	Client          kubernetes.Interface
+	EcoSystemClient ecoSystem.EcoSystemV1Alpha1Interface
+	Dogus           *[]*core.Dogu
+	Registry        remote.Registry
+	namespace       string
 }
 
 // NewDoguStepGenerator creates a new generator capable of generating dogu installation steps.
 func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Config, dogus context.Dogus, registry remote.Registry, namespace string) (*doguStepGenerator, error) {
-	restClient, err := getDoguRestClient(clusterConfig)
+	ecoSystemClient, err := ecoSystem.NewForConfig(clusterConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create K8s EcoSystem client: %w", err)
 	}
 
-	doguList := []*core.Dogu{}
+	var doguList []*core.Dogu
 	for _, doguString := range dogus.Install {
 		dogu, err := getDoguByString(registry, doguString)
 		if err != nil {
@@ -65,7 +52,7 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 		doguList = append(doguList, dogu)
 	}
 
-	return &doguStepGenerator{Client: client, RestClient: restClient, Dogus: &doguList, Registry: registry, namespace: namespace}, nil
+	return &doguStepGenerator{Client: client, EcoSystemClient: ecoSystemClient, Dogus: &doguList, Registry: registry, namespace: namespace}, nil
 }
 
 // GenerateSteps generates dogu installation steps for all configured dogus.
@@ -89,7 +76,7 @@ func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
 			}
 		}
 
-		installStep := dogus.NewInstallDogusStep(dsg.RestClient, dogu, dsg.namespace)
+		installStep := dogus.NewInstallDogusStep(dsg.EcoSystemClient, dogu, dsg.namespace)
 		steps = append(steps, installStep)
 	}
 
@@ -139,34 +126,4 @@ func getDoguByString(registry remote.Registry, doguString string) (*core.Dogu, e
 
 		return latest, nil
 	}
-}
-
-func getDoguRestClient(config *rest.Config) (*rest.RESTClient, error) {
-	err := AddToScheme(scheme.Scheme)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add scheme: %w", err)
-	}
-
-	crdConfig := *config
-	crdConfig.ContentConfig.GroupVersion = &schemeGroupVersion
-	crdConfig.APIPath = "/apis"
-	crdConfig.NegotiatedSerializer = serializer.NewCodecFactory(scheme.Scheme)
-	crdConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	client, err := rest.UnversionedRESTClientFor(&crdConfig)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create kubernetes RestClient: %w", err)
-	}
-
-	return client, nil
-}
-
-func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(schemeGroupVersion,
-		&v1.Dogu{},
-		&v1.DoguList{},
-	)
-
-	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
-	return nil
 }

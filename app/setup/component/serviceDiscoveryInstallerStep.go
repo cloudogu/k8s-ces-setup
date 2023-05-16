@@ -6,6 +6,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 )
 
+// NewServiceDiscoveryInstallerStep creates a step to install the k8s-service-discovery.
 func NewServiceDiscoveryInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*serviceDiscoveryInstallerStep, error) {
 	return &serviceDiscoveryInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
