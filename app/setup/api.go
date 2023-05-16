@@ -12,8 +12,12 @@ import (
 
 const endpointPostStartSetup = "/api/v1/setup"
 
+type ginRoutes interface {
+	gin.IRoutes
+}
+
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
+func SetupAPI(router ginRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
 	router.POST(endpointPostStartSetup, func(ctx *gin.Context) {
 		startSetup(ctx, clusterConfig, k8sClient, setupContextBuilder)

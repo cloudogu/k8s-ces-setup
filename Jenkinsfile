@@ -10,7 +10,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
-goVersion = "1.18"
+goVersion = "1.20.4"
 
 // Configuration of repository
 repositoryOwner = "cloudogu"
@@ -33,7 +33,7 @@ node('docker') {
 
         stage('Checkout') {
             checkout scm
-            make 'clean'
+            make 'dist-clean'
         }
 
         stage('Lint - Dockerfile') {

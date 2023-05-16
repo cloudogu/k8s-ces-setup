@@ -132,7 +132,7 @@ type MockSetupExecutor_RegisterDataSetupSteps_Call struct {
 }
 
 // RegisterDataSetupSteps is a helper method to define mock.On call
-//   - _a0 registry.Registry
+//  - _a0 registry.Registry
 func (_e *MockSetupExecutor_Expecter) RegisterDataSetupSteps(_a0 interface{}) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	return &MockSetupExecutor_RegisterDataSetupSteps_Call{Call: _e.mock.On("RegisterDataSetupSteps", _a0)}
 }

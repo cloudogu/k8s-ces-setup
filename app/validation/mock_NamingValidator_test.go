@@ -40,7 +40,7 @@ type MockNamingValidator_ValidateNaming_Call struct {
 }
 
 // ValidateNaming is a helper method to define mock.On call
-//   - naming context.Naming
+//  - naming context.Naming
 func (_e *MockNamingValidator_Expecter) ValidateNaming(naming interface{}) *MockNamingValidator_ValidateNaming_Call {
 	return &MockNamingValidator_ValidateNaming_Call{Call: _e.mock.On("ValidateNaming", naming)}
 }

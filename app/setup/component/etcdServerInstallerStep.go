@@ -6,6 +6,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 )
 
+// NewEtcdServerInstallerStep creates a step to install the etcd server.
 func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
