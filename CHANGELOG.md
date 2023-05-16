@@ -9,6 +9,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - [#50] Reduce technical debt
 
+### Changed
+- [#48] Deploy the etcd client as deployment.
+
 ## [v0.13.2] - 2023-04-14
 ### Fixed
 - [#46] Trim "dogus/" suffix only on URL "default" schema
