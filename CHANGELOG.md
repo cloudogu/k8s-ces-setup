@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#52] Use latest etcd release from dogu registry.
 
 ## [v0.14.0] - 2023-05-16
 ### Fixed
