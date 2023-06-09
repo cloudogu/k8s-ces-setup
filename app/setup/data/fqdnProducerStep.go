@@ -43,7 +43,7 @@ func NewFQDNCreatorStep(config *context.SetupConfiguration, clientSet kubernetes
 
 // GetStepDescription return the human-readable description of the step
 func (fcs *fqdnCreatorStep) GetStepDescription() string {
-	return fmt.Sprintf("Creating a new FQDN from the IP of a loadbalancer service")
+	return "Creating a new FQDN from the IP of a loadbalancer service"
 }
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.
