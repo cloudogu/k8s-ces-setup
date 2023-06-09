@@ -16,7 +16,7 @@ import (
 // SetupExecutor is uses to register all necessary steps and executes them
 type SetupExecutor interface {
 	// RegisterFQDNCreatorStep registers the FQDN creator step
-	RegisterFQDNCreatorStep() error
+	RegisterFQDNCreatorStep()
 	// RegisterSSLGenerationStep registers all ssl steps
 	RegisterSSLGenerationStep() error
 	// RegisterValidationStep registers all validation steps
@@ -96,10 +96,7 @@ func (s *Starter) StartSetup() error {
 
 func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *context.SetupContext) error {
 	if setupContext.StartupConfiguration.Naming.Fqdn == "" {
-		err := setupExecutor.RegisterFQDNCreatorStep()
-		if err != nil {
-			return fmt.Errorf("failed to register get missing FQDN setup step: %w", err)
-		}
+		setupExecutor.RegisterFQDNCreatorStep()
 	}
 
 	if setupContext.StartupConfiguration.Naming.CertificateType == "selfsigned" {

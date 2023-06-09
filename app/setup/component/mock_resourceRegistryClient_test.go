@@ -49,7 +49,7 @@ type mockResourceRegistryClient_GetResourceFileContent_Call struct {
 }
 
 // GetResourceFileContent is a helper method to define mock.On call
-//  - resourceURL string
+//   - resourceURL string
 func (_e *mockResourceRegistryClient_Expecter) GetResourceFileContent(resourceURL interface{}) *mockResourceRegistryClient_GetResourceFileContent_Call {
 	return &mockResourceRegistryClient_GetResourceFileContent_Call{Call: _e.mock.On("GetResourceFileContent", resourceURL)}
 }

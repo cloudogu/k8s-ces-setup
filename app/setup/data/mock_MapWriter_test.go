@@ -52,7 +52,7 @@ type MockMapWriter_WriteConfigToStringDataMap_Call struct {
 }
 
 // WriteConfigToStringDataMap is a helper method to define mock.On call
-//  - registryConfig context.CustomKeyValue
+//   - registryConfig context.CustomKeyValue
 func (_e *MockMapWriter_Expecter) WriteConfigToStringDataMap(registryConfig interface{}) *MockMapWriter_WriteConfigToStringDataMap_Call {
 	return &MockMapWriter_WriteConfigToStringDataMap_Call{Call: _e.mock.On("WriteConfigToStringDataMap", registryConfig)}
 }

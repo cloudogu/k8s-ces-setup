@@ -42,8 +42,8 @@ type mockK8sClient_Apply_Call struct {
 }
 
 // Apply is a helper method to define mock.On call
-//  - yamlResources apply.YamlDocument
-//  - namespace string
+//   - yamlResources apply.YamlDocument
+//   - namespace string
 func (_e *mockK8sClient_Expecter) Apply(yamlResources interface{}, namespace interface{}) *mockK8sClient_Apply_Call {
 	return &mockK8sClient_Apply_Call{Call: _e.mock.On("Apply", yamlResources, namespace)}
 }
@@ -85,9 +85,9 @@ type mockK8sClient_ApplyWithOwner_Call struct {
 }
 
 // ApplyWithOwner is a helper method to define mock.On call
-//  - doc apply.YamlDocument
-//  - namespace string
-//  - resource v1.Object
+//   - doc apply.YamlDocument
+//   - namespace string
+//   - resource v1.Object
 func (_e *mockK8sClient_Expecter) ApplyWithOwner(doc interface{}, namespace interface{}, resource interface{}) *mockK8sClient_ApplyWithOwner_Call {
 	return &mockK8sClient_ApplyWithOwner_Call{Call: _e.mock.On("ApplyWithOwner", doc, namespace, resource)}
 }

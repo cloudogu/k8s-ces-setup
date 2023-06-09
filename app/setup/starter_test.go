@@ -19,8 +19,29 @@ func TestStarter_StartSetup(t *testing.T) {
 	starter.ClientSet = &fake.Clientset{}
 	starter.Namespace = "test"
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("successful run without FQDN", func(t *testing.T) {
 		// given
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterFQDNCreatorStep().Return()
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
+		expect.RegisterDoguInstallationSteps().Return(nil)
+		expect.PerformSetup().Return(nil, "")
+		starter.SetupExecutor = executorMock
+
+		// when
+		err := starter.StartSetup()
+
+		// then
+		require.NoError(t, err)
+	})
+
+	t.Run("successful run with FQDN", func(t *testing.T) {
+		// given
+		setupContext.StartupConfiguration.Naming.Fqdn = "My-Test-FQDN"
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
 		expect.RegisterSSLGenerationStep().Return(nil)
@@ -36,6 +57,8 @@ func TestStarter_StartSetup(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
+		// No need to create FQDN
+		executorMock.AssertNotCalled(t, "RegisterFQDNCreatorStep")
 	})
 
 	t.Run("failed because setup is busy", func(t *testing.T) {
