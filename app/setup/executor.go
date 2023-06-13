@@ -180,10 +180,10 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	return nil
 }
 
-func (e *Executor) RegisterFQDNCreatorStep() {
+func (e *Executor) RegisterFQDNRetrieverStep() {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	config := e.SetupContext.StartupConfiguration
-	e.RegisterSetupStep(data.NewFQDNCreatorStep(config, e.ClientSet, namespace))
+	e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
 }
 
 // RegisterValidationStep registers all validation steps

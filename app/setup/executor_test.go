@@ -142,8 +142,8 @@ func TestExecutor_PerformSetup(t *testing.T) {
 	})
 }
 
-func TestExecutor_RegisterFQDNCreatorStep(t *testing.T) {
-	t.Run("successfully register FQDNC step", func(t *testing.T) {
+func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
+	t.Run("successfully register FQDN retriever step", func(t *testing.T) {
 		// given
 		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
 		executor := &Executor{
@@ -152,7 +152,7 @@ func TestExecutor_RegisterFQDNCreatorStep(t *testing.T) {
 		}
 
 		// when
-		executor.RegisterFQDNCreatorStep()
+		executor.RegisterFQDNRetrieverStep()
 
 		// then
 		assert.True(t, len(executor.Steps) == 1)

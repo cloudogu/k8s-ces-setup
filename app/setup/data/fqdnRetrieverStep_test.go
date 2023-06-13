@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Test_fqdnCreatorStep_PerformSetupStep(t *testing.T) {
+func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 	namespace := "ecosystem"
 	cesLoadbalancerName := "ces-loadbalancer"
 	t.Run("successfully set FQDN", func(t *testing.T) {
@@ -21,7 +21,7 @@ func Test_fqdnCreatorStep_PerformSetupStep(t *testing.T) {
 		config := &context.SetupConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
 		fakeClient := fake.NewSimpleClientset()
 
-		step := NewFQDNCreatorStep(config, fakeClient, namespace)
+		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
 
 		// when
 		timer := time.NewTimer(time.Second * 2)
@@ -49,7 +49,7 @@ func Test_fqdnCreatorStep_PerformSetupStep(t *testing.T) {
 		config := &context.SetupConfiguration{Naming: context.Naming{Fqdn: ""}}
 		fakeClient := fake.NewSimpleClientset()
 
-		step := NewFQDNCreatorStep(config, fakeClient, namespace)
+		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
 
 		// when
 		err := step.PerformSetupStep()
@@ -70,7 +70,7 @@ func Test_fqdnCreatorStep_PerformSetupStep(t *testing.T) {
 		if err != nil {
 			assert.Fail(t, "Test-service could not be created")
 		}
-		step := NewFQDNCreatorStep(config, fakeClient, namespace)
+		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
 
 		// when
 		err = step.PerformSetupStep()
@@ -80,21 +80,21 @@ func Test_fqdnCreatorStep_PerformSetupStep(t *testing.T) {
 	})
 }
 
-func TestNewFQDNCreatorStep(t *testing.T) {
+func TestNewFQDNRetrieverStep(t *testing.T) {
 	// when
-	step := NewFQDNCreatorStep(nil, nil, "")
+	step := NewFQDNRetrieverStep(nil, nil, "")
 
 	// then
 	require.NotNil(t, step)
 }
 
-func Test_fqdnCreatorStep_GetStepDescription(t *testing.T) {
+func Test_fqdnRetrieverStep_GetStepDescription(t *testing.T) {
 	// given
-	step := NewFQDNCreatorStep(nil, nil, "")
+	step := NewFQDNRetrieverStep(nil, nil, "")
 
 	// when
 	description := step.GetStepDescription()
 
 	// then
-	assert.Equal(t, "Creating a new FQDN from the IP of a loadbalancer service", description)
+	assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", description)
 }
