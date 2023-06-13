@@ -156,7 +156,7 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 
 		// then
 		assert.True(t, len(executor.Steps) == 1)
-		assert.Equal(t, "Creating a new FQDN from the IP of a loadbalancer service", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", executor.Steps[0].GetStepDescription())
 	})
 }
 
