@@ -132,7 +132,7 @@ type MockSetupExecutor_RegisterDataSetupSteps_Call struct {
 }
 
 // RegisterDataSetupSteps is a helper method to define mock.On call
-//  - _a0 registry.Registry
+//   - _a0 registry.Registry
 func (_e *MockSetupExecutor_Expecter) RegisterDataSetupSteps(_a0 interface{}) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	return &MockSetupExecutor_RegisterDataSetupSteps_Call{Call: _e.mock.On("RegisterDataSetupSteps", _a0)}
 }
@@ -191,6 +191,38 @@ func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) Return(_a0 error
 }
 
 func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) RunAndReturn(run func() error) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RegisterFQDNRetrieverStep provides a mock function with given fields:
+func (_m *MockSetupExecutor) RegisterFQDNRetrieverStep() {
+	_m.Called()
+}
+
+// MockSetupExecutor_RegisterFQDNRetrieverStep_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterFQDNRetrieverStep'
+type MockSetupExecutor_RegisterFQDNRetrieverStep_Call struct {
+	*mock.Call
+}
+
+// RegisterFQDNRetrieverStep is a helper method to define mock.On call
+func (_e *MockSetupExecutor_Expecter) RegisterFQDNRetrieverStep() *MockSetupExecutor_RegisterFQDNRetrieverStep_Call {
+	return &MockSetupExecutor_RegisterFQDNRetrieverStep_Call{Call: _e.mock.On("RegisterFQDNRetrieverStep")}
+}
+
+func (_c *MockSetupExecutor_RegisterFQDNRetrieverStep_Call) Run(run func()) *MockSetupExecutor_RegisterFQDNRetrieverStep_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockSetupExecutor_RegisterFQDNRetrieverStep_Call) Return() *MockSetupExecutor_RegisterFQDNRetrieverStep_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockSetupExecutor_RegisterFQDNRetrieverStep_Call) RunAndReturn(run func()) *MockSetupExecutor_RegisterFQDNRetrieverStep_Call {
 	_c.Call.Return(run)
 	return _c
 }

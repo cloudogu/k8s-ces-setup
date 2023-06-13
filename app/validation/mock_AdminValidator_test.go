@@ -40,8 +40,8 @@ type MockAdminValidator_ValidateAdmin_Call struct {
 }
 
 // ValidateAdmin is a helper method to define mock.On call
-//  - admin context.User
-//  - dsType string
+//   - admin context.User
+//   - dsType string
 func (_e *MockAdminValidator_Expecter) ValidateAdmin(admin interface{}, dsType interface{}) *MockAdminValidator_ValidateAdmin_Call {
 	return &MockAdminValidator_ValidateAdmin_Call{Call: _e.mock.On("ValidateAdmin", admin, dsType)}
 }

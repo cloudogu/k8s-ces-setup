@@ -40,7 +40,7 @@ type MockDoguValidator_ValidateDogus_Call struct {
 }
 
 // ValidateDogus is a helper method to define mock.On call
-//  - dogus context.Dogus
+//   - dogus context.Dogus
 func (_e *MockDoguValidator_Expecter) ValidateDogus(dogus interface{}) *MockDoguValidator_ValidateDogus_Call {
 	return &MockDoguValidator_ValidateDogus_Call{Call: _e.mock.On("ValidateDogus", dogus)}
 }

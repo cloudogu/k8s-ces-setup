@@ -49,9 +49,9 @@ type mockFileClient_Get_Call struct {
 }
 
 // Get is a helper method to define mock.On call
-//  - url string
-//  - username string
-//  - password string
+//   - url string
+//   - username string
+//   - password string
 func (_e *mockFileClient_Expecter) Get(url interface{}, username interface{}, password interface{}) *mockFileClient_Get_Call {
 	return &mockFileClient_Get_Call{Call: _e.mock.On("Get", url, username, password)}
 }
