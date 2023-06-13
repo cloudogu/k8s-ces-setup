@@ -142,6 +142,24 @@ func TestExecutor_PerformSetup(t *testing.T) {
 	})
 }
 
+func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
+	t.Run("successfully register FQDN retriever step", func(t *testing.T) {
+		// given
+		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		executor.RegisterFQDNRetrieverStep()
+
+		// then
+		assert.True(t, len(executor.Steps) == 1)
+		assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", executor.Steps[0].GetStepDescription())
+	})
+}
+
 func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given

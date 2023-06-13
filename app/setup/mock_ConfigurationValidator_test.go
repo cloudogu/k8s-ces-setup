@@ -40,7 +40,7 @@ type MockConfigurationValidator_ValidateConfiguration_Call struct {
 }
 
 // ValidateConfiguration is a helper method to define mock.On call
-//  - configuration *context.SetupConfiguration
+//   - configuration *context.SetupConfiguration
 func (_e *MockConfigurationValidator_Expecter) ValidateConfiguration(configuration interface{}) *MockConfigurationValidator_ValidateConfiguration_Call {
 	return &MockConfigurationValidator_ValidateConfiguration_Call{Call: _e.mock.On("ValidateConfiguration", configuration)}
 }

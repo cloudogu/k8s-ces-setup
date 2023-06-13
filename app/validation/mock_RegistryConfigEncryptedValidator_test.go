@@ -40,7 +40,7 @@ type MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call s
 }
 
 // ValidateRegistryConfigEncrypted is a helper method to define mock.On call
-//  - config *context.SetupConfiguration
+//   - config *context.SetupConfiguration
 func (_e *MockRegistryConfigEncryptedValidator_Expecter) ValidateRegistryConfigEncrypted(config interface{}) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
 	return &MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call{Call: _e.mock.On("ValidateRegistryConfigEncrypted", config)}
 }

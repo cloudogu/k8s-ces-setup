@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added 
+- [#54] Use ip as fqdn from load balancer if missing
+  - With this change, we are improving the development on external cloud providers by identifying the fqdn early on.
 
 ## [v0.14.0] - 2023-05-16
 ### Fixed
