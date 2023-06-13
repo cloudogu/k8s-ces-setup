@@ -180,6 +180,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	return nil
 }
 
+// RegisterFQDNRetrieverStep registers the steps for retrieving the fqdn
 func (e *Executor) RegisterFQDNRetrieverStep() {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	config := e.SetupContext.StartupConfiguration
