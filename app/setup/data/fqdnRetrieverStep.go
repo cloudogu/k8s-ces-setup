@@ -25,8 +25,8 @@ const (
 )
 
 var backoff = wait.Backoff{
-	Duration: 1500 * time.Millisecond,
-	Factor:   1.5,
+	Duration: 5000 * time.Millisecond,
+	Factor:   1,
 	Jitter:   0,
 	Steps:    25,
 	Cap:      3 * time.Minute,
