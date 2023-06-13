@@ -6,6 +6,7 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -19,7 +20,8 @@ const (
 	cesLoadbalancerName = "ces-loadbalancer"
 
 	// DoguLabelName is used to select a dogu pod by name.
-	DoguLabelName = "dogu.name"
+	DoguLabelName    = "dogu.name"
+	nginxIngressName = "nginx-ingress"
 )
 
 var backoff = wait.Backoff{
@@ -64,11 +66,10 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep() error {
 
 func (fcs *fqdnRetrieverStep) checkIfNginxWillBeInstalled() error {
 	for _, dogu := range fcs.config.Dogus.Install {
-		if strings.Contains(dogu, "nginx-ingress") {
+		if strings.Contains(dogu, nginxIngressName) {
 			return nil
 		}
 	}
-	// nginx-ingress not found
 	return fmt.Errorf("invalid configuration. FQDN can only be created with nginx-ingress installed")
 }
 
@@ -84,7 +85,7 @@ func (fcs *fqdnRetrieverStep) createServiceResource(ctx gocontext.Context) error
 			Type:           corev1.ServiceTypeLoadBalancer,
 			IPFamilyPolicy: &ipSingleStackPolicy,
 			IPFamilies:     []corev1.IPFamily{corev1.IPv4Protocol},
-			Selector:       map[string]string{DoguLabelName: "nginx-ingress"},
+			Selector:       map[string]string{DoguLabelName: nginxIngressName},
 			Ports:          []corev1.ServicePort{createNginxPortResource(80), createNginxPortResource(443)},
 		},
 	}
@@ -96,8 +97,8 @@ func (fcs *fqdnRetrieverStep) createServiceResource(ctx gocontext.Context) error
 
 func createNginxPortResource(port int) corev1.ServicePort {
 	return corev1.ServicePort{
-		Name:       fmt.Sprintf("nginx-ingress-%d", port),
-		Protocol:   "TCP",
+		Name:       fmt.Sprintf("%s-%d", nginxIngressName, port),
+		Protocol:   corev1.ProtocolTCP,
 		Port:       int32(port),
 		TargetPort: intstr.FromInt(port),
 	}
@@ -107,14 +108,18 @@ func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx gocontext.Context) e
 	return retry.OnError(backoff, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
-		if err != nil || len(service.Status.LoadBalancer.Ingress) <= 0 {
+
+		if errors.IsNotFound(err) || len(service.Status.LoadBalancer.Ingress) <= 0 {
 			logrus.Debugf("wait for service %s to be instantiated", cesLoadbalancerName)
 			return fmt.Errorf("service not yet ready %s: %w", cesLoadbalancerName, err)
+		}
+		if err != nil {
+			return err
 		}
 
 		loadbalancerIP := service.Status.LoadBalancer.Ingress[0].IP
 		fcs.config.Naming.Fqdn = loadbalancerIP
-		logrus.Infof("Loadbalancer Ip succesfully retrieved and set as new FQDN")
+		logrus.Infof("Loadbalancer IP succesfully retrieved and set as new FQDN")
 		return nil
 	})
 }
