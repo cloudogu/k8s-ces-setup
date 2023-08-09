@@ -3,6 +3,7 @@ package context
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -28,7 +29,9 @@ type Config struct {
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
-	KeyProvider string `yaml:"key_provider"`
+	KeyProvider string `yaml:"keyProvider"`
+	// ResourcePatches contains json patches for kubernetes resources to be applied on certain phases of the setup process.
+	ResourcePatches []patch.ResourcePatch `yaml:"resource_patches"`
 }
 
 // ReadConfigFromCluster reads the setup config from the cluster state
