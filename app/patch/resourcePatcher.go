@@ -10,7 +10,7 @@ type resourcePatcher struct {
 	applier jsonPatchApplier
 }
 
-func NewResourcePatcher(applier applier) *resourcePatcher {
+func NewResourcePatcher(applier jsonPatchApplier) *resourcePatcher {
 	return &resourcePatcher{applier: applier}
 }
 

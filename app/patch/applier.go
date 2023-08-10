@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-
 	"k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -16,6 +14,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
+	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
 
 type applier struct {
@@ -24,7 +23,7 @@ type applier struct {
 	namespace string
 }
 
-func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBuilder) (*applier, error) {
+func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []scheme.Builder, namespace string) (*applier, error) {
 	gvrMapper, err := createGVRMapper(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error while creating GVR mapper: %w", err)
@@ -40,8 +39,6 @@ func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBu
 		return nil, fmt.Errorf("failed to add crds to scheme: %w", err)
 	}
 
-	namespace := os.Getenv("POD_NAMESPACE")
-
 	return &applier{
 		gvrMapper: gvrMapper,
 		dynClient: dynCli,
@@ -49,7 +46,7 @@ func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBu
 	}, nil
 }
 
-func handleCrds(crdSchemeBuilders []runtime.SchemeBuilder) error {
+func handleCrds(crdSchemeBuilders []scheme.Builder) error {
 	schemeForCrdHandling := runtime.NewScheme()
 	var errs []error
 	for _, builder := range crdSchemeBuilders {

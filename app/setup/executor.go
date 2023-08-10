@@ -2,20 +2,21 @@ package setup
 
 import (
 	"fmt"
-	"github.com/cloudogu/k8s-apply-lib/apply"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-
 	"k8s.io/client-go/rest"
 
+	"github.com/cloudogu/k8s-apply-lib/apply"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+	"sigs.k8s.io/controller-runtime/pkg/scheme"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -104,11 +105,11 @@ func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 
 // RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
+	k8sApplyClient, scheme1, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s apply client: %w", err)
 	}
-	err = k8sv1.AddToScheme(scheme)
+	err = k8sv1.AddToScheme(scheme1)
 	if err != nil {
 		return fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
 	}
@@ -134,14 +135,32 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create node master file creation step: %w", err)
 	}
 
+	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	if err != nil {
+		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.ComponentPhase, err)
+	}
+
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(etcdSrvInstallerStep)
 	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, component.PodTimeoutInSeconds()))
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	e.RegisterSetupStep(doguOpInstallerStep)
 	e.RegisterSetupStep(serviceDisInstallerStep)
+	// Since this step should patch resources created in this phase, it should be executed last.
+	e.RegisterSetupStep(componentResourcePatchStep)
 
 	return nil
+}
+
+func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, clusterConfig *rest.Config, targetNamespace string) (*resourcePatchStep, error) {
+	resourcePatchApplier, err := patch.NewApplier(clusterConfig, []scheme.Builder{*k8sv1.SchemeBuilder}, targetNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	resourcePatcher := patch.NewResourcePatcher(resourcePatchApplier)
+	componentResourcePatchStep := NewResourcePatchStep(phase, resourcePatcher, patches)
+	return componentResourcePatchStep, nil
 }
 
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
@@ -176,6 +195,14 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	for _, step := range doguSteps {
 		e.RegisterSetupStep(step)
 	}
+
+	doguResourcePatchStep, err := createResourcePatchStep(patch.DoguPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	if err != nil {
+		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.DoguPhase, err)
+	}
+
+	// Since this step should patch resources created in this phase, it should be executed last.
+	e.RegisterSetupStep(doguResourcePatchStep)
 
 	return nil
 }
