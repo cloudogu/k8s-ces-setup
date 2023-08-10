@@ -7,7 +7,7 @@ import (
 )
 
 type resourcePatcher struct {
-	applier applier
+	applier jsonPatchApplier
 }
 
 func NewResourcePatcher(applier applier) *resourcePatcher {
