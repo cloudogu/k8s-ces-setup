@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
@@ -192,7 +191,7 @@ func ReadSetupConfigFromFile(path string) (*SetupJsonConfiguration, error) {
 		return config, fmt.Errorf("could not find file at %s", path)
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return config, fmt.Errorf("failed to read setup configuration %s: %w", path, err)
 	}
