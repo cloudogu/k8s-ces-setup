@@ -13,7 +13,7 @@ import (
 )
 
 type writeRegistryConfigEncryptedStep struct {
-	configuration *context.SetupConfiguration
+	configuration *context.SetupJsonConfiguration
 	clientSet     kubernetes.Interface
 	namespace     string
 	Writer        MapWriter
@@ -25,7 +25,7 @@ type MapWriter interface {
 }
 
 // NewWriteRegistryConfigEncryptedStep create a new setup step which writes the registry config encrypted configuration into the cluster.
-func NewWriteRegistryConfigEncryptedStep(configuration *context.SetupConfiguration, clientSet kubernetes.Interface, namespace string) *writeRegistryConfigEncryptedStep {
+func NewWriteRegistryConfigEncryptedStep(configuration *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeRegistryConfigEncryptedStep {
 	return &writeRegistryConfigEncryptedStep{configuration: configuration, clientSet: clientSet, namespace: namespace, Writer: &stringDataConfigurationWriter{}}
 }
 

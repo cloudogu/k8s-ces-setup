@@ -139,8 +139,8 @@ type Dogus struct {
 // CustomKeyValue is a map of string -> map pairs.
 type CustomKeyValue map[string]map[string]interface{}
 
-// SetupConfiguration is the main struct for the configuration of the setup.
-type SetupConfiguration struct {
+// SetupJsonConfiguration is the main struct for the configuration of the setup.
+type SetupJsonConfiguration struct {
 	// Naming configures for example FQDN, mail and certificate configuration of the EcoSystem.
 	Naming Naming `json:"naming"`
 	// Dogus configures the installed dogus.
@@ -155,19 +155,19 @@ type SetupConfiguration struct {
 	RegistryConfigEncrypted CustomKeyValue `json:"registryConfigEncrypted"`
 }
 
-// IsCompleted checks if a SetupConfiguration is completed.
-func (conf *SetupConfiguration) IsCompleted() bool {
+// IsCompleted checks if a SetupJsonConfiguration is completed.
+func (conf *SetupJsonConfiguration) IsCompleted() bool {
 	return conf.Naming.Completed && conf.Dogus.Completed && conf.Admin.Completed && conf.UserBackend.Completed
 }
 
 // ReadSetupConfigFromCluster reads the setup configuration from the configmap
-func ReadSetupConfigFromCluster(client kubernetes.Interface, namespace string) (*SetupConfiguration, error) {
+func ReadSetupConfigFromCluster(client kubernetes.Interface, namespace string) (*SetupJsonConfiguration, error) {
 	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupStartUpConfigMap, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get setup.json configmap: %w", err)
 	}
 
-	config := &SetupConfiguration{}
+	config := &SetupJsonConfiguration{}
 	stringData := configMap.Data["setup.json"]
 	err = json.Unmarshal([]byte(stringData), config)
 	if err != nil {
@@ -178,8 +178,8 @@ func ReadSetupConfigFromCluster(client kubernetes.Interface, namespace string) (
 }
 
 // ReadSetupConfigFromFile reads the setup configuration from a setup json file.
-func ReadSetupConfigFromFile(path string) (*SetupConfiguration, error) {
-	config := &SetupConfiguration{}
+func ReadSetupConfigFromFile(path string) (*SetupJsonConfiguration, error) {
+	config := &SetupJsonConfiguration{}
 
 	fileInfo, err := os.Stat(path)
 

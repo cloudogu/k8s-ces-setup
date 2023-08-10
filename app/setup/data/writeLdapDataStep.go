@@ -11,11 +11,11 @@ import (
 
 type writeLdapDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *context.SetupJsonConfiguration
 }
 
 // NewWriteLdapDataStep create a new setup step which writes the ldap configuration into the registry.
-func NewWriteLdapDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeLdapDataStep {
+func NewWriteLdapDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration) *writeLdapDataStep {
 	return &writeLdapDataStep{Writer: writer, Configuration: configuration}
 }
 

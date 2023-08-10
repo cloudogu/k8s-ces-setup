@@ -22,7 +22,7 @@ func TestNewWriteNamingDataStep(t *testing.T) {
 	t.Run("successfully create new naming data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		fakeClient := fake.NewSimpleClientset()
 
 		// when
@@ -39,7 +39,7 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get naming data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		fakeClient := fake.NewSimpleClientset()
 
 		myStep := data.NewWriteNamingDataStep(mockRegistryWriter, testConfig, fakeClient, "ecosystem")
@@ -57,7 +57,7 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 		fakeClient := fake.NewSimpleClientset()
@@ -73,7 +73,7 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully apply all naming entries", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Naming: context.Naming{
+		testConfig := &context.SetupJsonConfiguration{Naming: context.Naming{
 			Fqdn:            "myFqdn",
 			Domain:          "myDomain",
 			MailAddress:     "my@mail.address",

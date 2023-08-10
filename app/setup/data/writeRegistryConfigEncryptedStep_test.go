@@ -15,7 +15,7 @@ import (
 
 func TestNewWriteRegistryConfigEncryptedStep(t *testing.T) {
 	// given
-	setupConfig := &context.SetupConfiguration{}
+	setupConfig := &context.SetupJsonConfiguration{}
 	fakeClient := fake.NewSimpleClientset()
 
 	// when
@@ -45,7 +45,7 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		// given
 		admin := context.User{Password: "adminPw"}
 		embeddedUserBackend := context.UserBackend{DsType: "embedded"}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
+		setupConfig := &context.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
 		writerMock := data.NewMockMapWriter(t)
@@ -74,7 +74,7 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		// given
 		admin := context.User{Password: "adminPw"}
 		embeddedUserBackend := context.UserBackend{DsType: "embedded"}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
+		setupConfig := &context.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap"] = map[string]string{"admin_password": "overrideThis", "fromUser": "user"}
@@ -106,7 +106,7 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		admin := context.User{Password: "adminPw"}
 		embeddedUserBackend := context.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
 		dogus := context.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		setupConfig := &context.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
 		fakeClient := fake.NewSimpleClientset()
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap-mapper"] = map[string]string{"backend.password": "overrideThis", "backend.connection_dn": "overrideThis", "fromUser": "user"}
@@ -145,7 +145,7 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		admin := context.User{Password: "adminPw"}
 		embeddedUserBackend := context.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
 		dogus := context.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		setupConfig := &context.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
 		writerMock := data.NewMockMapWriter(t)
@@ -177,7 +177,7 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write config to map", func(t *testing.T) {
 		// given
-		setupConfig := &context.SetupConfiguration{}
+		setupConfig := &context.SetupJsonConfiguration{}
 		writerMock := data.NewMockMapWriter(t)
 		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(nil, assert.AnError)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, nil, "test")

@@ -17,13 +17,13 @@ const tlsSecretName = "ecosystem-certificate"
 
 type writeNamingDataStep struct {
 	writer        RegistryWriter
-	configuration *context.SetupConfiguration
+	configuration *context.SetupJsonConfiguration
 	clientSet     kubernetes.Interface
 	namespace     string
 }
 
 // NewWriteNamingDataStep create a new setup step which writes the naming data into the registry.
-func NewWriteNamingDataStep(writer RegistryWriter, configuration *context.SetupConfiguration, clientSet kubernetes.Interface, namespace string) *writeNamingDataStep {
+func NewWriteNamingDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeNamingDataStep {
 	return &writeNamingDataStep{writer: writer, configuration: configuration, clientSet: clientSet, namespace: namespace}
 }
 

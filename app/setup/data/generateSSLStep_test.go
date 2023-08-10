@@ -32,7 +32,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 	fqdn := "192.168.56.2"
 	t.Run("success", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
@@ -51,7 +51,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("failed to generate certificate", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
@@ -68,7 +68,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("let external cert unchanged", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{CertificateType: "external", Certificate: "bitte nicht", CertificateKey: "bitte nicht"}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "external", Certificate: "bitte nicht", CertificateKey: "bitte nicht"}}
 		step := data.NewGenerateSSLStep(config)
 
 		// when

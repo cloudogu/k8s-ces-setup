@@ -151,19 +151,19 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	// register steps
 	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }
 
 // RegisterDoguInstallationSteps creates install steps for the dogu install list
 func (e *Executor) RegisterDoguInstallationSteps() error {
-	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
+	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
@@ -183,7 +183,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 // RegisterFQDNRetrieverStep registers the steps for retrieving the fqdn
 func (e *Executor) RegisterFQDNRetrieverStep() {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
-	config := e.SetupContext.StartupConfiguration
+	config := e.SetupContext.SetupJsonConfiguration
 	e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
 }
 
@@ -195,7 +195,7 @@ func (e *Executor) RegisterValidationStep() error {
 
 // RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
-	generationStep := data.NewGenerateSSLStep(e.SetupContext.StartupConfiguration)
+	generationStep := data.NewGenerateSSLStep(e.SetupContext.SetupJsonConfiguration)
 	e.RegisterSetupStep(generationStep)
 	return nil
 }

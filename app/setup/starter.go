@@ -95,11 +95,11 @@ func (s *Starter) StartSetup() error {
 }
 
 func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *context.SetupContext) error {
-	if setupContext.StartupConfiguration.Naming.Fqdn == "" {
+	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" {
 		setupExecutor.RegisterFQDNRetrieverStep()
 	}
 
-	if setupContext.StartupConfiguration.Naming.CertificateType == "selfsigned" {
+	if setupContext.SetupJsonConfiguration.Naming.CertificateType == "selfsigned" {
 		err := setupExecutor.RegisterSSLGenerationStep()
 		if err != nil {
 			return fmt.Errorf("failed to register ssl generation setup step: %w", err)

@@ -1,6 +1,7 @@
 package patch
 
 import (
+	"errors"
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strings"
@@ -16,6 +17,44 @@ type ResourcePatch struct {
 	Resource ResourceReference `yaml:"resource"`
 	// Patches contains a series of operations to be applied on the specified kubernetes resource.
 	Patches []JsonPatch `yaml:"patches"`
+}
+
+func (rp *ResourcePatch) Validate() error {
+	var errs []error
+
+	if !existsPhase(rp.Phase) {
+		errs = append(errs, fmt.Errorf("phase '%s' does not exist", rp.Phase))
+	}
+
+	if rp.Resource.Kind == "" {
+		errs = append(errs, fmt.Errorf("resource kind must not be empty"))
+	}
+
+	if rp.Resource.Name == "" {
+		errs = append(errs, fmt.Errorf("resource name must not be empty"))
+	}
+
+	for _, singlePatch := range rp.Patches {
+		err := singlePatch.Validate()
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+func existsPhase(phase Phase) bool {
+	switch phase {
+	case ComponentPhase:
+		fallthrough
+	case DoguPhase:
+		fallthrough
+	case LoadbalancerPhase:
+		return true
+	default:
+		return false
+	}
 }
 
 // Phase is a sequential step in the setup process.

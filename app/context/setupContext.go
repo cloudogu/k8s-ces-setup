@@ -49,9 +49,9 @@ const (
 
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
-	AppVersion                string              `yaml:"app_version"`
-	AppConfig                 *Config             `yaml:"app_config"`
-	StartupConfiguration      *SetupConfiguration `json:"startup_configuration"`
+	AppVersion                string
+	AppConfig                 *Config
+	SetupJsonConfiguration    *SetupJsonConfiguration
 	DoguRegistryConfiguration *DoguRegistrySecret
 }
 
@@ -99,12 +99,12 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 	return &SetupContext{
 		AppVersion:                scb.version,
 		AppConfig:                 config,
-		StartupConfiguration:      setupJson,
+		SetupJsonConfiguration:    setupJson,
 		DoguRegistryConfiguration: doguRegistrySecret,
 	}, nil
 }
 
-func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupConfiguration, *DoguRegistrySecret, error) {
+func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, error) {
 	if os.Getenv(EnvironmentVariableStage) == StageDevelopment {
 		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
 		if err != nil {

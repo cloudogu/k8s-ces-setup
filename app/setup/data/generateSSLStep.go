@@ -11,7 +11,7 @@ const (
 )
 
 type generateSSLStep struct {
-	config       *context.SetupConfiguration
+	config       *context.SetupJsonConfiguration
 	SslGenerator SSLGenerator
 }
 
@@ -22,7 +22,7 @@ type SSLGenerator interface {
 }
 
 // NewGenerateSSLStep creates a new setup step which on generates ssl certificates
-func NewGenerateSSLStep(config *context.SetupConfiguration) *generateSSLStep {
+func NewGenerateSSLStep(config *context.SetupJsonConfiguration) *generateSSLStep {
 	generator := ssl.NewSSLGenerator()
 	return &generateSSLStep{config: config, SslGenerator: generator}
 }

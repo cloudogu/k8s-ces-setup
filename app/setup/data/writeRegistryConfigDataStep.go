@@ -8,11 +8,11 @@ import (
 
 type writeRegistryConfigDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *context.SetupJsonConfiguration
 }
 
 // NewWriteRegistryConfigDataStep create a new setup step which writes the registry config configuration into the registry.
-func NewWriteRegistryConfigDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeRegistryConfigDataStep {
+func NewWriteRegistryConfigDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration) *writeRegistryConfigDataStep {
 	return &writeRegistryConfigDataStep{Writer: writer, Configuration: configuration}
 }
 

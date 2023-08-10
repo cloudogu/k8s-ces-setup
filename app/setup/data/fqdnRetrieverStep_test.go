@@ -18,7 +18,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 	cesLoadbalancerName := "ces-loadbalancer"
 	t.Run("successfully set FQDN", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
 		fakeClient := fake.NewSimpleClientset()
 
 		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
@@ -46,7 +46,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 	})
 	t.Run("failed due to missing nginx-ingress", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{Fqdn: ""}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}}
 		fakeClient := fake.NewSimpleClientset()
 
 		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
@@ -59,7 +59,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 	})
 	t.Run("failure when service with name already exists", func(t *testing.T) {
 		// given
-		config := &context.SetupConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
+		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
 		fakeClient := fake.NewSimpleClientset()
 		serviceResource := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{

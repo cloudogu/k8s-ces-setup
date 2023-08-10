@@ -19,7 +19,7 @@ func TestNewWriteRegistryConfigDataStep(t *testing.T) {
 	t.Run("successfully create new registry config data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 
 		// when
 		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
@@ -35,7 +35,7 @@ func Test_writeRegistryConfigDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get registry config data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		myStep := data.NewWriteRegistryConfigDataStep(mockRegistryWriter, testConfig)
 
 		// when
@@ -51,7 +51,7 @@ func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
@@ -79,7 +79,7 @@ func Test_writeRegistryConfigDataStep_PerformSetupStep(t *testing.T) {
 				"relayhost": "myRelayHost",
 			},
 		}
-		testConfig := &context.SetupConfiguration{RegistryConfig: registryConfig}
+		testConfig := &context.SetupJsonConfiguration{RegistryConfig: registryConfig}
 
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(registryConfig).Return(nil)

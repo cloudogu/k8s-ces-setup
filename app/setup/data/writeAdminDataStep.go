@@ -11,11 +11,11 @@ import (
 
 type writeAdminDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *context.SetupJsonConfiguration
 }
 
 // NewWriteAdminDataStep create a new setup step which writes the admin data into the registry.
-func NewWriteAdminDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeAdminDataStep {
+func NewWriteAdminDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration) *writeAdminDataStep {
 	return &writeAdminDataStep{Writer: writer, Configuration: configuration}
 }
 

@@ -13,7 +13,7 @@ import (
 )
 
 func TestStarter_StartSetup(t *testing.T) {
-	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, StartupConfiguration: &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
+	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, SetupJsonConfiguration: &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
 	starter := &Starter{}
 	starter.SetupContext = &setupContext
 	starter.ClientSet = &fake.Clientset{}
@@ -41,7 +41,7 @@ func TestStarter_StartSetup(t *testing.T) {
 
 	t.Run("successful run with FQDN", func(t *testing.T) {
 		// given
-		setupContext.StartupConfiguration.Naming.Fqdn = "My-Test-FQDN"
+		setupContext.SetupJsonConfiguration.Naming.Fqdn = "My-Test-FQDN"
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
 		expect.RegisterSSLGenerationStep().Return(nil)

@@ -19,7 +19,7 @@ func TestNewWriteDoguDataStep(t *testing.T) {
 	t.Run("successfully create new dogu data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 
 		// when
 		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
@@ -35,7 +35,7 @@ func Test_writeDoguDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get dogu data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		myStep := data.NewWriteDoguDataStep(mockRegistryWriter, testConfig)
 
 		// when
@@ -51,7 +51,7 @@ func Test_writeDoguDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
@@ -66,7 +66,7 @@ func Test_writeDoguDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully write all dogu data to the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{Dogus: context.Dogus{
+		testConfig := &context.SetupJsonConfiguration{Dogus: context.Dogus{
 			DefaultDogu: "myDefaultDogu",
 		}}
 

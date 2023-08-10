@@ -21,7 +21,7 @@ func TestNewWriteAdminDataStep(t *testing.T) {
 	t.Run("successfully create new admin data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 
 		// when
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
@@ -37,7 +37,7 @@ func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get admin data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
@@ -53,7 +53,7 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &context.SetupJsonConfiguration{}
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
@@ -68,7 +68,7 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully set values for external ldap data", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{
+		testConfig := &context.SetupJsonConfiguration{
 			UserBackend: context.UserBackend{DsType: validation.DsTypeExternal},
 			Admin:       context.User{AdminGroup: "myTestAdminGroup"},
 		}
@@ -93,7 +93,7 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully set values for embedded ldap data", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{
+		testConfig := &context.SetupJsonConfiguration{
 			Admin: context.User{
 				AdminGroup:  "myAdminTestGroup",
 				Mail:        "myAdminMail",

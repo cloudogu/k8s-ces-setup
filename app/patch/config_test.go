@@ -78,3 +78,42 @@ func TestJsonPatch_Validate(t *testing.T) {
 		})
 	}
 }
+
+func Test_existsPhase(t *testing.T) {
+	assert.True(t, existsPhase(DoguPhase))
+	assert.True(t, existsPhase(ComponentPhase))
+	assert.True(t, existsPhase(LoadbalancerPhase))
+	assert.False(t, existsPhase("notexisting"))
+}
+
+func TestResourcePatch_Validate(t *testing.T) {
+	validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: "Annotation: 0"}}
+	invalidPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething"}}
+
+	type fields struct {
+		Phase    Phase
+		Resource ResourceReference
+		Patches  []JsonPatch
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{"validates", fields{DoguPhase, ResourceReference{"v1", "Pod", "my-pod"}, validPatches}, assert.NoError},
+		{"invalid phase", fields{"typohere", ResourceReference{"v1", "Pod", "my-pod"}, validPatches}, assert.Error},
+		{"invalid patch", fields{DoguPhase, ResourceReference{"v1", "Pod", "my-pod"}, invalidPatches}, assert.Error},
+		{"resource reference name is empty", fields{DoguPhase, ResourceReference{"v1", "Pod", ""}, validPatches}, assert.Error},
+		{"kind is empty", fields{DoguPhase, ResourceReference{"v1", "", "ignore"}, validPatches}, assert.Error},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rp := &ResourcePatch{
+				Phase:    tt.fields.Phase,
+				Resource: tt.fields.Resource,
+				Patches:  tt.fields.Patches,
+			}
+			tt.wantErr(t, rp.Validate(), fmt.Sprintf("Validate()"))
+		})
+	}
+}

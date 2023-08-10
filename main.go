@@ -70,7 +70,7 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 
 	logrus.Debugf("Current Version: [%+v]", setupContext.AppVersion)
 
-	if setupContext.StartupConfiguration.IsCompleted() {
+	if setupContext.SetupJsonConfiguration.IsCompleted() {
 		go func() {
 			logrus.Info("Setup configuration is completed. Start setup...")
 			starter, err := setup.NewStarter(clusterConfig, clientSet, setupContextBuilder)

@@ -1,28 +1,41 @@
 package setup
 
 import (
+	"errors"
 	"github.com/cloudogu/cesapp-lib/remote"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
 
 type setupValidatorStep struct {
-	// Validator contains a setup configuration validator.
-	Validator ConfigurationValidator `json:"validator"`
-	// Validator contains a setup configuration validator.
-	Configuration *context.SetupConfiguration `json:"configuration"`
+	setupJsonValidator         setupJsonConfigurationValidator
+	resourcePatchValidator     resourcePatchConfigurationValidator
+	setupJsonConfiguration     *context.SetupJsonConfiguration
+	resourcePatchConfiguration []patch.ResourcePatch
 }
 
-// ConfigurationValidator is responsible to validate the setup configuration to prevent inconsistent state after a setup.
-type ConfigurationValidator interface {
-	ValidateConfiguration(configuration *context.SetupConfiguration) error
+// setupJsonConfigurationValidator is responsible to validate the Cloudogu EcoSystem setup JSON configuration to prevent inconsistent state after a setup.
+type setupJsonConfigurationValidator interface {
+	Validate(setupJson *context.SetupJsonConfiguration) error
+}
+
+// resourcePatchConfigurationValidator is responsible to validate the setup resource patch configuration to prevent inconsistent state after a setup.
+type resourcePatchConfigurationValidator interface {
+	Validate(resourcePatchConfig []patch.ResourcePatch) error
 }
 
 // NewValidatorStep creates a new setup step to validate the setup configuration.
 func NewValidatorStep(registry remote.Registry, setupCtx *context.SetupContext) *setupValidatorStep {
-	validator := validation.NewStartupConfigurationValidator(registry)
+	setupJsonValidator := validation.NewSetupJsonConfigurationValidator(registry)
+	resourcePatchValidator := validation.NewResourcePatchConfigurationValidator()
 
-	return &setupValidatorStep{Validator: validator, Configuration: setupCtx.StartupConfiguration}
+	return &setupValidatorStep{
+		setupJsonValidator:         setupJsonValidator,
+		resourcePatchValidator:     resourcePatchValidator,
+		setupJsonConfiguration:     setupCtx.SetupJsonConfiguration,
+		resourcePatchConfiguration: setupCtx.AppConfig.ResourcePatches,
+	}
 }
 
 // GetStepDescription return the human-readable description of the step.
@@ -32,5 +45,10 @@ func (svs *setupValidatorStep) GetStepDescription() string {
 
 // PerformSetupStep validates the setup configuration.
 func (svs *setupValidatorStep) PerformSetupStep() error {
-	return svs.Validator.ValidateConfiguration(svs.Configuration)
+	var errs []error
+
+	errs = append(errs, svs.resourcePatchValidator.Validate(svs.resourcePatchConfiguration))
+	errs = append(errs, svs.setupJsonValidator.Validate(svs.setupJsonConfiguration))
+
+	return errors.Join(errs...)
 }

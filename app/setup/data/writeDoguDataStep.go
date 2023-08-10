@@ -8,11 +8,11 @@ import (
 
 type writeDoguDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *context.SetupJsonConfiguration
 }
 
 // NewWriteDoguDataStep create a new setup step which writes the dogu data into the registry.
-func NewWriteDoguDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeDoguDataStep {
+func NewWriteDoguDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration) *writeDoguDataStep {
 	return &writeDoguDataStep{Writer: writer, Configuration: configuration}
 }
 

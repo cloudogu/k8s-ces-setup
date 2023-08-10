@@ -26,7 +26,7 @@ func Test_registryConfigEncryptedValidator_ValidateRegistryConfigEncrypted(t *te
 		// given
 		validator := validation.NewRegistryConfigEncryptedValidator()
 		dogus := context.Dogus{Install: []string{"official/ldap", "testing/cas"}}
-		config := &context.SetupConfiguration{RegistryConfigEncrypted: registryConfig, Dogus: dogus}
+		config := &context.SetupJsonConfiguration{RegistryConfigEncrypted: registryConfig, Dogus: dogus}
 
 		// when
 		err := validator.ValidateRegistryConfigEncrypted(config)
@@ -40,7 +40,7 @@ func Test_registryConfigEncryptedValidator_ValidateRegistryConfigEncrypted(t *te
 		validator := validation.NewRegistryConfigEncryptedValidator()
 		dogus := context.Dogus{Install: []string{"testing/cas"}}
 
-		config := &context.SetupConfiguration{RegistryConfigEncrypted: registryConfig, Dogus: dogus}
+		config := &context.SetupJsonConfiguration{RegistryConfigEncrypted: registryConfig, Dogus: dogus}
 
 		// when
 		err := validator.ValidateRegistryConfigEncrypted(config)

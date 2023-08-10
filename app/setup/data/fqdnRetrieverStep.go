@@ -33,13 +33,13 @@ var backoff = wait.Backoff{
 }
 
 type fqdnRetrieverStep struct {
-	config    *context.SetupConfiguration
+	config    *context.SetupJsonConfiguration
 	clientSet kubernetes.Interface
 	namespace string
 }
 
 // NewFQDNRetrieverStep creates a new setup step sets the FQDN
-func NewFQDNRetrieverStep(config *context.SetupConfiguration, clientSet kubernetes.Interface, namespace string) *fqdnRetrieverStep {
+func NewFQDNRetrieverStep(config *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *fqdnRetrieverStep {
 	return &fqdnRetrieverStep{config: config, clientSet: clientSet, namespace: namespace}
 }
 
