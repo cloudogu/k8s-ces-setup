@@ -152,7 +152,7 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 		}
 
 		// when
-		executor.RegisterFQDNRetrieverStep()
+		executor.RegisterLoadBalancerFQDNRetrieverSteps()
 
 		// then
 		assert.True(t, len(executor.Steps) == 1)

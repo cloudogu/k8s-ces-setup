@@ -23,7 +23,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
-		expect.RegisterFQDNRetrieverStep().Return()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
@@ -58,7 +58,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		// then
 		require.NoError(t, err)
 		// No need to create FQDN
-		executorMock.AssertNotCalled(t, "RegisterFQDNRetrieverStep")
+		executorMock.AssertNotCalled(t, "RegisterLoadBalancerFQDNRetrieverSteps")
 	})
 
 	t.Run("failed because setup is busy", func(t *testing.T) {

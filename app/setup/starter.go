@@ -15,8 +15,8 @@ import (
 
 // SetupExecutor is uses to register all necessary steps and executes them
 type SetupExecutor interface {
-	// RegisterFQDNRetrieverStep registers the FQDN retriever step
-	RegisterFQDNRetrieverStep()
+	// RegisterLoadBalancerFQDNRetrieverSteps registers the FQDN retriever step
+	RegisterLoadBalancerFQDNRetrieverSteps() error
 	// RegisterSSLGenerationStep registers all ssl steps
 	RegisterSSLGenerationStep() error
 	// RegisterValidationStep registers all validation steps
@@ -96,7 +96,10 @@ func (s *Starter) StartSetup() error {
 
 func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *context.SetupContext) error {
 	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" || setupContext.SetupJsonConfiguration.Naming.Fqdn == "<<ip>>" {
-		setupExecutor.RegisterFQDNRetrieverStep()
+		err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
+		if err != nil {
+			return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
+		}
 	}
 
 	if setupContext.SetupJsonConfiguration.Naming.CertificateType == "selfsigned" {

@@ -207,11 +207,25 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	return nil
 }
 
-// RegisterFQDNRetrieverStep registers the steps for retrieving the fqdn
-func (e *Executor) RegisterFQDNRetrieverStep() {
+// RegisterLoadBalancerFQDNRetrieverSteps registers the steps for creating a loadbalancer retrieving the fqdn
+func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	config := e.SetupContext.SetupJsonConfiguration
+	e.RegisterSetupStep(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
+
+	loadbalancerResourcePatchStep, err := createResourcePatchStep(patch.LoadbalancerPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	if err != nil {
+		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.LoadbalancerPhase, err)
+	}
+
+	// Since this step should patch resources created in this phase, it should be executed after creating the loadbalancer.
+	e.RegisterSetupStep(loadbalancerResourcePatchStep)
+
+	// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
+	// We ignore the case where the public IP address was already assigned but the patch should lead to another.
 	e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+
+	return nil
 }
 
 // RegisterValidationStep registers all validation steps
