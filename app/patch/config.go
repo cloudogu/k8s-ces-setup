@@ -1,6 +1,10 @@
 package patch
 
-import "fmt"
+import (
+	"fmt"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"strings"
+)
 
 // ResourcePatch contains json patches for kubernetes resources to be applied on a phase of the setup process.
 // The patch is applied at the end of its Phase.
@@ -34,6 +38,23 @@ type ResourceReference struct {
 	Kind string `yaml:"kind"`
 	// Name contains the name of the resource.
 	Name string `yaml:"name"`
+}
+
+func (r ResourceReference) GroupVersionKind() schema.GroupVersionKind {
+	parts := strings.Split(r.ApiVersion, "/")
+	if len(parts) > 1 {
+		return schema.GroupVersionKind{
+			Group:   parts[0],
+			Version: parts[1],
+			Kind:    r.Kind,
+		}
+	}
+
+	return schema.GroupVersionKind{
+		Group:   "",
+		Version: r.ApiVersion,
+		Kind:    r.Kind,
+	}
 }
 
 // JsonPatchOperation describes how a json object should be modified.
