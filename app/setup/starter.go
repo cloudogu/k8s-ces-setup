@@ -95,7 +95,7 @@ func (s *Starter) StartSetup() error {
 }
 
 func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *context.SetupContext) error {
-	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" {
+	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" || setupContext.SetupJsonConfiguration.Naming.Fqdn == "<<ip>>" {
 		setupExecutor.RegisterFQDNRetrieverStep()
 	}
 
