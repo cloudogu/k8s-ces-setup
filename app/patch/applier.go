@@ -18,13 +18,13 @@ import (
 	"k8s.io/client-go/restmapper"
 )
 
-type Applier struct {
+type applier struct {
 	gvrMapper gvrMapper
 	dynClient dynClient
 	namespace string
 }
 
-func New(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBuilder) (*Applier, error) {
+func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBuilder) (*applier, error) {
 	gvrMapper, err := createGVRMapper(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error while creating GVR mapper: %w", err)
@@ -42,7 +42,7 @@ func New(clusterConfig *rest.Config, crdSchemeBuilders []runtime.SchemeBuilder) 
 
 	namespace := os.Getenv("POD_NAMESPACE")
 
-	return &Applier{
+	return &applier{
 		gvrMapper: gvrMapper,
 		dynClient: dynCli,
 		namespace: namespace,
@@ -80,7 +80,8 @@ func createDynamicClient(config *rest.Config) (dynamic.Interface, error) {
 	return dynamic.NewForConfig(config)
 }
 
-func (ac *Applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, name string) error {
+// Patch takes the JSON patch and applies it against the Kubernetes API for the corresponding GVK identified by the given resource name.
+func (ac *applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, resourceName string) error {
 	// 4. Map GVK to GVR
 	// a resource can be uniquely identified by GroupVersionResource, but we need the GVK to find the corresponding GVR
 	gvr, err := ac.gvrMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
@@ -97,15 +98,15 @@ func (ac *Applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, name str
 		dr = ac.dynClient.Resource(gvr.Resource)
 	}
 
-	err = ac.patchResource(context.Background(), name, jsonPatch, dr)
+	err = ac.patchResource(context.Background(), resourceName, jsonPatch, dr)
 	if err != nil {
-		return fmt.Errorf("failed to patch resource %s of kind %s with json patch '%s'", name, gvk, jsonPatch)
+		return fmt.Errorf("failed to patch resource %s of kind %s with json patch '%s'", resourceName, gvk, jsonPatch)
 	}
 
 	return nil
 }
 
-func (ac *Applier) patchResource(ctx context.Context, name string, jsonPatch []byte, dr dynamic.ResourceInterface) error {
+func (ac *applier) patchResource(ctx context.Context, name string, jsonPatch []byte, dr dynamic.ResourceInterface) error {
 	_, err := dr.Patch(ctx, name, types.JSONPatchType, jsonPatch, v1.PatchOptions{})
 	return err
 }

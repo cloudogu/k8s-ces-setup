@@ -7,10 +7,10 @@ import (
 )
 
 type resourcePatcher struct {
-	applier Applier
+	applier applier
 }
 
-func NewResourcePatcher(applier Applier) *resourcePatcher {
+func NewResourcePatcher(applier applier) *resourcePatcher {
 	return &resourcePatcher{applier: applier}
 }
 
