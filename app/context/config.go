@@ -29,7 +29,7 @@ type Config struct {
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
-	KeyProvider string `yaml:"keyProvider"`
+	KeyProvider string `yaml:"key_provider"`
 	// ResourcePatches contains json patches for kubernetes resources to be applied on certain phases of the setup process.
 	ResourcePatches []patch.ResourcePatch `yaml:"resource_patches"`
 }
