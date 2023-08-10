@@ -83,5 +83,9 @@ func (j JsonPatch) Validate() error {
 		return fmt.Errorf("value must not be empty for operation '%s' on path '%s'", j.Operation, j.Path)
 	}
 
+	if j.Value != nil && j.Operation == removeOperation {
+		return fmt.Errorf("the operation '%s' on path '%s' does not take a value but it was provided: '%s'", j.Operation, j.Path, j.Value)
+	}
+
 	return nil
 }
