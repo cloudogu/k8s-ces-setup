@@ -2,11 +2,9 @@ package patch
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"k8s.io/apimachinery/pkg/api/meta"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
@@ -14,7 +12,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
-	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
 
 type applier struct {
@@ -23,7 +20,7 @@ type applier struct {
 	namespace string
 }
 
-func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []scheme.Builder, namespace string) (*applier, error) {
+func NewApplier(clusterConfig *rest.Config, namespace string) (*applier, error) {
 	gvrMapper, err := createGVRMapper(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error while creating GVR mapper: %w", err)
@@ -34,32 +31,11 @@ func NewApplier(clusterConfig *rest.Config, crdSchemeBuilders []scheme.Builder, 
 		return nil, fmt.Errorf("error while creating dynamic client: %w", err)
 	}
 
-	err = handleCrds(crdSchemeBuilders)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add crds to scheme: %w", err)
-	}
-
 	return &applier{
 		gvrMapper: gvrMapper,
 		dynClient: dynCli,
 		namespace: namespace,
 	}, nil
-}
-
-func handleCrds(crdSchemeBuilders []scheme.Builder) error {
-	schemeForCrdHandling := runtime.NewScheme()
-	var errs []error
-	for _, builder := range crdSchemeBuilders {
-		err := builder.AddToScheme(schemeForCrdHandling)
-		if err != nil {
-			errs = append(errs, err)
-		}
-	}
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-
-	return nil
 }
 
 func createGVRMapper(config *rest.Config) (meta.RESTMapper, error) {

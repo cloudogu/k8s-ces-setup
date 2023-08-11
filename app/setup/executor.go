@@ -16,8 +16,6 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-	"sigs.k8s.io/controller-runtime/pkg/scheme"
-
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
@@ -137,7 +135,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
-		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.ComponentPhase, err)
+		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
 	e.RegisterSetupStep(createNodeMasterStep)
@@ -153,7 +151,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 }
 
 func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, clusterConfig *rest.Config, targetNamespace string) (*resourcePatchStep, error) {
-	resourcePatchApplier, err := patch.NewApplier(clusterConfig, []scheme.Builder{*k8sv1.SchemeBuilder}, targetNamespace)
+	resourcePatchApplier, err := patch.NewApplier(clusterConfig, targetNamespace)
 	if err != nil {
 		return nil, err
 	}
