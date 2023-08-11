@@ -97,7 +97,7 @@ func (ac *applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, resource
 
 	err = ac.patchResource(context.Background(), resourceName, jsonPatch, dr)
 	if err != nil {
-		return fmt.Errorf("failed to patch resource %s of kind %s with json patch '%s'", resourceName, gvk, jsonPatch)
+		return fmt.Errorf("failed to patch resource %s of kind %s with json patch '%s': %w", resourceName, gvk, jsonPatch, err)
 	}
 
 	return nil
