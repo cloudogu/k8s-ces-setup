@@ -1,11 +1,12 @@
 package setup
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -33,7 +34,7 @@ func (m *mySimpleSetupStep) GetStepDescription() string {
 	return m.Description
 }
 
-func (m *mySimpleSetupStep) PerformSetupStep() error {
+func (m *mySimpleSetupStep) PerformSetupStep(context.Context) error {
 	if m.ErrorOnPerform {
 		return errors.New("failed to do nothing")
 	}
@@ -48,7 +49,7 @@ func TestNewExecutor(t *testing.T) {
 	// given
 	restConfigMock := &rest.Config{}
 	clientSetMock := &fake.Clientset{}
-	testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, DoguRegistryConfiguration: &context.DoguRegistrySecret{
+	testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}, DoguRegistryConfiguration: &appcontext.DoguRegistrySecret{
 		Endpoint: "endpoint",
 		Username: "username",
 		Password: "password",
@@ -108,7 +109,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		executor.RegisterSetupStep(step2)
 
 		// when
-		err, _ := executor.PerformSetup()
+		err, _ := executor.PerformSetup(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -130,7 +131,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		executor.RegisterSetupStep(step3)
 
 		// when
-		err, uiCause := executor.PerformSetup()
+		err, uiCause := executor.PerformSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -145,7 +146,7 @@ func TestExecutor_PerformSetup(t *testing.T) {
 func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 	t.Run("successfully register 3 FQDN retriever steps", func(t *testing.T) {
 		// given
-		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
 		executor := &Executor{
 			ClusterConfig: &rest.Config{},
 			SetupContext:  testContext,
@@ -163,7 +164,7 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given
-		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
 		executor := &Executor{
 			ClusterConfig: &rest.Config{},
 			SetupContext:  testContext,
@@ -178,7 +179,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 	t.Run("failed to create applier", func(t *testing.T) {
 		// given
-		testContext := &context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
 		executor := &Executor{
 			SetupContext:  testContext,
 			ClusterConfig: &rest.Config{ExecProvider: &api.ExecConfig{}, AuthProvider: &api.AuthProviderConfig{}},

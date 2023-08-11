@@ -1,8 +1,9 @@
 package data_test
 
 import (
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -32,7 +33,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 	fqdn := "192.168.56.2"
 	t.Run("success", func(t *testing.T) {
 		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
+		config := &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
@@ -40,7 +41,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 		step.SslGenerator = generatorMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -51,7 +52,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("failed to generate certificate", func(t *testing.T) {
 		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
+		config := &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{CertificateType: "selfsigned", Fqdn: fqdn, Domain: "myces"}}
 		step := data.NewGenerateSSLStep(config)
 		generatorMock := &data.MockSSLGenerator{}
 		generatorMock.EXPECT().GenerateSelfSignedCert(fqdn, "myces", 365, "DE",
@@ -59,7 +60,7 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 		step.SslGenerator = generatorMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -68,11 +69,11 @@ func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("let external cert unchanged", func(t *testing.T) {
 		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "external", Certificate: "bitte nicht", CertificateKey: "bitte nicht"}}
+		config := &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{CertificateType: "external", Certificate: "bitte nicht", CertificateKey: "bitte nicht"}}
 		step := data.NewGenerateSSLStep(config)
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

@@ -1,7 +1,8 @@
 package setup
 
 import (
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"k8s.io/client-go/rest"
 	"net/http"
 
@@ -17,10 +18,10 @@ type ginRoutes interface {
 }
 
 // SetupAPI setups the REST API for configuration information
-func SetupAPI(router ginRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
+func SetupAPI(ctx context.Context, router ginRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *appcontext.SetupContextBuilder) {
 	logrus.Debugf("Register endpoint [%s][%s]", http.MethodPost, endpointPostStartSetup)
-	router.POST(endpointPostStartSetup, func(ctx *gin.Context) {
-		startSetup(ctx, clusterConfig, k8sClient, setupContextBuilder)
+	router.POST(endpointPostStartSetup, func(ginCtx *gin.Context) {
+		startSetup(ctx, ginCtx, clusterConfig, k8sClient, setupContextBuilder)
 	})
 }
 
@@ -33,18 +34,18 @@ func handleInternalServerError(ginCtx *gin.Context, err error, causingAction str
 	_ = ginCtx.Error(err)
 }
 
-func startSetup(ctx *gin.Context, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
-	starter, err := NewStarter(clusterConfig, k8sClient, setupContextBuilder)
+func startSetup(ctx context.Context, ginCtx *gin.Context, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *appcontext.SetupContextBuilder) {
+	starter, err := NewStarter(ctx, clusterConfig, k8sClient, setupContextBuilder)
 	if err != nil {
-		handleInternalServerError(ctx, err, "Failed to create setup starter")
+		handleInternalServerError(ginCtx, err, "Failed to create setup starter")
 		return
 	}
 
-	err = starter.StartSetup()
+	err = starter.StartSetup(ctx)
 	if err != nil {
-		handleInternalServerError(ctx, err, "Failed to start setup")
+		handleInternalServerError(ginCtx, err, "Failed to start setup")
 		return
 	}
 
-	ctx.Status(http.StatusOK)
+	ginCtx.Status(http.StatusOK)
 }

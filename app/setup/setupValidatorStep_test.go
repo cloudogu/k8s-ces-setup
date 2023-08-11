@@ -1,23 +1,25 @@
 package setup
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	remoteMocks "github.com/cloudogu/cesapp-lib/remote/mocks"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/stretchr/testify/require"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
-func getSetupCtx() context.SetupContext {
-	return context.SetupContext{
-		AppConfig: &context.Config{
+var testCtx = context.Background()
+
+func getSetupCtx() appcontext.SetupContext {
+	return appcontext.SetupContext{
+		AppConfig: &appcontext.Config{
 			TargetNamespace: "mynamespace",
 		},
-		SetupJsonConfiguration: &context.SetupJsonConfiguration{},
+		SetupJsonConfiguration: &appcontext.SetupJsonConfiguration{},
 	}
 }
 
@@ -55,13 +57,13 @@ func Test_setupValidatorStep_PerformSetupStep(t *testing.T) {
 		// given
 		validatorMock := NewMockConfigurationValidator(t)
 		validatorMock.EXPECT().ValidateConfiguration(mock.Anything).Return(nil)
-		ctx := getSetupCtx()
+		appCtx := getSetupCtx()
 		registryMock := &remoteMocks.Registry{}
-		step := NewValidatorStep(registryMock, &ctx)
+		step := NewValidatorStep(registryMock, &appCtx)
 		step.setupJsonValidator = validatorMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

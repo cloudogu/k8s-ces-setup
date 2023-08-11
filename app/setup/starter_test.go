@@ -29,11 +29,11 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
 		expect.RegisterDoguInstallationSteps().Return(nil)
-		expect.PerformSetup().Return(nil, "")
+		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -49,11 +49,11 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
 		expect.RegisterDoguInstallationSteps().Return(nil)
-		expect.PerformSetup().Return(nil, "")
+		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
-		err := doneStarter.StartSetup()
+		err := doneStarter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -90,7 +90,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
-		err := doneStarter.StartSetup()
+		err := doneStarter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -104,7 +104,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -120,7 +120,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -137,7 +137,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -155,7 +155,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -174,7 +174,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)

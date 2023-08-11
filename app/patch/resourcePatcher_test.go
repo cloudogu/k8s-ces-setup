@@ -1,10 +1,12 @@
 package patch
 
 import (
+	"context"
 	"encoding/json"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var gkvLoadbalancer = ResourceReference{
@@ -12,6 +14,8 @@ var gkvLoadbalancer = ResourceReference{
 	Kind:       "Service",
 	Name:       "ces-loadbalancer",
 }
+
+var testCtx = context.Background()
 
 func Test_resourcePatcher_Patch(t *testing.T) {
 	t.Run("should patch one resource in loadbalancer phase and ignore other phases", func(t *testing.T) {
@@ -32,12 +36,12 @@ func Test_resourcePatcher_Patch(t *testing.T) {
 		}}
 		mockApplier := newMockJsonPatchApplier(t)
 		patchesBytes := marshalJson(t, validPatches)
-		mockApplier.EXPECT().Patch(patchesBytes, gkvLoadbalancer.GroupVersionKind(), gkvLoadbalancer.Name).Return(nil)
+		mockApplier.EXPECT().Patch(testCtx, patchesBytes, gkvLoadbalancer.GroupVersionKind(), gkvLoadbalancer.Name).Return(nil)
 
 		sut := resourcePatcher{applier: mockApplier}
 
 		// when
-		err := sut.Patch(LoadbalancerPhase, patches)
+		err := sut.Patch(testCtx, LoadbalancerPhase, patches)
 
 		// then
 		require.NoError(t, err)
@@ -61,7 +65,7 @@ func Test_resourcePatcher_Patch(t *testing.T) {
 		sut := resourcePatcher{applier: mockApplier}
 
 		// when
-		err := sut.Patch(LoadbalancerPhase, patches)
+		err := sut.Patch(testCtx, LoadbalancerPhase, patches)
 
 		// then
 		require.Error(t, err)

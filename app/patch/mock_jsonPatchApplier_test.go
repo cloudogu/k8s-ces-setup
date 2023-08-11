@@ -3,6 +3,8 @@
 package patch
 
 import (
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -20,13 +22,13 @@ func (_m *mockJsonPatchApplier) EXPECT() *mockJsonPatchApplier_Expecter {
 	return &mockJsonPatchApplier_Expecter{mock: &_m.Mock}
 }
 
-// Patch provides a mock function with given fields: jsonPatch, gvk, name
-func (_m *mockJsonPatchApplier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, name string) error {
-	ret := _m.Called(jsonPatch, gvk, name)
+// Patch provides a mock function with given fields: ctx, jsonPatch, gvk, name
+func (_m *mockJsonPatchApplier) Patch(ctx context.Context, jsonPatch []byte, gvk schema.GroupVersionKind, name string) error {
+	ret := _m.Called(ctx, jsonPatch, gvk, name)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func([]byte, schema.GroupVersionKind, string) error); ok {
-		r0 = rf(jsonPatch, gvk, name)
+	if rf, ok := ret.Get(0).(func(context.Context, []byte, schema.GroupVersionKind, string) error); ok {
+		r0 = rf(ctx, jsonPatch, gvk, name)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -40,16 +42,17 @@ type mockJsonPatchApplier_Patch_Call struct {
 }
 
 // Patch is a helper method to define mock.On call
+//   - ctx context.Context
 //   - jsonPatch []byte
 //   - gvk schema.GroupVersionKind
 //   - name string
-func (_e *mockJsonPatchApplier_Expecter) Patch(jsonPatch interface{}, gvk interface{}, name interface{}) *mockJsonPatchApplier_Patch_Call {
-	return &mockJsonPatchApplier_Patch_Call{Call: _e.mock.On("Patch", jsonPatch, gvk, name)}
+func (_e *mockJsonPatchApplier_Expecter) Patch(ctx interface{}, jsonPatch interface{}, gvk interface{}, name interface{}) *mockJsonPatchApplier_Patch_Call {
+	return &mockJsonPatchApplier_Patch_Call{Call: _e.mock.On("Patch", ctx, jsonPatch, gvk, name)}
 }
 
-func (_c *mockJsonPatchApplier_Patch_Call) Run(run func(jsonPatch []byte, gvk schema.GroupVersionKind, name string)) *mockJsonPatchApplier_Patch_Call {
+func (_c *mockJsonPatchApplier_Patch_Call) Run(run func(ctx context.Context, jsonPatch []byte, gvk schema.GroupVersionKind, name string)) *mockJsonPatchApplier_Patch_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]byte), args[1].(schema.GroupVersionKind), args[2].(string))
+		run(args[0].(context.Context), args[1].([]byte), args[2].(schema.GroupVersionKind), args[3].(string))
 	})
 	return _c
 }
@@ -59,7 +62,7 @@ func (_c *mockJsonPatchApplier_Patch_Call) Return(_a0 error) *mockJsonPatchAppli
 	return _c
 }
 
-func (_c *mockJsonPatchApplier_Patch_Call) RunAndReturn(run func([]byte, schema.GroupVersionKind, string) error) *mockJsonPatchApplier_Patch_Call {
+func (_c *mockJsonPatchApplier_Patch_Call) RunAndReturn(run func(context.Context, []byte, schema.GroupVersionKind, string) error) *mockJsonPatchApplier_Patch_Call {
 	_c.Call.Return(run)
 	return _c
 }

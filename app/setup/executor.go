@@ -1,23 +1,24 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
-
-	"k8s.io/client-go/rest"
-
 	"github.com/cloudogu/k8s-apply-lib/apply"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const k8sSetupFieldManagerName = "k8s-ces-setup"
@@ -28,25 +29,25 @@ type ExecutorStep interface {
 	// when executing the setup.
 	GetStepDescription() string
 	// PerformSetupStep is called for every registered step when executing the setup.
-	PerformSetupStep() error
+	PerformSetupStep(ctx context.Context) error
 }
 
 // Executor is responsible to perform the actual steps of the setup.
 type Executor struct {
 	// SetupContext contains information about the current context.
-	SetupContext *context.SetupContext `json:"setup_context"`
+	SetupContext *appcontext.SetupContext
 	// ClientSet is the actual k8s client responsible for the k8s API communication.
-	ClientSet kubernetes.Interface `json:"client_set"`
+	ClientSet kubernetes.Interface
 	// ClusterConfig is the current rest config used to create a kubernetes clients.
-	ClusterConfig *rest.Config `json:"cluster_config"`
+	ClusterConfig *rest.Config
 	// Steps contains all necessary steps for the setup
-	Steps []ExecutorStep `json:"steps"`
+	Steps []ExecutorStep
 	// Registry is the dogu registry
-	Registry remote.Registry `json:"registry"`
+	Registry remote.Registry
 }
 
 // NewExecutor creates a new setup executor with the given app configuration.
-func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *context.SetupContext) (*Executor, error) {
+func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *appcontext.SetupContext) (*Executor, error) {
 	credentials := &core.Credentials{
 		Username: setupCtx.DoguRegistryConfiguration.Username,
 		Password: setupCtx.DoguRegistryConfiguration.Password,
@@ -86,13 +87,13 @@ func (e *Executor) RegisterSetupStep(step ExecutorStep) {
 }
 
 // PerformSetup starts the setup and executes all registered setup steps
-func (e *Executor) PerformSetup() (err error, errCausingAction string) {
+func (e *Executor) PerformSetup(ctx context.Context) (err error, errCausingAction string) {
 	logrus.Print("Starting the setup process")
 
 	for _, step := range e.Steps {
 		logrus.Printf("Setup-Step: %s", step.GetStepDescription())
 
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to perform step [%s]: %w", step.GetStepDescription(), err), step.GetStepDescription()
 		}

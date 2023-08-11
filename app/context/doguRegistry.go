@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cloudogu/k8s-apply-lib/apply"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -21,8 +20,8 @@ type DoguRegistrySecret struct {
 }
 
 // ReadDoguRegistrySecretFromCluster reads the dogu registry credentials from the kubernetes secret.
-func ReadDoguRegistrySecretFromCluster(client kubernetes.Interface, namespace string) (*DoguRegistrySecret, error) {
-	secret, err := client.CoreV1().Secrets(namespace).Get(context.Background(), SecretDoguRegistry, metav1.GetOptions{})
+func ReadDoguRegistrySecretFromCluster(ctx context.Context, client kubernetes.Interface, namespace string) (*DoguRegistrySecret, error) {
+	secret, err := client.CoreV1().Secrets(namespace).Get(ctx, SecretDoguRegistry, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("dogu registry secret %s not found: %w", SecretDoguRegistry, err)
 	} else if err != nil {
@@ -49,7 +48,7 @@ func ReadDoguRegistrySecretFromFile(path string) (*DoguRegistrySecret, error) {
 		return doguRegistry, fmt.Errorf("could not find registry secret at %s", path)
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return doguRegistry, fmt.Errorf("failed to read registry secret %s: %w", path, err)
 	}

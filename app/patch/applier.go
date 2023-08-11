@@ -54,7 +54,7 @@ func createDynamicClient(config *rest.Config) (dynamic.Interface, error) {
 }
 
 // Patch takes the JSON patch and applies it against the Kubernetes API for the corresponding GVK identified by the given resource name.
-func (ac *applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, resourceName string) error {
+func (ac *applier) Patch(ctx context.Context, jsonPatch []byte, gvk schema.GroupVersionKind, resourceName string) error {
 	// 4. Map GVK to GVR
 	// a resource can be uniquely identified by GroupVersionResource, but we need the GVK to find the corresponding GVR
 	gvr, err := ac.gvrMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
@@ -71,7 +71,7 @@ func (ac *applier) Patch(jsonPatch []byte, gvk schema.GroupVersionKind, resource
 		dr = ac.dynClient.Resource(gvr.Resource)
 	}
 
-	err = ac.patchResource(context.Background(), resourceName, jsonPatch, dr)
+	err = ac.patchResource(ctx, resourceName, jsonPatch, dr)
 	if err != nil {
 		return fmt.Errorf("failed to patch resource %s of kind %s with json patch '%s': %w", resourceName, gvk, jsonPatch, err)
 	}

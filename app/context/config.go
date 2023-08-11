@@ -3,15 +3,16 @@ package context
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 )
 
 // Config contains the common configuration for the setup
@@ -35,8 +36,8 @@ type Config struct {
 }
 
 // ReadConfigFromCluster reads the setup config from the cluster state
-func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Config, error) {
-	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupConfigConfigmap, metav1.GetOptions{})
+func ReadConfigFromCluster(ctx context.Context, client kubernetes.Interface, namespace string) (*Config, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(ctx, SetupConfigConfigmap, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get setup configuration from cluster: %w", err)
 	}

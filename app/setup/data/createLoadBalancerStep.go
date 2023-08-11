@@ -1,12 +1,12 @@
 package data
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"strings"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,13 +23,13 @@ const (
 )
 
 type createLoadBalancerStep struct {
-	config    *context.SetupJsonConfiguration
+	config    *appcontext.SetupJsonConfiguration
 	clientSet kubernetes.Interface
 	namespace string
 }
 
 // NewCreateLoadBalancerStep creates the external loadbalancer service for the Cloudogu EcoSystem
-func NewCreateLoadBalancerStep(config *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *createLoadBalancerStep {
+func NewCreateLoadBalancerStep(config *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *createLoadBalancerStep {
 	return &createLoadBalancerStep{config: config, clientSet: clientSet, namespace: namespace}
 }
 
@@ -39,13 +39,12 @@ func (fcs *createLoadBalancerStep) GetStepDescription() string {
 }
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.
-func (fcs *createLoadBalancerStep) PerformSetupStep() error {
+func (fcs *createLoadBalancerStep) PerformSetupStep(ctx context.Context) error {
 	err := fcs.checkIfNginxWillBeInstalled()
 	if err != nil {
 		return err
 	}
 
-	ctx := gocontext.Background()
 	return fcs.createServiceResource(ctx)
 }
 
@@ -58,7 +57,7 @@ func (fcs *createLoadBalancerStep) checkIfNginxWillBeInstalled() error {
 	return fmt.Errorf("invalid configuration: FQDN can only be created if nginx-ingress will be installed")
 }
 
-func (fcs *createLoadBalancerStep) createServiceResource(ctx gocontext.Context) error {
+func (fcs *createLoadBalancerStep) createServiceResource(ctx context.Context) error {
 	ipSingleStackPolicy := corev1.IPFamilyPolicySingleStack
 	serviceResource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{

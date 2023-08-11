@@ -1,9 +1,10 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/ssl"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 const (
@@ -11,7 +12,7 @@ const (
 )
 
 type generateSSLStep struct {
-	config       *context.SetupJsonConfiguration
+	config       *appcontext.SetupJsonConfiguration
 	SslGenerator SSLGenerator
 }
 
@@ -22,7 +23,7 @@ type SSLGenerator interface {
 }
 
 // NewGenerateSSLStep creates a new setup step which on generates ssl certificates
-func NewGenerateSSLStep(config *context.SetupJsonConfiguration) *generateSSLStep {
+func NewGenerateSSLStep(config *appcontext.SetupJsonConfiguration) *generateSSLStep {
 	generator := ssl.NewSSLGenerator()
 	return &generateSSLStep{config: config, SslGenerator: generator}
 }
@@ -33,7 +34,7 @@ func (gss *generateSSLStep) GetStepDescription() string {
 }
 
 // PerformSetupStep either generates a certificate if necessary and writes it to the setup configuration
-func (gss *generateSSLStep) PerformSetupStep() error {
+func (gss *generateSSLStep) PerformSetupStep(context.Context) error {
 	naming := &gss.config.Naming
 	// Generation not needed
 	if naming.CertificateType == "external" {

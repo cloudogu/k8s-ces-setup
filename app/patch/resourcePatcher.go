@@ -1,6 +1,7 @@
 package patch
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ type resourcePatcher struct {
 	applier jsonPatchApplier
 }
 
+// NewResourcePatcher creates a new resource patcher.
 func NewResourcePatcher(applier jsonPatchApplier) *resourcePatcher {
 	return &resourcePatcher{applier: applier}
 }
@@ -24,10 +26,11 @@ func filterPatchesByPhase(phase Phase, patches []ResourcePatch) []ResourcePatch 
 	return filtered
 }
 
-func (r *resourcePatcher) Patch(phase Phase, patches []ResourcePatch) error {
+// Patch applies a configured patch in JSON patch format to a Kubernetes resource.
+func (r *resourcePatcher) Patch(ctx context.Context, phase Phase, patches []ResourcePatch) error {
 	var errs []error
 	for _, patch := range filterPatchesByPhase(phase, patches) {
-		err := r.patchSingle(patch)
+		err := r.patchSingle(ctx, patch)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -36,11 +39,11 @@ func (r *resourcePatcher) Patch(phase Phase, patches []ResourcePatch) error {
 	return errors.Join(errs...)
 }
 
-func (r *resourcePatcher) patchSingle(patch ResourcePatch) error {
+func (r *resourcePatcher) patchSingle(ctx context.Context, patch ResourcePatch) error {
 	jsonPatch, err := json.Marshal(patch.Patches)
 	if err != nil {
 		return fmt.Errorf("failed to marshal json patch: %w", err)
 	}
 
-	return r.applier.Patch(jsonPatch, patch.Resource.GroupVersionKind(), patch.Resource.Name)
+	return r.applier.Patch(ctx, jsonPatch, patch.Resource.GroupVersionKind(), patch.Resource.Name)
 }

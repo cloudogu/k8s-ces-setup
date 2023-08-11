@@ -1,6 +1,7 @@
 package context
 
 import (
+	"context"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+var testCtx = context.Background()
 
 func TestReadConfig(t *testing.T) {
 	t.Run("read config", func(t *testing.T) {
@@ -61,7 +64,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 		client := fake.NewSimpleClientset(mockedConfig)
 
 		// when
-		actual, err := ReadConfigFromCluster(client, testNamespace)
+		actual, err := ReadConfigFromCluster(testCtx, client, testNamespace)
 
 		// then
 		require.NoError(t, err)
@@ -81,7 +84,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 		client := fake.NewSimpleClientset(mockedConfig)
 
 		// when
-		_, err := ReadConfigFromCluster(client, testNamespace)
+		_, err := ReadConfigFromCluster(testCtx, client, testNamespace)
 
 		// then
 		require.Error(t, err)

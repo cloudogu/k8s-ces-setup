@@ -21,7 +21,7 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
 
 		// when
-		err := sut.PerformSetupStep()
+		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -46,7 +46,7 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
 
 		// when
-		err := sut.PerformSetupStep()
+		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

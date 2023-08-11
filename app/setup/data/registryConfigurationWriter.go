@@ -3,16 +3,17 @@ package data
 import (
 	"reflect"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/cesapp-lib/registry"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+
 	"github.com/sirupsen/logrus"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/pkg/errors"
 )
 
 // RegistryWriter is responsible to write entries into the registry.
 type RegistryWriter interface {
-	WriteConfigToRegistry(registryConfig context.CustomKeyValue) error
+	WriteConfigToRegistry(registryConfig appcontext.CustomKeyValue) error
 }
 
 // RegistryConfigurationWriter writes a configuration into the registry.
@@ -26,7 +27,7 @@ func NewRegistryConfigurationWriter(registry registry.Registry) *RegistryConfigu
 }
 
 // WriteConfigToRegistry write the given registry config to the registry
-func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig context.CustomKeyValue) error {
+func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig appcontext.CustomKeyValue) error {
 	for fieldName, fieldMap := range registryConfig {
 		err := gcw.writeEntriesForConfig(fieldMap, fieldName)
 		if err != nil {
@@ -72,7 +73,7 @@ type configWriter struct {
 	delimiter string
 }
 
-// handleEntry writes values into the context implemented in the write.
+// handleEntry writes values into the appcontext implemented in the write.
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:

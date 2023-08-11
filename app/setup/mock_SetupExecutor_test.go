@@ -3,6 +3,8 @@
 package setup
 
 import (
+	context "context"
+
 	registry "github.com/cloudogu/cesapp-lib/registry"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -20,23 +22,23 @@ func (_m *MockSetupExecutor) EXPECT() *MockSetupExecutor_Expecter {
 	return &MockSetupExecutor_Expecter{mock: &_m.Mock}
 }
 
-// PerformSetup provides a mock function with given fields:
-func (_m *MockSetupExecutor) PerformSetup() (error, string) {
-	ret := _m.Called()
+// PerformSetup provides a mock function with given fields: _a0
+func (_m *MockSetupExecutor) PerformSetup(_a0 context.Context) (error, string) {
+	ret := _m.Called(_a0)
 
 	var r0 error
 	var r1 string
-	if rf, ok := ret.Get(0).(func() (error, string)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(context.Context) (error, string)); ok {
+		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func() string); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) string); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -50,13 +52,14 @@ type MockSetupExecutor_PerformSetup_Call struct {
 }
 
 // PerformSetup is a helper method to define mock.On call
-func (_e *MockSetupExecutor_Expecter) PerformSetup() *MockSetupExecutor_PerformSetup_Call {
-	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup")}
+//   - _a0 context.Context
+func (_e *MockSetupExecutor_Expecter) PerformSetup(_a0 interface{}) *MockSetupExecutor_PerformSetup_Call {
+	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup", _a0)}
 }
 
-func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func()) *MockSetupExecutor_PerformSetup_Call {
+func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func(_a0 context.Context)) *MockSetupExecutor_PerformSetup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -66,7 +69,7 @@ func (_c *MockSetupExecutor_PerformSetup_Call) Return(_a0 error, _a1 string) *Mo
 	return _c
 }
 
-func (_c *MockSetupExecutor_PerformSetup_Call) RunAndReturn(run func() (error, string)) *MockSetupExecutor_PerformSetup_Call {
+func (_c *MockSetupExecutor_PerformSetup_Call) RunAndReturn(run func(context.Context) (error, string)) *MockSetupExecutor_PerformSetup_Call {
 	_c.Call.Return(run)
 	return _c
 }

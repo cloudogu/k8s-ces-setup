@@ -74,7 +74,7 @@ func NewSetupContextBuilder(version string) *SetupContextBuilder {
 }
 
 // NewSetupContext creates a new setup context.
-func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) (*SetupContext, error) {
+func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet kubernetes.Interface) (*SetupContext, error) {
 	logrus.Print("Reading configuration file...")
 
 	targetNamespace, err := GetEnvVar(EnvironmentVariableTargetNamespace)
@@ -82,7 +82,7 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 		return nil, fmt.Errorf("could not read current namespace: %w", err)
 	}
 
-	config, setupJson, doguRegistrySecret, err := scb.getConfigurations(clientSet, targetNamespace)
+	config, setupJson, doguRegistrySecret, err := scb.getConfigurations(ctx, clientSet, targetNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (scb *SetupContextBuilder) NewSetupContext(clientSet kubernetes.Interface) 
 	}, nil
 }
 
-func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, error) {
+func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, error) {
 	if os.Getenv(EnvironmentVariableStage) == StageDevelopment {
 		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
 		if err != nil {
@@ -123,25 +123,25 @@ func (scb *SetupContextBuilder) getConfigurations(clientSet kubernetes.Interface
 
 		return config, setupJson, doguRegistrySecret, nil
 	} else {
-		config, err := ReadConfigFromCluster(clientSet, targetNamespace)
+		config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 
-		setupJson, err := ReadSetupConfigFromCluster(clientSet, targetNamespace)
+		setupJson, err := ReadSetupConfigFromCluster(ctx, clientSet, targetNamespace)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 
-		doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(clientSet, targetNamespace)
+		doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(ctx, clientSet, targetNamespace)
 
 		return config, setupJson, doguRegistrySecret, err
 	}
 }
 
 // GetSetupStateConfigMap returns or creates if it does not exist the configmap map for presenting the state of the setup process
-func GetSetupStateConfigMap(client kubernetes.Interface, namespace string) (*corev1.ConfigMap, error) {
-	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupStateConfigMap, metav1.GetOptions{})
+func GetSetupStateConfigMap(ctx context.Context, client kubernetes.Interface, namespace string) (*corev1.ConfigMap, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(ctx, SetupStateConfigMap, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		setupConfigMap := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -151,7 +151,7 @@ func GetSetupStateConfigMap(client kubernetes.Interface, namespace string) (*cor
 			},
 		}
 
-		configMap, err = client.CoreV1().ConfigMaps(namespace).Create(context.Background(), setupConfigMap, metav1.CreateOptions{})
+		configMap, err = client.CoreV1().ConfigMaps(namespace).Create(ctx, setupConfigMap, metav1.CreateOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create configmap [%s]: %w", SetupStateConfigMap, err)
 		}

@@ -3,16 +3,13 @@ package data_test
 import (
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/validation"
-
-	"github.com/stretchr/testify/mock"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
 
 func TestNewWriteLdapDataStep(t *testing.T) {
@@ -62,7 +59,7 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
@@ -125,7 +122,7 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -164,7 +161,7 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -235,7 +232,7 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -283,7 +280,7 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

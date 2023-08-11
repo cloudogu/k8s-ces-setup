@@ -160,8 +160,8 @@ func (conf *SetupJsonConfiguration) IsCompleted() bool {
 }
 
 // ReadSetupConfigFromCluster reads the setup configuration from the configmap
-func ReadSetupConfigFromCluster(client kubernetes.Interface, namespace string) (*SetupJsonConfiguration, error) {
-	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupStartUpConfigMap, metav1.GetOptions{})
+func ReadSetupConfigFromCluster(ctx context.Context, client kubernetes.Interface, namespace string) (*SetupJsonConfiguration, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(ctx, SetupStartUpConfigMap, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get setup.json configmap: %w", err)
 	}

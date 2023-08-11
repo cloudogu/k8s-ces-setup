@@ -1,13 +1,15 @@
 package component
 
 import (
+	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 )
 
 // NewEtcdServerInstallerStep creates a step to install the etcd server.
-func NewEtcdServerInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
+func NewEtcdServerInstallerStep(setupCtx *appcontext.SetupContext, k8sClient k8sClient) (*etcdServerInstallerStep, error) {
 	return &etcdServerInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.EtcdServerResourceURL,
@@ -29,7 +31,7 @@ func (esis *etcdServerInstallerStep) GetStepDescription() string {
 }
 
 // PerformSetupStep installs the CES etcd.
-func (esis *etcdServerInstallerStep) PerformSetupStep() error {
+func (esis *etcdServerInstallerStep) PerformSetupStep(context.Context) error {
 	fileContent, err := esis.resourceRegistryClient.GetResourceFileContent(esis.resourceURL)
 	if err != nil {
 		return err

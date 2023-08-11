@@ -51,7 +51,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 		}()
 
 		// when
-		err := sut.PerformSetupStep()
+		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -66,7 +66,7 @@ func TestCreateLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		step := NewCreateLoadBalancerStep(config, nil, testNamespace)
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)

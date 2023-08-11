@@ -70,7 +70,7 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 		}
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -99,7 +99,7 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 
 		// when
 		before := time.Now()
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 		executionTime := time.Since(before)
 
 		// then
@@ -131,7 +131,7 @@ func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 		}
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)

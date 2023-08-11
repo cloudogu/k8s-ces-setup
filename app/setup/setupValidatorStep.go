@@ -1,9 +1,11 @@
 package setup
 
 import (
+	"context"
 	"errors"
+
 	"github.com/cloudogu/cesapp-lib/remote"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
@@ -11,13 +13,13 @@ import (
 type setupValidatorStep struct {
 	setupJsonValidator         setupJsonConfigurationValidator
 	resourcePatchValidator     resourcePatchConfigurationValidator
-	setupJsonConfiguration     *context.SetupJsonConfiguration
+	setupJsonConfiguration     *appcontext.SetupJsonConfiguration
 	resourcePatchConfiguration []patch.ResourcePatch
 }
 
 // setupJsonConfigurationValidator is responsible to validate the Cloudogu EcoSystem setup JSON configuration to prevent inconsistent state after a setup.
 type setupJsonConfigurationValidator interface {
-	Validate(setupJson *context.SetupJsonConfiguration) error
+	Validate(setupJson *appcontext.SetupJsonConfiguration) error
 }
 
 // resourcePatchConfigurationValidator is responsible to validate the setup resource patch configuration to prevent inconsistent state after a setup.
@@ -26,7 +28,7 @@ type resourcePatchConfigurationValidator interface {
 }
 
 // NewValidatorStep creates a new setup step to validate the setup configuration.
-func NewValidatorStep(registry remote.Registry, setupCtx *context.SetupContext) *setupValidatorStep {
+func NewValidatorStep(registry remote.Registry, setupCtx *appcontext.SetupContext) *setupValidatorStep {
 	setupJsonValidator := validation.NewSetupJsonConfigurationValidator(registry)
 	resourcePatchValidator := validation.NewResourcePatchConfigurationValidator()
 
@@ -44,7 +46,7 @@ func (svs *setupValidatorStep) GetStepDescription() string {
 }
 
 // PerformSetupStep validates the setup configuration.
-func (svs *setupValidatorStep) PerformSetupStep() error {
+func (svs *setupValidatorStep) PerformSetupStep(context.Context) error {
 	var errs []error
 
 	errs = append(errs, svs.resourcePatchValidator.Validate(svs.resourcePatchConfiguration))

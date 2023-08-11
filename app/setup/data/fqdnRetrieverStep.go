@@ -40,8 +40,7 @@ func (fcs *fqdnRetrieverStep) GetStepDescription() string {
 }
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.
-func (fcs *fqdnRetrieverStep) PerformSetupStep() error {
-	ctx := context.Background()
+func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 	return fcs.setFQDNFromLoadbalancerIP(ctx)
 }
 

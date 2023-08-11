@@ -12,6 +12,8 @@ import (
 	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 )
 
+var testCtx = context.Background()
+
 func TestNewInstallDogusStep(t *testing.T) {
 	t.Run("create new dogu install step", func(t *testing.T) {
 		// given
@@ -49,7 +51,7 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 		installStep := NewInstallDogusStep(ecoSystemClientMock, myDogu, "namespace")
 
 		// when
-		err := installStep.PerformSetupStep()
+		err := installStep.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -83,7 +85,7 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 		installStep := NewInstallDogusStep(ecoSystemClientMock, myDogu, "namespace")
 
 		// when
-		err := installStep.PerformSetupStep()
+		err := installStep.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -117,7 +119,7 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 		installStep := NewInstallDogusStep(ecoSystemClientMock, myDogu, "namespace")
 
 		// when
-		err := installStep.PerformSetupStep()
+		err := installStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

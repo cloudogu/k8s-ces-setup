@@ -1,7 +1,7 @@
 package data
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
 	"strconv"
 
@@ -10,20 +10,20 @@ import (
 	"k8s.io/client-go/kubernetes"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 const tlsSecretName = "ecosystem-certificate"
 
 type writeNamingDataStep struct {
 	writer        RegistryWriter
-	configuration *context.SetupJsonConfiguration
+	configuration *appcontext.SetupJsonConfiguration
 	clientSet     kubernetes.Interface
 	namespace     string
 }
 
 // NewWriteNamingDataStep create a new setup step which writes the naming data into the registry.
-func NewWriteNamingDataStep(writer RegistryWriter, configuration *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeNamingDataStep {
+func NewWriteNamingDataStep(writer RegistryWriter, configuration *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeNamingDataStep {
 	return &writeNamingDataStep{writer: writer, configuration: configuration, clientSet: clientSet, namespace: namespace}
 }
 
@@ -33,8 +33,8 @@ func (wnds *writeNamingDataStep) GetStepDescription() string {
 }
 
 // PerformSetupStep writes the configured naming data into the registry
-func (wnds *writeNamingDataStep) PerformSetupStep() error {
-	registryConfig := context.CustomKeyValue{
+func (wnds *writeNamingDataStep) PerformSetupStep(ctx context.Context) error {
+	registryConfig := appcontext.CustomKeyValue{
 		"_global": map[string]interface{}{
 			"fqdn":                   wnds.configuration.Naming.Fqdn,
 			"domain":                 wnds.configuration.Naming.Domain,
@@ -67,7 +67,7 @@ func (wnds *writeNamingDataStep) PerformSetupStep() error {
 		},
 	}
 
-	_, err = wnds.clientSet.CoreV1().Secrets(wnds.namespace).Create(gocontext.Background(), secret, metav1.CreateOptions{})
+	_, err = wnds.clientSet.CoreV1().Secrets(wnds.namespace).Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create ecosystem certificate secret: %w", err)
 	}

@@ -1,14 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/health"
 	"github.com/cloudogu/k8s-ces-setup/app/setup"
 
@@ -39,7 +39,7 @@ func (e *osExiter) Exit(err error) {
 func main() {
 	exiter := &osExiter{}
 
-	router, err := createSetupRouter(context.NewSetupContextBuilder(Version))
+	router, err := createSetupRouter(appcontext.NewSetupContextBuilder(Version))
 	if err != nil {
 		exiter.Exit(err)
 	}
@@ -50,7 +50,7 @@ func main() {
 	}
 }
 
-func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.Engine, error) {
+func createSetupRouter(setupContextBuilder *appcontext.SetupContextBuilder) (*gin.Engine, error) {
 	logrus.Print("Starting k8s-ces-setup...")
 
 	clusterConfig, err := ctrl.GetConfig()
@@ -63,7 +63,9 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 		return nil, fmt.Errorf("cannot create kubernetes client: %w", err)
 	}
 
-	setupContext, err := setupContextBuilder.NewSetupContext(clientSet)
+	ctx := context.Background()
+
+	setupContext, err := setupContextBuilder.NewSetupContext(ctx, clientSet)
 	if err != nil {
 		return nil, err
 	}
@@ -73,30 +75,30 @@ func createSetupRouter(setupContextBuilder *context.SetupContextBuilder) (*gin.E
 	if setupContext.SetupJsonConfiguration.IsCompleted() {
 		go func() {
 			logrus.Info("Setup configuration is completed. Start setup...")
-			starter, err := setup.NewStarter(clusterConfig, clientSet, setupContextBuilder)
+			starter, err := setup.NewStarter(ctx, clusterConfig, clientSet, setupContextBuilder)
 			if err != nil {
 				logrus.Error(err.Error())
 			}
-			err = starter.StartSetup()
+			err = starter.StartSetup(ctx)
 			if err != nil {
 				logrus.Error(err.Error())
 			}
 		}()
 	}
 
-	return createRouter(clusterConfig, clientSet, setupContextBuilder), nil
+	return createRouter(ctx, clusterConfig, clientSet, setupContextBuilder), nil
 }
 
-func createRouter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) *gin.Engine {
+func createRouter(ctx context.Context, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *appcontext.SetupContextBuilder) *gin.Engine {
 	router := gin.New()
 	router.Use(ginlogrus.Logger(logrus.StandardLogger(), doNotLogEndpoints...), gin.Recovery())
 
-	setupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
+	setupAPI(ctx, router, clusterConfig, k8sClient, setupContextBuilder)
 	return router
 }
 
 // SetupAPI configures the individual endpoints of the API
-func setupAPI(router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) {
+func setupAPI(ctx context.Context, router gin.IRoutes, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *appcontext.SetupContextBuilder) {
 	health.SetupAPI(router, Version)
-	setup.SetupAPI(router, clusterConfig, k8sClient, setupContextBuilder)
+	setup.SetupAPI(ctx, router, clusterConfig, k8sClient, setupContextBuilder)
 }

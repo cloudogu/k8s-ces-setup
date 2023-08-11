@@ -1,7 +1,7 @@
 package setup
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
 	"github.com/cloudogu/k8s-ces-setup/app/cesregistry"
 
@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/cesapp-lib/registry"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 // SetupExecutor is uses to register all necessary steps and executes them
@@ -28,7 +28,7 @@ type SetupExecutor interface {
 	// RegisterDoguInstallationSteps creates install steps for the dogu install list
 	RegisterDoguInstallationSteps() error
 	// PerformSetup starts the setup and executes all registered setup steps
-	PerformSetup() (error, string)
+	PerformSetup(ctx context.Context) (error, string)
 }
 
 // Starter is used to init and start the setup process
@@ -36,14 +36,14 @@ type Starter struct {
 	EtcdRegistry  registry.Registry
 	ClientSet     kubernetes.Interface
 	ClusterConfig *rest.Config
-	SetupContext  *context.SetupContext
+	SetupContext  *appcontext.SetupContext
 	Namespace     string
 	SetupExecutor SetupExecutor
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
-func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *context.SetupContextBuilder) (*Starter, error) {
-	setupContext, err := setupContextBuilder.NewSetupContext(k8sClient)
+func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupContextBuilder *appcontext.SetupContextBuilder) (*Starter, error) {
+	setupContext, err := setupContextBuilder.NewSetupContext(ctx, k8sClient)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +70,8 @@ func NewStarter(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setu
 }
 
 // StartSetup creates necessary k8s config and client, register steps and executes them
-func (s *Starter) StartSetup() error {
-	err := setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalling)
+func (s *Starter) StartSetup(ctx context.Context) error {
+	err := setSetupState(ctx, s.ClientSet, s.Namespace, appcontext.SetupStateInstalling)
 	if err != nil {
 		return err
 	}
@@ -81,12 +81,12 @@ func (s *Starter) StartSetup() error {
 		return err
 	}
 
-	err, errCausingAction := s.SetupExecutor.PerformSetup()
+	err, errCausingAction := s.SetupExecutor.PerformSetup(ctx)
 	if err != nil {
 		return fmt.Errorf("error while performing setup [%s]: %w", errCausingAction, err)
 	}
 
-	err = setSetupState(s.ClientSet, s.Namespace, context.SetupStateInstalled)
+	err = setSetupState(ctx, s.ClientSet, s.Namespace, appcontext.SetupStateInstalled)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (s *Starter) StartSetup() error {
 	return nil
 }
 
-func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *context.SetupContext) error {
+func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *appcontext.SetupContext) error {
 	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" || setupContext.SetupJsonConfiguration.Naming.Fqdn == "<<ip>>" {
 		err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
 		if err != nil {
@@ -132,21 +132,21 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 	return nil
 }
 
-func setSetupState(clientSet kubernetes.Interface, namespace string, state string) error {
-	stateCM, err := context.GetSetupStateConfigMap(clientSet, namespace)
+func setSetupState(ctx context.Context, clientSet kubernetes.Interface, namespace string, state string) error {
+	stateCM, err := appcontext.GetSetupStateConfigMap(ctx, clientSet, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get k8s-ces-setup configmap: %w", err)
 	}
 
-	if state == context.SetupStateInstalling {
-		actualState := stateCM.Data[context.SetupStateKey]
-		if actualState == context.SetupStateInstalling || actualState == context.SetupStateInstalled {
+	if state == appcontext.SetupStateInstalling {
+		actualState := stateCM.Data[appcontext.SetupStateKey]
+		if actualState == appcontext.SetupStateInstalling || actualState == appcontext.SetupStateInstalled {
 			return fmt.Errorf("setup is busy or already done")
 		}
 	}
 
-	stateCM.Data[context.SetupStateKey] = state
-	_, err = clientSet.CoreV1().ConfigMaps(namespace).Update(gocontext.Background(), stateCM, metav1.UpdateOptions{})
+	stateCM.Data[appcontext.SetupStateKey] = state
+	_, err = clientSet.CoreV1().ConfigMaps(namespace).Update(ctx, stateCM, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to update k8s-ces-setup configmap: %w", err)
 	}
