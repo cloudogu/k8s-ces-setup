@@ -53,19 +53,19 @@ func TestJsonPatch_Validate(t *testing.T) {
 	type fields struct {
 		Operation JsonPatchOperation
 		Path      string
-		Value     interface{}
+		Value     map[string]interface{}
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		wantErr assert.ErrorAssertionFunc
 	}{
-		{"add okay", fields{addOperation, "/spec/thing", `a.value: 15`}, assert.NoError},
-		{"add misses value", fields{addOperation, "/spec/thing", nil}, assert.Error},
-		{"rm okay", fields{removeOperation, "/spec/thing", nil}, assert.NoError},
-		{"rm unexpected value", fields{removeOperation, "/spec/thing", `a.value: 15`}, assert.Error},
-		{"repl okay", fields{replaceOperation, "/spec/thing", `a.value: 15`}, assert.NoError},
-		{"repl misses value", fields{replaceOperation, "/spec/thing", nil}, assert.Error},
+		{"add okay", fields{addOperation, "/metadata/annotations", map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}, assert.NoError},
+		{"add misses value", fields{addOperation, "/metadata/annotations", nil}, assert.Error},
+		{"rm okay", fields{removeOperation, "/metadata/annotations", nil}, assert.NoError},
+		{"rm unexpected value", fields{removeOperation, "/metadata/annotations", map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}, assert.Error},
+		{"repl okay", fields{replaceOperation, "/metadata/annotations", map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}, assert.NoError},
+		{"repl misses value", fields{replaceOperation, "/metadata/annotations", nil}, assert.Error},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -87,8 +87,8 @@ func Test_existsPhase(t *testing.T) {
 }
 
 func TestResourcePatch_Validate(t *testing.T) {
-	validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: "Annotation: 0"}}
-	invalidPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething"}}
+	validPatches := []JsonPatch{{Operation: addOperation, Path: "/metadata/annotations", Value: map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}}
+	invalidPatches := []JsonPatch{{Operation: addOperation, Path: "/metadata/annotations"}}
 
 	type fields struct {
 		Phase    Phase

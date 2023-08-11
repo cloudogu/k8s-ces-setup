@@ -15,7 +15,7 @@ var gkvLoadbalancer = ResourceReference{
 
 func Test_resourcePatcher_Patch(t *testing.T) {
 	t.Run("should patch one resource in loadbalancer phase and ignore other phases", func(t *testing.T) {
-		validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: "Annotation: 0"}}
+		validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}}
 		// given
 		patches := []ResourcePatch{{
 			Phase:    LoadbalancerPhase,
@@ -43,9 +43,9 @@ func Test_resourcePatcher_Patch(t *testing.T) {
 		require.NoError(t, err)
 	})
 	t.Run("should fail because patch failed to apply", func(t *testing.T) {
-		validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: "Annotation: 0"}}
+		validPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}}
 		invalidJsonMap := map[bool]string{true: "😅"}
-		invalidPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: invalidJsonMap}}
+		invalidPatches := []JsonPatch{{Operation: addOperation, Path: "/spec/thething", Value: map[string]interface{}{"invalid": invalidJsonMap}}}
 		// given
 		patches := []ResourcePatch{{
 			Phase:    LoadbalancerPhase,

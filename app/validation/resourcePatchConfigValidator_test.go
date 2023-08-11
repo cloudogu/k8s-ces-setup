@@ -16,7 +16,7 @@ func TestNewResourcePatchConfigurationValidator(t *testing.T) {
 }
 
 func Test_resourcePatchValidator_Validate(t *testing.T) {
-	validPatches := []patch.JsonPatch{{Operation: "add", Path: "/spec/thething", Value: "Annotation: 0"}}
+	validPatches := []patch.JsonPatch{{Operation: "add", Path: "/metadata/annotations", Value: map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}}
 	validResourceConfigs := []patch.ResourcePatch{
 		{patch.DoguPhase, patch.ResourceReference{"v1", "Pod", "my-pod"}, validPatches},
 	}

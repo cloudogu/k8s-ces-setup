@@ -15,7 +15,8 @@
       "official/postfix",
       "k8s/nginx-static",
       "k8s/nginx-ingress",
-      "official/cas"
+      "official/cas",
+      "official/nexus"
     ],
     "completed": false
   },
