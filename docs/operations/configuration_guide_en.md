@@ -16,7 +16,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: k8s-ces-setup-config
-  namespace: default
+  namespace: ecosystem
   labels:
     app: cloudogu-ecosystem
     app.kubernetes.io/name: k8s-ces-setup
@@ -28,6 +28,17 @@ data:
     etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
+    resource_patches:
+    - phase: dogu
+      resource:
+        apiVersion: k8s.cloudogu.com/v1
+        kind: Dogu
+        name: nexus
+      patches:
+        - op: add
+          path: /spec/resources
+          value:
+            dataVolumeSize: 5Gi
 ```
 
 Under the `data` section the content of a `k8s-ces-setup.yaml` is defined.
@@ -81,6 +92,80 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * Required configuration
 * Description: Sets the used key provider of the ecosystem and thus influences the registry values to be encrypted.
 * Example: `pkcs1v15`
+
+### resource_patches
+
+* YAML key: `resource_patches`
+* Type: list of patch objects
+* Optional configuration
+* Description: list of patch objects that are applied to Kubernetes resources at different stages of setup, e.g., to apply user- or environment-specific changes. These patch objects consist of three components: Setup Phase, Resource to Change, and JSON Patch.
+   * **Setup Phases**: These phases currently exist:
+      * `loadbalancer`: this phase occurs after the Kubernetes load balancer service is created.
+         * Patches in this phase are only executed if the FQDN in the [Setup.json](custom_setup_configuration_en.md#range_naming) is empty or set to the IP address placeholder `<ip>>`.
+      * `dogu`: This phase takes place after the creation of K8's dogu resources.
+      * `component`: This phase takes place after the creation of K8s Cloudogu EcoSystem component resources.
+   * **resources to modify**: To be able to address Kubernetes resources in the cluster namespace, the respective resource must be described in Kubernetes syntax See also [Objects In Kubernetes](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Furthermore, resources with namespace reference use the [namespace](#example-configuration-create) in which the EcoSystem setup was configured.
+      * `apiVersion`: The group (optional for K8s core resources) and version of the Kubernetes resource.
+      * `kind`: The type of Kubernetes resource.
+      * `name`: The specific name of the individual resource.
+   * **JSON patch**: A list of one or more JSON patches to apply to the resource, see [JSON patch RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902). These operations are supported:
+      * `add` to add new values
+      * `remove` to delete existing values
+      * `replace` to replace existing values with new values.
+
+Example:
+
+```yaml
+resource_patches:
+  - phase: dogu
+    resource:
+# the usual notation of Kubernetes resources is used here.
+      apiVersion: k8s.cloudogu.com/v1
+      kind: dogu
+      name: nexus
+    patches:
+# A YAML representation of JSON is used here, which is easier to write. Direct JSON is also allowed
+      - op: add
+        path: /spec/additionalIngressAnnotations
+        value:
+          nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      - op: add
+        path: /spec/resources
+        value:
+          dataVolumeSize: 5Gi
+```
+
+#### Notes on JSON Patches
+
+`value` fields in JSON patches must form key-value pairs.
+
+When a JSON patch needs to add an empty object as a key value (like below in the `myKey` example), this notation is used:
+```yaml
+resource_patches:
+# ...
+    patches:
+      - op: add
+        path: /path/to/resourcefield
+        value:
+          myKey: {}
+```
+
+If a JSON patch path references fields that do not exist, the Kubernetes API cannot create them recursively. Instead, the missing fields must be configured in separate patches.
+
+```yaml
+resource_patches:
+# ...
+    patches:
+# creates "key", which probably does not exist yet
+      - op: add
+        path: /spec/key
+        value: {}
+# now the key "anotherKey" can be added to "key"
+      - op: add
+        path: /spec/key/anotherKey
+        value:
+          response: 42
+```
 
 ## Deploy configuration
 
