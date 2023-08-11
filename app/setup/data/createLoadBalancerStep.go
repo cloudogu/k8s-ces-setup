@@ -3,6 +3,7 @@ package data
 import (
 	gocontext "context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"strings"
 
 	"github.com/cloudogu/k8s-ces-setup/app/context"
@@ -74,8 +75,14 @@ func (fcs *createLoadBalancerStep) createServiceResource(ctx gocontext.Context) 
 		},
 	}
 
+	// Delete for idempotence
+	err := fcs.clientSet.CoreV1().Services(fcs.namespace).Delete(ctx, serviceResource.Name, metav1.DeleteOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
 	logrus.Debug("Create load balancer service")
-	_, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Create(ctx, serviceResource, metav1.CreateOptions{})
+	_, err = fcs.clientSet.CoreV1().Services(fcs.namespace).Create(ctx, serviceResource, metav1.CreateOptions{})
 	return err
 }
 
