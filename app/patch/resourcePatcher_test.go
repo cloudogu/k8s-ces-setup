@@ -77,3 +77,7 @@ func marshalJson(t *testing.T, patches []JsonPatch) []byte {
 
 	return bytes
 }
+
+func TestNewResourcePatcher(t *testing.T) {
+	assert.NotNil(t, NewResourcePatcher(nil))
+}
