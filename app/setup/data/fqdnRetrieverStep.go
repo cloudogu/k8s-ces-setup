@@ -1,12 +1,12 @@
 package data
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,13 +24,13 @@ var backoff = wait.Backoff{
 }
 
 type fqdnRetrieverStep struct {
-	config    *context.SetupJsonConfiguration
+	config    *appcontext.SetupJsonConfiguration
 	clientSet kubernetes.Interface
 	namespace string
 }
 
 // NewFQDNRetrieverStep creates a new setup step sets the FQDN
-func NewFQDNRetrieverStep(config *context.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *fqdnRetrieverStep {
+func NewFQDNRetrieverStep(config *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *fqdnRetrieverStep {
 	return &fqdnRetrieverStep{config: config, clientSet: clientSet, namespace: namespace}
 }
 
@@ -41,11 +41,11 @@ func (fcs *fqdnRetrieverStep) GetStepDescription() string {
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.
 func (fcs *fqdnRetrieverStep) PerformSetupStep() error {
-	ctx := gocontext.Background()
+	ctx := context.Background()
 	return fcs.setFQDNFromLoadbalancerIP(ctx)
 }
 
-func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx gocontext.Context) error {
+func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
 	return retry.OnError(backoff, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})

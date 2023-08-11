@@ -1,8 +1,8 @@
 package data
 
 import (
-	gocontext "context"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"context"
+	appctx "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -13,23 +13,34 @@ import (
 	"time"
 )
 
+const (
+	testNamespace = "ecosystem"
+)
+
 func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
-	namespace := "ecosystem"
-	cesLoadbalancerName := "ces-loadbalancer"
-	t.Run("successfully set FQDN", func(t *testing.T) {
+	t.Run("should successfully set FQDN to IP when the load-balancer receives an external IP address", func(t *testing.T) {
 		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
-		fakeClient := fake.NewSimpleClientset()
+		mockedLoadBalancerResource := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cesLoadbalancerName,
+				Namespace: testNamespace,
+			},
+			Spec: corev1.ServiceSpec{
+				Selector: map[string]string{DoguLabelName: nginxIngressName},
+			},
+		}
+		fakeClient := fake.NewSimpleClientset(mockedLoadBalancerResource)
+		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
 
-		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
+		sut := NewFQDNRetrieverStep(config, fakeClient, testNamespace)
 
-		// when
+		// simulate asynchronous IP setting by cluster provider
 		timer := time.NewTimer(time.Second * 2)
 		go func() {
 			<-timer.C
-			patch := []byte(`{"status":{"loadBalancer":{"ingress":[{"ip": "555.444.333.222"}]}}}`)
-			service, err := fakeClient.CoreV1().Services(namespace).Patch(
-				gocontext.Background(),
+			patch := []byte(`{"status":{"loadBalancer":{"ingress":[{"ip": "111.222.111.222"}]}}}`)
+			service, err := fakeClient.CoreV1().Services(testNamespace).Patch(
+				context.Background(),
 				cesLoadbalancerName,
 				types.MergePatchType,
 				patch,
@@ -38,45 +49,28 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotNil(t, service)
 		}()
-		err := step.PerformSetupStep()
+
+		// when
+		err := sut.PerformSetupStep()
 
 		// then
 		require.NoError(t, err)
-		assert.Equal(t, "555.444.333.222", config.Naming.Fqdn)
+		assert.Equal(t, "111.222.111.222", config.Naming.Fqdn)
 	})
+}
+func TestCreateLoadBalancerStep_PerformSetupStep(t *testing.T) {
 	t.Run("failed due to missing nginx-ingress", func(t *testing.T) {
 		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}}
-		fakeClient := fake.NewSimpleClientset()
+		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}}
 
-		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
+		step := NewCreateLoadBalancerStep(config, nil, testNamespace)
 
 		// when
 		err := step.PerformSetupStep()
 
 		// then
-		require.ErrorContains(t, err, "invalid configuration. FQDN can only be created with nginx-ingress installed")
-	})
-	t.Run("failure when service with name already exists", func(t *testing.T) {
-		// given
-		config := &context.SetupJsonConfiguration{Naming: context.Naming{Fqdn: ""}, Dogus: context.Dogus{Install: []string{"nginx-ingress"}}}
-		fakeClient := fake.NewSimpleClientset()
-		serviceResource := &corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: cesLoadbalancerName,
-			},
-		}
-		_, err := fakeClient.CoreV1().Services(namespace).Create(gocontext.Background(), serviceResource, metav1.CreateOptions{})
-		if err != nil {
-			assert.Fail(t, "Test-service could not be created")
-		}
-		step := NewFQDNRetrieverStep(config, fakeClient, namespace)
-
-		// when
-		err = step.PerformSetupStep()
-
-		// then
-		require.ErrorContains(t, err, `services "ces-loadbalancer" already exists`)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "invalid configuration: FQDN can only be created if nginx-ingress will be installed")
 	})
 }
 
