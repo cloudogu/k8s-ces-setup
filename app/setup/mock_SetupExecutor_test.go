@@ -22,23 +22,23 @@ func (_m *MockSetupExecutor) EXPECT() *MockSetupExecutor_Expecter {
 	return &MockSetupExecutor_Expecter{mock: &_m.Mock}
 }
 
-// PerformSetup provides a mock function with given fields: _a0
-func (_m *MockSetupExecutor) PerformSetup(_a0 context.Context) (error, string) {
-	ret := _m.Called(_a0)
+// PerformSetup provides a mock function with given fields: ctx
+func (_m *MockSetupExecutor) PerformSetup(ctx context.Context) (error, string) {
+	ret := _m.Called(ctx)
 
 	var r0 error
 	var r1 string
 	if rf, ok := ret.Get(0).(func(context.Context) (error, string)); ok {
-		return rf(_a0)
+		return rf(ctx)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(ctx)
 	} else {
 		r0 = ret.Error(0)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context) string); ok {
-		r1 = rf(_a0)
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -52,12 +52,12 @@ type MockSetupExecutor_PerformSetup_Call struct {
 }
 
 // PerformSetup is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *MockSetupExecutor_Expecter) PerformSetup(_a0 interface{}) *MockSetupExecutor_PerformSetup_Call {
-	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup", _a0)}
+//   - ctx context.Context
+func (_e *MockSetupExecutor_Expecter) PerformSetup(ctx interface{}) *MockSetupExecutor_PerformSetup_Call {
+	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup", ctx)}
 }
 
-func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func(_a0 context.Context)) *MockSetupExecutor_PerformSetup_Call {
+func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func(ctx context.Context)) *MockSetupExecutor_PerformSetup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context))
 	})

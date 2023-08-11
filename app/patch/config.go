@@ -34,6 +34,10 @@ func (rp *ResourcePatch) Validate() error {
 		errs = append(errs, fmt.Errorf("resource name must not be empty"))
 	}
 
+	if len(rp.Patches) == 0 {
+		errs = append(errs, fmt.Errorf("no patches found which is a sign of a misconfiguration"))
+	}
+
 	for _, singlePatch := range rp.Patches {
 		err := singlePatch.Validate()
 		if err != nil {

@@ -103,8 +103,10 @@ func TestResourcePatch_Validate(t *testing.T) {
 		{"validates", fields{DoguPhase, ResourceReference{"v1", "Pod", "my-pod"}, validPatches}, assert.NoError},
 		{"invalid phase", fields{"typohere", ResourceReference{"v1", "Pod", "my-pod"}, validPatches}, assert.Error},
 		{"invalid patch", fields{DoguPhase, ResourceReference{"v1", "Pod", "my-pod"}, invalidPatches}, assert.Error},
-		{"resource reference name is empty", fields{DoguPhase, ResourceReference{"v1", "Pod", ""}, validPatches}, assert.Error},
-		{"kind is empty", fields{DoguPhase, ResourceReference{"v1", "", "ignore"}, validPatches}, assert.Error},
+		{"empty resource reference name", fields{DoguPhase, ResourceReference{"v1", "Pod", ""}, validPatches}, assert.Error},
+		{"empty kind", fields{DoguPhase, ResourceReference{"v1", "", "ignore"}, validPatches}, assert.Error},
+		{"nil patch slice", fields{DoguPhase, ResourceReference{"v1", "Pod", "ignore"}, nil}, assert.Error},
+		{"empty patch slice", fields{DoguPhase, ResourceReference{"v1", "Pod", "ignore"}, []JsonPatch{}}, assert.Error},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
