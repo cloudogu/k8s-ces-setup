@@ -3,7 +3,6 @@ package context
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,7 +58,7 @@ func ReadConfigFromFile(path string) (*Config, error) {
 		return config, fmt.Errorf("could not find configuration at %s", path)
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return config, fmt.Errorf("failed to read configuration %s: %w", path, err)
 	}
