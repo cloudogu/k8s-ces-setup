@@ -45,7 +45,7 @@ func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Conf
 	stringData := configMap.Data["k8s-ces-setup.yaml"]
 	err = yaml.Unmarshal([]byte(stringData), config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarschal configuration from configmap: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal configuration from configmap: %w", err)
 	}
 
 	return config, nil
