@@ -104,7 +104,7 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
       * Patches in dieser Phase werden nur ausgeführt, wenn die FQDN in der [Setup.json](custom_setup_configuration_de.md#Bereich-Naming) leer bzw. auf den IP-Adressenplatzhalter `<<ip>>` gesetzt wurde.
     * `dogu`: Diese Phase findet nach der Erzeugung von K8s Dogu-Ressourcen statt
     * `component`: Diese Phase findet nach der Erzeugung von K8s-Cloudogu-EcoSystem-Komponenten-Ressourcen statt
-  * **zu ändernde Ressourcen**: Um Kubernetes-Ressourcen im Cluster-Namespace adressieren zu können, muss in Kubernetes-Syntax die jeweilige Ressource beschrieben werden Siehe hierzu auch [Objects In Kubernetes (engl.)](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Ferner wird bei Ressourcen mit Namespace-Bezug der [Namespace](#Beispiel-Konfiguration-anlegen) verwendet, in dem das Setup des EcoSystems konfiguriert wurde.
+  * **zu ändernde Ressourcen**: Um Kubernetes-Ressourcen im Cluster-Namespace adressieren zu können, muss in Kubernetes-Syntax die jeweilige Ressource beschrieben werden Siehe hierzu auch [Objects In Kubernetes (engl.)](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Ferner wird bei Ressourcen mit Namespace-Bezug der [Namespace](#beispiel-konfiguration-anlegen) verwendet, in dem das Setup des EcoSystems konfiguriert wurde.
     * `apiVersion`: Die Gruppe (optional bei K8s-Core-Ressourcen) und Version der Kubernetes-Ressource. 
     * `kind`: Die Art der Kubernetes-Ressource
     * `name`: Der konkrete Name der einzelnen Ressource
