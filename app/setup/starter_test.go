@@ -13,26 +13,48 @@ import (
 )
 
 func TestStarter_StartSetup(t *testing.T) {
-	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, StartupConfiguration: &context.SetupConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
+	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, SetupJsonConfiguration: &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
 	starter := &Starter{}
 	starter.SetupContext = &setupContext
 	starter.ClientSet = &fake.Clientset{}
 	starter.Namespace = "test"
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("successful run without FQDN", func(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
 		expect.RegisterDoguInstallationSteps().Return(nil)
-		expect.PerformSetup().Return(nil, "")
+		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
+
+		// then
+		require.NoError(t, err)
+	})
+
+	t.Run("successful run with FQDN", func(t *testing.T) {
+		// given
+		setupContext.SetupJsonConfiguration.Naming.Fqdn = "My-Test-FQDN"
+		executorMock := NewMockSetupExecutor(t)
+		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
+		expect.RegisterSSLGenerationStep().Return(nil)
+		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterComponentSetupSteps().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything).Return(nil)
+		expect.RegisterDoguInstallationSteps().Return(nil)
+		expect.PerformSetup(testCtx).Return(nil, "")
+		starter.SetupExecutor = executorMock
+
+		// when
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -49,7 +71,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
-		err := doneStarter.StartSetup()
+		err := doneStarter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -67,21 +89,36 @@ func TestStarter_StartSetup(t *testing.T) {
 		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
 
 		// when
-		err := doneStarter.StartSetup()
+		err := doneStarter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "setup is busy or already done")
 	})
 
+	t.Run("failed to register loadbalancer fqdn retriever steps", func(t *testing.T) {
+		// given
+		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterLoadBalancerFQDNRetrieverSteps().Return(assert.AnError)
+		starter.SetupExecutor = executorMock
+
+		// when
+		err := starter.StartSetup(testCtx)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to register steps for creating loadbalancer and retrieving its ip as fqdn")
+	})
+
 	t.Run("failed to register ssl generate step", func(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		executorMock.EXPECT().RegisterSSLGenerationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -92,12 +129,13 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -108,13 +146,14 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -125,6 +164,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
@@ -132,7 +172,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -143,6 +183,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
@@ -151,7 +192,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		starter.SetupExecutor = executorMock
 
 		// when
-		err := starter.StartSetup()
+		err := starter.StartSetup(testCtx)
 
 		// then
 		require.Error(t, err)

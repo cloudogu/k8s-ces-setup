@@ -1,8 +1,9 @@
 package data
 
 import (
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"testing"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +42,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		creator := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := creator.PerformSetupStep()
+		err := creator.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -52,7 +53,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		// given
 		doguSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      context.SecretDoguRegistry,
+				Name:      appcontext.SecretDoguRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 		}
@@ -60,7 +61,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		creator := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := creator.PerformSetupStep()
+		err := creator.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -71,13 +72,13 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		// given
 		doguSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      context.SecretDoguRegistry,
+				Name:      appcontext.SecretDoguRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 		}
 		imageSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      context.SecretDockerRegistry,
+				Name:      appcontext.SecretDockerRegistry,
 				Namespace: testTargetNamespaceName,
 			},
 			Type: v1.SecretTypeDockercfg,
@@ -86,7 +87,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 		sut := NewInstanceSecretValidatorStep(clientSetMock, testTargetNamespaceName)
 
 		// when
-		err := sut.PerformSetupStep()
+		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

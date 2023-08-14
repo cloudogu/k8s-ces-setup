@@ -15,7 +15,7 @@ func NewRegistryConfigEncryptedValidator() *registryConfigEncryptedValidator {
 }
 
 // ValidateRegistryConfigEncrypted check whether the registryConfigEncrypted section has invalid dogu keys
-func (rcev *registryConfigEncryptedValidator) ValidateRegistryConfigEncrypted(config *context.SetupConfiguration) error {
+func (rcev *registryConfigEncryptedValidator) ValidateRegistryConfigEncrypted(config *context.SetupJsonConfiguration) error {
 	for key := range config.RegistryConfigEncrypted {
 		keyFound := false
 		for _, dogu := range config.Dogus.Install {

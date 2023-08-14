@@ -1,21 +1,23 @@
 package data_test
 
 import (
-	gocontext "context"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"testing"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func TestNewWriteRegistryConfigEncryptedStep(t *testing.T) {
 	// given
-	setupConfig := &context.SetupConfiguration{}
+	setupConfig := &appcontext.SetupJsonConfiguration{}
 	fakeClient := fake.NewSimpleClientset()
 
 	// when
@@ -43,9 +45,9 @@ func Test_writeRegistryConfigEncryptedStep_GetStepDescription(t *testing.T) {
 func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 	t.Run("success embedded", func(t *testing.T) {
 		// given
-		admin := context.User{Password: "adminPw"}
-		embeddedUserBackend := context.UserBackend{DsType: "embedded"}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
+		admin := appcontext.User{Password: "adminPw"}
+		embeddedUserBackend := appcontext.UserBackend{DsType: "embedded"}
+		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
 		writerMock := data.NewMockMapWriter(t)
@@ -54,15 +56,15 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		step.Writer = writerMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		secret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
+		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
@@ -72,9 +74,9 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("should override embedded admin pw and append user defined config", func(t *testing.T) {
 		// given
-		admin := context.User{Password: "adminPw"}
-		embeddedUserBackend := context.UserBackend{DsType: "embedded"}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
+		admin := appcontext.User{Password: "adminPw"}
+		embeddedUserBackend := appcontext.UserBackend{DsType: "embedded"}
+		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap"] = map[string]string{"admin_password": "overrideThis", "fromUser": "user"}
@@ -84,15 +86,15 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		step.Writer = writerMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		secret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
+		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
@@ -103,10 +105,10 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("success external", func(t *testing.T) {
 		// given
-		admin := context.User{Password: "adminPw"}
-		embeddedUserBackend := context.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
-		dogus := context.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		admin := appcontext.User{Password: "adminPw"}
+		embeddedUserBackend := appcontext.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
+		dogus := appcontext.Dogus{Install: []string{"ldap-mapper"}}
+		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
 		fakeClient := fake.NewSimpleClientset()
 		registryConfigEncrypted := map[string]map[string]string{}
 		registryConfigEncrypted["ldap-mapper"] = map[string]string{"backend.password": "overrideThis", "backend.connection_dn": "overrideThis", "fromUser": "user"}
@@ -117,15 +119,15 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		step.Writer = writerMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
+		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
+		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
@@ -142,10 +144,10 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("should override external backend pw, connection_dn and append user defined config", func(t *testing.T) {
 		// given
-		admin := context.User{Password: "adminPw"}
-		embeddedUserBackend := context.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
-		dogus := context.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &context.SetupConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		admin := appcontext.User{Password: "adminPw"}
+		embeddedUserBackend := appcontext.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
+		dogus := appcontext.Dogus{Install: []string{"ldap-mapper"}}
+		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
 		fakeClient := fake.NewSimpleClientset()
 		emptyMap := map[string]map[string]string{}
 		writerMock := data.NewMockMapWriter(t)
@@ -154,15 +156,15 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		step.Writer = writerMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		_, err = fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
 		require.True(t, errors.IsNotFound(err))
-		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "cas-secrets", metav1.GetOptions{})
+		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
-		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(gocontext.Background(), "ldap-mapper-secrets", metav1.GetOptions{})
+		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
 		require.NoError(t, err)
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
@@ -177,14 +179,14 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write config to map", func(t *testing.T) {
 		// given
-		setupConfig := &context.SetupConfiguration{}
+		setupConfig := &appcontext.SetupJsonConfiguration{}
 		writerMock := data.NewMockMapWriter(t)
 		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(nil, assert.AnError)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, nil, "test")
 		step.Writer = writerMock
 
 		// when
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
@@ -207,7 +209,7 @@ func Test_mapConfigurationWriter_WriteConfigToMap(t *testing.T) {
 		"admin_password": "password",
 	}
 
-	registryConfig := context.CustomKeyValue{}
+	registryConfig := appcontext.CustomKeyValue{}
 	registryConfig["ldap-mapper"] = ldapMapperRegistryConfig
 	registryConfig["ldap"] = ldapRegistryConfig
 	mapWriter := data.NewStringDataConfigurationWriter()

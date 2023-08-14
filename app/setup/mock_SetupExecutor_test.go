@@ -3,6 +3,8 @@
 package setup
 
 import (
+	context "context"
+
 	registry "github.com/cloudogu/cesapp-lib/registry"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -20,23 +22,23 @@ func (_m *MockSetupExecutor) EXPECT() *MockSetupExecutor_Expecter {
 	return &MockSetupExecutor_Expecter{mock: &_m.Mock}
 }
 
-// PerformSetup provides a mock function with given fields:
-func (_m *MockSetupExecutor) PerformSetup() (error, string) {
-	ret := _m.Called()
+// PerformSetup provides a mock function with given fields: ctx
+func (_m *MockSetupExecutor) PerformSetup(ctx context.Context) (error, string) {
+	ret := _m.Called(ctx)
 
 	var r0 error
 	var r1 string
-	if rf, ok := ret.Get(0).(func() (error, string)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(context.Context) (error, string)); ok {
+		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
 	} else {
 		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func() string); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) string); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -50,13 +52,14 @@ type MockSetupExecutor_PerformSetup_Call struct {
 }
 
 // PerformSetup is a helper method to define mock.On call
-func (_e *MockSetupExecutor_Expecter) PerformSetup() *MockSetupExecutor_PerformSetup_Call {
-	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup")}
+//   - ctx context.Context
+func (_e *MockSetupExecutor_Expecter) PerformSetup(ctx interface{}) *MockSetupExecutor_PerformSetup_Call {
+	return &MockSetupExecutor_PerformSetup_Call{Call: _e.mock.On("PerformSetup", ctx)}
 }
 
-func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func()) *MockSetupExecutor_PerformSetup_Call {
+func (_c *MockSetupExecutor_PerformSetup_Call) Run(run func(ctx context.Context)) *MockSetupExecutor_PerformSetup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -66,7 +69,7 @@ func (_c *MockSetupExecutor_PerformSetup_Call) Return(_a0 error, _a1 string) *Mo
 	return _c
 }
 
-func (_c *MockSetupExecutor_PerformSetup_Call) RunAndReturn(run func() (error, string)) *MockSetupExecutor_PerformSetup_Call {
+func (_c *MockSetupExecutor_PerformSetup_Call) RunAndReturn(run func(context.Context) (error, string)) *MockSetupExecutor_PerformSetup_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -132,7 +135,7 @@ type MockSetupExecutor_RegisterDataSetupSteps_Call struct {
 }
 
 // RegisterDataSetupSteps is a helper method to define mock.On call
-//  - _a0 registry.Registry
+//   - _a0 registry.Registry
 func (_e *MockSetupExecutor_Expecter) RegisterDataSetupSteps(_a0 interface{}) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	return &MockSetupExecutor_RegisterDataSetupSteps_Call{Call: _e.mock.On("RegisterDataSetupSteps", _a0)}
 }
@@ -191,6 +194,47 @@ func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) Return(_a0 error
 }
 
 func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) RunAndReturn(run func() error) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RegisterLoadBalancerFQDNRetrieverSteps provides a mock function with given fields:
+func (_m *MockSetupExecutor) RegisterLoadBalancerFQDNRetrieverSteps() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterLoadBalancerFQDNRetrieverSteps'
+type MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call struct {
+	*mock.Call
+}
+
+// RegisterLoadBalancerFQDNRetrieverSteps is a helper method to define mock.On call
+func (_e *MockSetupExecutor_Expecter) RegisterLoadBalancerFQDNRetrieverSteps() *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call {
+	return &MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call{Call: _e.mock.On("RegisterLoadBalancerFQDNRetrieverSteps")}
+}
+
+func (_c *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call) Run(run func()) *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call) Return(_a0 error) *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call) RunAndReturn(run func() error) *MockSetupExecutor_RegisterLoadBalancerFQDNRetrieverSteps_Call {
 	_c.Call.Return(run)
 	return _c
 }

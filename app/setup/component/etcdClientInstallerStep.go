@@ -37,8 +37,8 @@ func (ecis *etcdClientInstallerStep) GetStepDescription() string {
 }
 
 // PerformSetupStep installs an etcd client.
-func (ecis *etcdClientInstallerStep) PerformSetupStep() error {
-	err := ecis.installClient()
+func (ecis *etcdClientInstallerStep) PerformSetupStep(ctx context.Context) error {
+	err := ecis.installClient(ctx)
 	if err != nil {
 		return err
 	}
@@ -46,8 +46,8 @@ func (ecis *etcdClientInstallerStep) PerformSetupStep() error {
 	return nil
 }
 
-func (ecis *etcdClientInstallerStep) installClient() error {
-	err := ecis.createDeployment(ecis.etcdServiceUrl)
+func (ecis *etcdClientInstallerStep) installClient(ctx context.Context) error {
+	err := ecis.createDeployment(ctx, ecis.etcdServiceUrl)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (ecis *etcdClientInstallerStep) installClient() error {
 	return nil
 }
 
-func (ecis *etcdClientInstallerStep) createDeployment(etcdServiceUrl string) error {
+func (ecis *etcdClientInstallerStep) createDeployment(ctx context.Context, etcdServiceUrl string) error {
 	etcdClientName := "etcd-client"
 	const etcdAPIVersion = "2"
 	etcdClientLabels := make(map[string]string)
@@ -64,7 +64,7 @@ func (ecis *etcdClientInstallerStep) createDeployment(etcdServiceUrl string) err
 
 	deployment := ecis.getEtcdClientDeployment(etcdServiceUrl, etcdClientName, etcdClientLabels, etcdAPIVersion)
 
-	_, err := ecis.clientSet.AppsV1().Deployments(ecis.targetNamespace).Create(context.Background(), deployment, metav1.CreateOptions{})
+	_, err := ecis.clientSet.AppsV1().Deployments(ecis.targetNamespace).Create(ctx, deployment, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("cannot create etcd deployment in namespace %s with clientset: %w", ecis.targetNamespace, err)
 	}

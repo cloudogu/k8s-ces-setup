@@ -3,16 +3,13 @@ package data_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/mock"
-
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
-
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewWriteAdminDataStep(t *testing.T) {
@@ -21,7 +18,7 @@ func TestNewWriteAdminDataStep(t *testing.T) {
 	t.Run("successfully create new admin data step", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &appcontext.SetupJsonConfiguration{}
 
 		// when
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
@@ -37,7 +34,7 @@ func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 	t.Run("successfully get admin data step description", func(t *testing.T) {
 		// given
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &appcontext.SetupJsonConfiguration{}
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
@@ -53,14 +50,14 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{}
+		testConfig := &appcontext.SetupJsonConfiguration{}
 		mockRegistryWriter := data.NewMockRegistryWriter(t)
 		mockRegistryWriter.EXPECT().WriteConfigToRegistry(mock.Anything).Return(assert.AnError)
 
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
@@ -68,12 +65,12 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully set values for external ldap data", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{
-			UserBackend: context.UserBackend{DsType: validation.DsTypeExternal},
-			Admin:       context.User{AdminGroup: "myTestAdminGroup"},
+		testConfig := &appcontext.SetupJsonConfiguration{
+			UserBackend: appcontext.UserBackend{DsType: validation.DsTypeExternal},
+			Admin:       appcontext.User{AdminGroup: "myTestAdminGroup"},
 		}
 
-		registryConfig := context.CustomKeyValue{
+		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"admin_group": "myTestAdminGroup",
 			},
@@ -85,7 +82,7 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
@@ -93,17 +90,17 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 
 	t.Run("successfully set values for embedded ldap data", func(t *testing.T) {
 		// given
-		testConfig := &context.SetupConfiguration{
-			Admin: context.User{
+		testConfig := &appcontext.SetupJsonConfiguration{
+			Admin: appcontext.User{
 				AdminGroup:  "myAdminTestGroup",
 				Mail:        "myAdminMail",
 				Username:    "myAdminUsername",
 				AdminMember: true,
 			},
-			UserBackend: context.UserBackend{DsType: validation.DsTypeEmbedded},
+			UserBackend: appcontext.UserBackend{DsType: validation.DsTypeEmbedded},
 		}
 
-		registryConfig := context.CustomKeyValue{
+		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"admin_group": "myAdminTestGroup",
 			},
@@ -120,7 +117,7 @@ func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 		myStep := data.NewWriteAdminDataStep(mockRegistryWriter, testConfig)
 
 		// when
-		err := myStep.PerformSetupStep()
+		err := myStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

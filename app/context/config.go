@@ -3,14 +3,15 @@ package context
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 )
 
 // Config contains the common configuration for the setup
@@ -29,11 +30,13 @@ type Config struct {
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
 	KeyProvider string `yaml:"key_provider"`
+	// ResourcePatches contains json patches for kubernetes resources to be applied on certain phases of the setup process.
+	ResourcePatches []patch.ResourcePatch `yaml:"resource_patches"`
 }
 
 // ReadConfigFromCluster reads the setup config from the cluster state
-func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Config, error) {
-	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), SetupConfigConfigmap, metav1.GetOptions{})
+func ReadConfigFromCluster(ctx context.Context, client kubernetes.Interface, namespace string) (*Config, error) {
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(ctx, SetupConfigConfigmap, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get setup configuration from cluster: %w", err)
 	}
@@ -42,7 +45,7 @@ func ReadConfigFromCluster(client kubernetes.Interface, namespace string) (*Conf
 	stringData := configMap.Data["k8s-ces-setup.yaml"]
 	err = yaml.Unmarshal([]byte(stringData), config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarschal configuration from configmap: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal configuration from configmap: %w", err)
 	}
 
 	return config, nil
@@ -55,7 +58,7 @@ func ReadConfigFromFile(path string) (*Config, error) {
 		return config, fmt.Errorf("could not find configuration at %s", path)
 	}
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return config, fmt.Errorf("failed to read configuration %s: %w", path, err)
 	}

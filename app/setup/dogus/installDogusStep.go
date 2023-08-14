@@ -1,8 +1,9 @@
 package dogus
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -32,14 +33,14 @@ func (ids *installDogusStep) GetStepDescription() string {
 }
 
 // PerformSetupStep applies a dogu recource for the configured dogu to the cluster.
-func (ids *installDogusStep) PerformSetupStep() error {
+func (ids *installDogusStep) PerformSetupStep(ctx context.Context) error {
 	doguVersion, err := ids.dogu.GetVersion()
 	if err != nil {
 		return fmt.Errorf("failed to get version from dogu [%s]: %w", ids.dogu.GetFullName(), err)
 	}
 
 	cr := getDoguCr(ids.dogu.GetSimpleName(), ids.dogu.GetFullName(), doguVersion.Raw, ids.namespace)
-	_, err = ids.client.Dogus(ids.namespace).Create(gocontext.Background(), cr, metav1.CreateOptions{})
+	_, err = ids.client.Dogus(ids.namespace).Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to apply dogu %s: %w", ids.dogu.GetSimpleName(), err)
 	}

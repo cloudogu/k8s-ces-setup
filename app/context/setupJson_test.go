@@ -20,7 +20,7 @@ func TestReadSetupConfig(t *testing.T) {
 		// when
 		c, err := context.ReadSetupConfigFromFile("testdata/testSetupJson.json")
 		require.NoError(t, err)
-		var expectedSetupJson *context.SetupConfiguration
+		var expectedSetupJson *context.SetupJsonConfiguration
 		err = json.Unmarshal(myTestSetupJson, &expectedSetupJson)
 		require.NoError(t, err)
 
@@ -35,7 +35,7 @@ func TestReadSetupConfig(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, &context.SetupConfiguration{}, emptyConfig)
+		assert.Equal(t, &context.SetupJsonConfiguration{}, emptyConfig)
 	})
 
 	t.Run("fail on invalid file content", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestReadSetupConfig(t *testing.T) {
 
 func TestSetupConfiguration_IsCompleted(t *testing.T) {
 	// given
-	setupJSON := context.SetupConfiguration{}
+	setupJSON := context.SetupJsonConfiguration{}
 
 	// when+then
 	assert.False(t, setupJSON.IsCompleted())

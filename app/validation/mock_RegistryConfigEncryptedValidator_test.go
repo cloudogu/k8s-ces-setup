@@ -21,11 +21,11 @@ func (_m *MockRegistryConfigEncryptedValidator) EXPECT() *MockRegistryConfigEncr
 }
 
 // ValidateRegistryConfigEncrypted provides a mock function with given fields: config
-func (_m *MockRegistryConfigEncryptedValidator) ValidateRegistryConfigEncrypted(config *context.SetupConfiguration) error {
+func (_m *MockRegistryConfigEncryptedValidator) ValidateRegistryConfigEncrypted(config *context.SetupJsonConfiguration) error {
 	ret := _m.Called(config)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*context.SetupConfiguration) error); ok {
+	if rf, ok := ret.Get(0).(func(*context.SetupJsonConfiguration) error); ok {
 		r0 = rf(config)
 	} else {
 		r0 = ret.Error(0)
@@ -40,14 +40,14 @@ type MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call s
 }
 
 // ValidateRegistryConfigEncrypted is a helper method to define mock.On call
-//  - config *context.SetupConfiguration
+//   - config *context.SetupJsonConfiguration
 func (_e *MockRegistryConfigEncryptedValidator_Expecter) ValidateRegistryConfigEncrypted(config interface{}) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
 	return &MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call{Call: _e.mock.On("ValidateRegistryConfigEncrypted", config)}
 }
 
-func (_c *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call) Run(run func(config *context.SetupConfiguration)) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
+func (_c *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call) Run(run func(config *context.SetupJsonConfiguration)) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*context.SetupConfiguration))
+		run(args[0].(*context.SetupJsonConfiguration))
 	})
 	return _c
 }
@@ -57,7 +57,7 @@ func (_c *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_C
 	return _c
 }
 
-func (_c *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call) RunAndReturn(run func(*context.SetupConfiguration) error) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
+func (_c *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call) RunAndReturn(run func(*context.SetupJsonConfiguration) error) *MockRegistryConfigEncryptedValidator_ValidateRegistryConfigEncrypted_Call {
 	_c.Call.Return(run)
 	return _c
 }

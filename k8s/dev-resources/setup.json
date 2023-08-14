@@ -1,6 +1,6 @@
 {
   "naming": {
-    "fqdn": "192.168.56.2",
+    "fqdn": "",
     "domain": "k3ces.local",
     "certificateType": "selfsigned",
     "relayHost": "asdf",
@@ -15,7 +15,8 @@
       "official/postfix",
       "k8s/nginx-static",
       "k8s/nginx-ingress",
-      "official/cas"
+      "official/cas",
+      "official/nexus"
     ],
     "completed": false
   },

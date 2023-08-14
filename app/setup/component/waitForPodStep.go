@@ -44,14 +44,13 @@ func (wfps *waitForPodStep) GetStepDescription() string {
 }
 
 // PerformSetupStep implements all actions in this step
-func (wfps *waitForPodStep) PerformSetupStep() error {
-	return wfps.isPodReady()
+func (wfps *waitForPodStep) PerformSetupStep(ctx context.Context) error {
+	return wfps.isPodReady(ctx)
 }
 
 // isPodReady does a watch on a pod and returns nil if the pod is ready and the configured timout is not reached
-func (wfps *waitForPodStep) isPodReady() error {
-	backgroundCtx := context.Background()
-	watch, err := wfps.clientSet.CoreV1().Pods(wfps.namespace).Watch(backgroundCtx, v1.ListOptions{LabelSelector: wfps.labelSelector})
+func (wfps *waitForPodStep) isPodReady(ctx context.Context) error {
+	watch, err := wfps.clientSet.CoreV1().Pods(wfps.namespace).Watch(ctx, v1.ListOptions{LabelSelector: wfps.labelSelector})
 	if err != nil {
 		return fmt.Errorf("failed to create watch on pod: %w", err)
 	}
@@ -64,7 +63,7 @@ func (wfps *waitForPodStep) isPodReady() error {
 
 	for event := range watch.ResultChan() {
 		pod, ok := event.Object.(*corev1.Pod)
-		logger := log.FromContext(backgroundCtx)
+		logger := log.FromContext(ctx)
 		if !ok {
 			logger.Error(fmt.Errorf("failed to cast event to pod: selector=[%s] type=[%s]; object=[%+v]",
 				wfps.labelSelector, event.Type, event.Object), "error wait for pod")

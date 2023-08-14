@@ -41,10 +41,10 @@ func (nmcs *nodeMasterCreationStep) GetStepDescription() string {
 }
 
 // PerformSetupStep creates a config map containing the node master address.
-func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
+func (nmcs *nodeMasterCreationStep) PerformSetupStep(ctx context.Context) error {
 	nodeMasterFileContent := GetNodeMasterFileContent(nmcs.TargetNamespace)
 
-	configMap, err := nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Get(context.Background(), nodeMasterFileConfigMapName, metav1.GetOptions{})
+	configMap, err := nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Get(ctx, nodeMasterFileConfigMapName, metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("failed to get config map [%s]: %w", nodeMasterFileConfigMapName, err)
 	}
@@ -61,7 +61,7 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 			},
 		}
 
-		_, err = nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Create(context.Background(), configMap, metav1.CreateOptions{})
+		_, err = nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Create(ctx, configMap, metav1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to create config map [%s]: %w", nodeMasterFileConfigMapName, err)
 		}
@@ -70,7 +70,7 @@ func (nmcs *nodeMasterCreationStep) PerformSetupStep() error {
 			"node_master": nodeMasterFileContent,
 		}
 
-		_, err = nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Update(context.Background(), configMap, metav1.UpdateOptions{})
+		_, err = nmcs.ClientSet.CoreV1().ConfigMaps(nmcs.TargetNamespace).Update(ctx, configMap, metav1.UpdateOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to update config map [%s]: %w", nodeMasterFileConfigMapName, err)
 		}

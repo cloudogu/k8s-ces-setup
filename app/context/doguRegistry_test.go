@@ -31,7 +31,7 @@ func TestReadDoguRegistrySecretFromClusterWithIndexSchema(t *testing.T) {
 	clientset := fake.NewSimpleClientset(secret)
 
 	// when
-	testSecret, err := ReadDoguRegistrySecretFromCluster(clientset, "ecosystem")
+	testSecret, err := ReadDoguRegistrySecretFromCluster(testCtx, clientset, "ecosystem")
 
 	// then
 	require.NoError(t, err)
@@ -60,7 +60,7 @@ func TestReadDoguRegistrySecretFromClusterWithDefaultSchema(t *testing.T) {
 	clientset := fake.NewSimpleClientset(secret)
 
 	// when
-	testSecret, err := ReadDoguRegistrySecretFromCluster(clientset, "ecosystem")
+	testSecret, err := ReadDoguRegistrySecretFromCluster(testCtx, clientset, "ecosystem")
 
 	// then
 	require.NoError(t, err)
@@ -89,7 +89,7 @@ func TestReadDoguRegistrySecretFromClusterWithEmptySchema(t *testing.T) {
 	clientset := fake.NewSimpleClientset(secret)
 
 	// when
-	testSecret, err := ReadDoguRegistrySecretFromCluster(clientset, "ecosystem")
+	testSecret, err := ReadDoguRegistrySecretFromCluster(testCtx, clientset, "ecosystem")
 
 	// then
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestReadDoguRegistrySecretFromClusterWithWrongSecretName(t *testing.T) {
 	clientset := fake.NewSimpleClientset(secret)
 
 	// when
-	_, err := ReadDoguRegistrySecretFromCluster(clientset, "ecosystem")
+	_, err := ReadDoguRegistrySecretFromCluster(testCtx, clientset, "ecosystem")
 
 	// then
 	require.Error(t, err)
