@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.16.0] - 2023-08-14
 ### Added
 - [#56] Allow to configure resource patches, a powerful way to modify Kubernetes resources during the setup process
   - please see the [docs](docs/operations/configuration_guide_en.md) for more information
