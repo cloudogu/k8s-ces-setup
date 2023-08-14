@@ -1,24 +1,24 @@
 package setup
 
 import (
+	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-apply-lib/apply"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
+	"github.com/cloudogu/k8s-apply-lib/apply"
+	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-
-	"k8s.io/client-go/rest"
-
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const k8sSetupFieldManagerName = "k8s-ces-setup"
@@ -29,25 +29,25 @@ type ExecutorStep interface {
 	// when executing the setup.
 	GetStepDescription() string
 	// PerformSetupStep is called for every registered step when executing the setup.
-	PerformSetupStep() error
+	PerformSetupStep(ctx context.Context) error
 }
 
 // Executor is responsible to perform the actual steps of the setup.
 type Executor struct {
 	// SetupContext contains information about the current context.
-	SetupContext *context.SetupContext `json:"setup_context"`
+	SetupContext *appcontext.SetupContext
 	// ClientSet is the actual k8s client responsible for the k8s API communication.
-	ClientSet kubernetes.Interface `json:"client_set"`
+	ClientSet kubernetes.Interface
 	// ClusterConfig is the current rest config used to create a kubernetes clients.
-	ClusterConfig *rest.Config `json:"cluster_config"`
+	ClusterConfig *rest.Config
 	// Steps contains all necessary steps for the setup
-	Steps []ExecutorStep `json:"steps"`
+	Steps []ExecutorStep
 	// Registry is the dogu registry
-	Registry remote.Registry `json:"registry"`
+	Registry remote.Registry
 }
 
 // NewExecutor creates a new setup executor with the given app configuration.
-func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *context.SetupContext) (*Executor, error) {
+func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, setupCtx *appcontext.SetupContext) (*Executor, error) {
 	credentials := &core.Credentials{
 		Username: setupCtx.DoguRegistryConfiguration.Username,
 		Password: setupCtx.DoguRegistryConfiguration.Password,
@@ -87,13 +87,13 @@ func (e *Executor) RegisterSetupStep(step ExecutorStep) {
 }
 
 // PerformSetup starts the setup and executes all registered setup steps
-func (e *Executor) PerformSetup() (err error, errCausingAction string) {
+func (e *Executor) PerformSetup(ctx context.Context) (err error, errCausingAction string) {
 	logrus.Print("Starting the setup process")
 
 	for _, step := range e.Steps {
 		logrus.Printf("Setup-Step: %s", step.GetStepDescription())
 
-		err := step.PerformSetupStep()
+		err := step.PerformSetupStep(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to perform step [%s]: %w", step.GetStepDescription(), err), step.GetStepDescription()
 		}
@@ -104,11 +104,11 @@ func (e *Executor) PerformSetup() (err error, errCausingAction string) {
 
 // RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	k8sApplyClient, scheme, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
+	k8sApplyClient, scheme1, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
 	if err != nil {
 		return fmt.Errorf("failed to create k8s apply client: %w", err)
 	}
-	err = k8sv1.AddToScheme(scheme)
+	err = k8sv1.AddToScheme(scheme1)
 	if err != nil {
 		return fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
 	}
@@ -134,14 +134,32 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create node master file creation step: %w", err)
 	}
 
+	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	if err != nil {
+		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
+	}
+
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(etcdSrvInstallerStep)
 	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, component.PodTimeoutInSeconds()))
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	e.RegisterSetupStep(doguOpInstallerStep)
 	e.RegisterSetupStep(serviceDisInstallerStep)
+	// Since this step should patch resources created in this phase, it should be executed last.
+	e.RegisterSetupStep(componentResourcePatchStep)
 
 	return nil
+}
+
+func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, clusterConfig *rest.Config, targetNamespace string) (*resourcePatchStep, error) {
+	resourcePatchApplier, err := patch.NewApplier(clusterConfig, targetNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	resourcePatcher := patch.NewResourcePatcher(resourcePatchApplier)
+	componentResourcePatchStep := NewResourcePatchStep(phase, resourcePatcher, patches)
+	return componentResourcePatchStep, nil
 }
 
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
@@ -151,19 +169,19 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	// register steps
 	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.StartupConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.StartupConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.StartupConfiguration))
+	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }
 
 // RegisterDoguInstallationSteps creates install steps for the dogu install list
 func (e *Executor) RegisterDoguInstallationSteps() error {
-	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.StartupConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
+	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
@@ -177,14 +195,44 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 		e.RegisterSetupStep(step)
 	}
 
+	doguResourcePatchStep, err := createResourcePatchStep(patch.DoguPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	if err != nil {
+		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.DoguPhase, err)
+	}
+
+	// Since this step should patch resources created in this phase, it should be executed last.
+	e.RegisterSetupStep(doguResourcePatchStep)
+
 	return nil
 }
 
-// RegisterFQDNRetrieverStep registers the steps for retrieving the fqdn
-func (e *Executor) RegisterFQDNRetrieverStep() {
+// RegisterLoadBalancerFQDNRetrieverSteps registers the steps for creating a loadbalancer retrieving the fqdn
+func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
-	config := e.SetupContext.StartupConfiguration
-	e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+	config := e.SetupContext.SetupJsonConfiguration
+	e.RegisterSetupStep(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
+
+	loadbalancerResourcePatchStep, err := createResourcePatchStep(
+		patch.LoadbalancerPhase,
+		e.SetupContext.AppConfig.ResourcePatches,
+		e.ClusterConfig,
+		namespace,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.LoadbalancerPhase, err)
+	}
+
+	// Since this step should patch resources created in this phase, it should be executed after creating the loadbalancer.
+	e.RegisterSetupStep(loadbalancerResourcePatchStep)
+
+	wantsLoadbalancerIpAddressAsFqdn := config.Naming.Fqdn == "" || config.Naming.Fqdn == "<<ip>>"
+	if wantsLoadbalancerIpAddressAsFqdn {
+		// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
+		// We ignore the case where the public IP address was already assigned but the patch should lead to another.
+		e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+	}
+
+	return nil
 }
 
 // RegisterValidationStep registers all validation steps
@@ -195,7 +243,7 @@ func (e *Executor) RegisterValidationStep() error {
 
 // RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
-	generationStep := data.NewGenerateSSLStep(e.SetupContext.StartupConfiguration)
+	generationStep := data.NewGenerateSSLStep(e.SetupContext.SetupJsonConfiguration)
 	e.RegisterSetupStep(generationStep)
 	return nil
 }

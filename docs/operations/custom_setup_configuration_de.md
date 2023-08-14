@@ -33,7 +33,7 @@ Eine `setup.json` von dem `ces-setup` kann ohne Probleme als Setup Konfiguration
 ### Region Token
 
 Da das `k8s-ces-setup` keine VM's mehr konfigurieren kann entfällt dieser Abschnitt komplett.
-Eigenschaften wie `locale`, `timezone` und `keyboardLayout` müssen bei der Initialisierung des Kubernetes-Cluster geschehen.
+Eigenschaften wie `locale`, `timezone` und `keyboardLayout` müssen bei der Initialisierung des Kubernetes-Clusters geschehen.
 
 
 ### Bereich "Naming"

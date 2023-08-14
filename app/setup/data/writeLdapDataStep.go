@@ -1,21 +1,22 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 type writeLdapDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *appcontext.SetupJsonConfiguration
 }
 
 // NewWriteLdapDataStep create a new setup step which writes the ldap configuration into the registry.
-func NewWriteLdapDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeLdapDataStep {
+func NewWriteLdapDataStep(writer RegistryWriter, configuration *appcontext.SetupJsonConfiguration) *writeLdapDataStep {
 	return &writeLdapDataStep{Writer: writer, Configuration: configuration}
 }
 
@@ -25,8 +26,8 @@ func (wlds *writeLdapDataStep) GetStepDescription() string {
 }
 
 // PerformSetupStep writes the configured ldap data into the registry
-func (wlds *writeLdapDataStep) PerformSetupStep() error {
-	registryConfig := context.CustomKeyValue{}
+func (wlds *writeLdapDataStep) PerformSetupStep(context.Context) error {
+	registryConfig := appcontext.CustomKeyValue{}
 	registryConfig["cas"] = wlds.getCasEntriesAsMap()
 
 	if isDoguInstalled(wlds.Configuration.Dogus.Install, "ldap-mapper") {

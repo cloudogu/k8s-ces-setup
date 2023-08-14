@@ -14,6 +14,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+var testCtx = context.Background()
+
 func TestNewNodeMasterCreationStep(t *testing.T) {
 	t.Run("create without error", func(t *testing.T) {
 		// given
@@ -51,12 +53,12 @@ func Test_nodeMasterCreationStep_PerformSetupStep(t *testing.T) {
 		nodeMasterCreationStep.ClientSet = fake.NewSimpleClientset()
 
 		// when
-		err := nodeMasterCreationStep.PerformSetupStep()
+		err := nodeMasterCreationStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
 
-		cm, err := nodeMasterCreationStep.ClientSet.CoreV1().ConfigMaps("my-namespace").Get(context.Background(), "node-master-file", metav1.GetOptions{})
+		cm, err := nodeMasterCreationStep.ClientSet.CoreV1().ConfigMaps("my-namespace").Get(testCtx, "node-master-file", metav1.GetOptions{})
 		require.NoError(t, err)
 
 		assert.Equal(t, "etcd.my-namespace.svc.cluster.local", cm.Data["node_master"])
@@ -78,12 +80,12 @@ func Test_nodeMasterCreationStep_PerformSetupStep(t *testing.T) {
 		nodeMasterCreationStep.ClientSet = fake.NewSimpleClientset(existingCM)
 
 		// when
-		err := nodeMasterCreationStep.PerformSetupStep()
+		err := nodeMasterCreationStep.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
 
-		cm, err := nodeMasterCreationStep.ClientSet.CoreV1().ConfigMaps("my-namespace").Get(context.Background(), "node-master-file", metav1.GetOptions{})
+		cm, err := nodeMasterCreationStep.ClientSet.CoreV1().ConfigMaps("my-namespace").Get(testCtx, "node-master-file", metav1.GetOptions{})
 		require.NoError(t, err)
 
 		assert.Equal(t, "etcd.my-namespace.svc.cluster.local", cm.Data["node_master"])

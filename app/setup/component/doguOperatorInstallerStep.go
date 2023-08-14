@@ -1,11 +1,12 @@
 package component
 
 import (
+	"context"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cloudogu/k8s-apply-lib/apply"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 )
 
@@ -29,7 +30,7 @@ type doguOperatorInstallerStep struct {
 }
 
 // NewDoguOperatorInstallerStep creates new instance of the dogu operator and creates an unversioned client for apply dogu cr's
-func NewDoguOperatorInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*doguOperatorInstallerStep, error) {
+func NewDoguOperatorInstallerStep(setupCtx *appcontext.SetupContext, k8sClient k8sClient) (*doguOperatorInstallerStep, error) {
 	return &doguOperatorInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.DoguOperatorURL,
@@ -44,7 +45,7 @@ func (dois *doguOperatorInstallerStep) GetStepDescription() string {
 }
 
 // PerformSetupStep installs the dogu operator.
-func (dois *doguOperatorInstallerStep) PerformSetupStep() error {
+func (dois *doguOperatorInstallerStep) PerformSetupStep(context.Context) error {
 	fileContent, err := dois.resourceRegistryClient.GetResourceFileContent(dois.resourceURL)
 	if err != nil {
 		return err

@@ -1,18 +1,24 @@
-package context_test
+package context
 
 import (
+	"context"
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/sirupsen/logrus"
 
 	"github.com/stretchr/testify/assert"
 )
 
+var testCtx = context.Background()
+
 func TestReadConfig(t *testing.T) {
 	t.Run("read config", func(t *testing.T) {
 		// when
-		c, err := context.ReadConfigFromFile("testdata/testConfig.yaml")
+		c, err := ReadConfigFromFile("testdata/testConfig.yaml")
 
 		// then
 		assert.NoError(t, err)
@@ -26,7 +32,7 @@ func TestReadConfig(t *testing.T) {
 
 	t.Run("fail on non existent config", func(t *testing.T) {
 		// when
-		_, err := context.ReadConfigFromFile("testdata/doesnotexist.yaml")
+		_, err := ReadConfigFromFile("testdata/doesnotexist.yaml")
 
 		// then
 		assert.Error(t, err)
@@ -35,10 +41,53 @@ func TestReadConfig(t *testing.T) {
 
 	t.Run("fail on invalid file content", func(t *testing.T) {
 		// when
-		_, err := context.ReadConfigFromFile("testdata/invalidConfig.yaml")
+		_, err := ReadConfigFromFile("testdata/invalidConfig.yaml")
 
 		// then
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unmarshal errors")
+	})
+}
+
+func TestReadConfigFromCluster(t *testing.T) {
+	const testNamespace = "test-namespace"
+	t.Run("should return marshalled config", func(t *testing.T) {
+		// given
+		myFileMap := map[string]string{"k8s-ces-setup.yaml": `dogu_operator_url: https://url.com`}
+		mockedConfig := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      SetupConfigConfigmap,
+				Namespace: testNamespace,
+			},
+			Data: myFileMap,
+		}
+		client := fake.NewSimpleClientset(mockedConfig)
+
+		// when
+		actual, err := ReadConfigFromCluster(testCtx, client, testNamespace)
+
+		// then
+		require.NoError(t, err)
+		extected := &Config{DoguOperatorURL: "https://url.com"}
+		assert.Equal(t, extected, actual)
+	})
+	t.Run("should fail during marshalling config", func(t *testing.T) {
+		// given
+		myFileMap := map[string]string{"k8s-ces-setup.yaml": `"dogu_operator_url: https://url.com`}
+		mockedConfig := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      SetupConfigConfigmap,
+				Namespace: testNamespace,
+			},
+			Data: myFileMap,
+		}
+		client := fake.NewSimpleClientset(mockedConfig)
+
+		// when
+		_, err := ReadConfigFromCluster(testCtx, client, testNamespace)
+
+		// then
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "failed to unmarshal configuration from configmap")
 	})
 }

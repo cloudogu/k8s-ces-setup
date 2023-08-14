@@ -1,21 +1,22 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
 
 type writeAdminDataStep struct {
 	Writer        RegistryWriter
-	Configuration *context.SetupConfiguration
+	Configuration *appcontext.SetupJsonConfiguration
 }
 
 // NewWriteAdminDataStep create a new setup step which writes the admin data into the registry.
-func NewWriteAdminDataStep(writer RegistryWriter, configuration *context.SetupConfiguration) *writeAdminDataStep {
+func NewWriteAdminDataStep(writer RegistryWriter, configuration *appcontext.SetupJsonConfiguration) *writeAdminDataStep {
 	return &writeAdminDataStep{Writer: writer, Configuration: configuration}
 }
 
@@ -25,8 +26,8 @@ func (wacs *writeAdminDataStep) GetStepDescription() string {
 }
 
 // PerformSetupStep writes the configured admin data into the registry.
-func (wacs *writeAdminDataStep) PerformSetupStep() error {
-	registryConfig := context.CustomKeyValue{
+func (wacs *writeAdminDataStep) PerformSetupStep(context.Context) error {
+	registryConfig := appcontext.CustomKeyValue{
 		"_global": map[string]interface{}{
 			"admin_group": wacs.Configuration.Admin.AdminGroup,
 		},
