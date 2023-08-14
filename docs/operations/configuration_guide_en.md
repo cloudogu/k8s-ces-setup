@@ -101,10 +101,10 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * Description: list of patch objects that are applied to Kubernetes resources at different stages of setup, e.g., to apply user- or environment-specific changes. These patch objects consist of three components: Setup Phase, Resource to Change, and JSON Patch.
    * **Setup Phases**: These phases currently exist:
       * `loadbalancer`: this phase occurs after the Kubernetes load balancer service is created.
-         * Patches in this phase are only executed if the FQDN in the [Setup.json](custom_setup_configuration_en.md#range_naming) is empty or set to the IP address placeholder `<ip>>`.
+         * Patches in this phase are only executed if the FQDN in the [Setup.json](custom_setup_configuration_en.md#naming-region) is empty or set to the IP address placeholder `<ip>>`.
       * `dogu`: This phase takes place after the creation of K8's dogu resources.
       * `component`: This phase takes place after the creation of K8s Cloudogu EcoSystem component resources.
-   * **resources to modify**: To be able to address Kubernetes resources in the cluster namespace, the respective resource must be described in Kubernetes syntax See also [Objects In Kubernetes](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Furthermore, resources with namespace reference use the [namespace](#example-configuration-create) in which the EcoSystem setup was configured.
+   * **resources to modify**: To be able to address Kubernetes resources in the cluster namespace, the respective resource must be described in Kubernetes syntax See also [Objects In Kubernetes](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Furthermore, resources with namespace reference use the [namespace](#create-sample-configuration) in which the EcoSystem setup was configured.
       * `apiVersion`: The group (optional for K8s core resources) and version of the Kubernetes resource.
       * `kind`: The type of Kubernetes resource.
       * `name`: The specific name of the individual resource.
