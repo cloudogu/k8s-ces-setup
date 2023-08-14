@@ -212,7 +212,12 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	config := e.SetupContext.SetupJsonConfiguration
 	e.RegisterSetupStep(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
 
-	loadbalancerResourcePatchStep, err := createResourcePatchStep(patch.LoadbalancerPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	loadbalancerResourcePatchStep, err := createResourcePatchStep(
+		patch.LoadbalancerPhase,
+		e.SetupContext.AppConfig.ResourcePatches,
+		e.ClusterConfig,
+		namespace,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create resource patch step for phase %s: %w", patch.LoadbalancerPhase, err)
 	}
@@ -220,9 +225,12 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	// Since this step should patch resources created in this phase, it should be executed after creating the loadbalancer.
 	e.RegisterSetupStep(loadbalancerResourcePatchStep)
 
-	// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
-	// We ignore the case where the public IP address was already assigned but the patch should lead to another.
-	e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+	wantsLoadbalancerIpAddressAsFqdn := config.Naming.Fqdn == "" || config.Naming.Fqdn == "<<ip>>"
+	if wantsLoadbalancerIpAddressAsFqdn {
+		// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
+		// We ignore the case where the public IP address was already assigned but the patch should lead to another.
+		e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+	}
 
 	return nil
 }

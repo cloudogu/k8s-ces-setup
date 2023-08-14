@@ -144,9 +144,9 @@ func TestExecutor_PerformSetup(t *testing.T) {
 }
 
 func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
-	t.Run("successfully register 3 FQDN retriever steps", func(t *testing.T) {
+	t.Run("successfully register 3 FQDN retriever steps with empty fqdn", func(t *testing.T) {
 		// given
-		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{SetupJsonConfiguration: &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{Fqdn: ""}}, AppConfig: &appcontext.Config{TargetNamespace: "test"}}
 		executor := &Executor{
 			ClusterConfig: &rest.Config{},
 			SetupContext:  testContext,
@@ -157,7 +157,42 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 
 		// then
 		assert.Len(t, executor.Steps, 3)
-		assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Creating the main loadbalancer service for the Cloudogu EcoSystem", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Patching kubernetes resources in phase loadbalancer", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", executor.Steps[2].GetStepDescription())
+	})
+	t.Run("successfully register 3 FQDN retriever steps with fqdn placeholder", func(t *testing.T) {
+		// given
+		testContext := &appcontext.SetupContext{SetupJsonConfiguration: &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{Fqdn: "<<ip>>"}}, AppConfig: &appcontext.Config{TargetNamespace: "test"}}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		_ = executor.RegisterLoadBalancerFQDNRetrieverSteps()
+
+		// then
+		assert.Len(t, executor.Steps, 3)
+		assert.Equal(t, "Creating the main loadbalancer service for the Cloudogu EcoSystem", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Patching kubernetes resources in phase loadbalancer", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", executor.Steps[2].GetStepDescription())
+	})
+	t.Run("successfully register 2 FQDN retriever steps with prefilled fqdn", func(t *testing.T) {
+		// given
+		testContext := &appcontext.SetupContext{SetupJsonConfiguration: &appcontext.SetupJsonConfiguration{Naming: appcontext.Naming{Fqdn: "ecosystem.example.com"}}, AppConfig: &appcontext.Config{TargetNamespace: "test"}}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		_ = executor.RegisterLoadBalancerFQDNRetrieverSteps()
+
+		// then
+		assert.Len(t, executor.Steps, 2)
+		assert.Equal(t, "Creating the main loadbalancer service for the Cloudogu EcoSystem", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Patching kubernetes resources in phase loadbalancer", executor.Steps[1].GetStepDescription())
 	})
 }
 

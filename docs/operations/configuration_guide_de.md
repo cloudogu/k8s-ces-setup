@@ -101,7 +101,6 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * Beschreibung: Liste von Patch-Objekten, die zu unterschiedlichen Phasen des Setups auf Kubernetes-Ressourcen angewendet werden, z. B. um benutzer- oder umgebungsspezifische Änderungen auszubringen. Diese Patch-Objekte bestehen aus drei Bestandteilen: Setup-Phase, zu ändernde Resource und JSON-Patch
   * **Setup-Phasen**: Diese Phasen existieren aktuell:
     * `loadbalancer`: Diese Phase findet nach der Erzeugung des Kubernetes Load-Balancer-Services statt
-      * Patches in dieser Phase werden nur ausgeführt, wenn die FQDN in der [Setup.json](custom_setup_configuration_de.md#Bereich-Naming) leer bzw. auf den IP-Adressenplatzhalter `<<ip>>` gesetzt wurde.
     * `dogu`: Diese Phase findet nach der Erzeugung von K8s Dogu-Ressourcen statt
     * `component`: Diese Phase findet nach der Erzeugung von K8s-Cloudogu-EcoSystem-Komponenten-Ressourcen statt
   * **zu ändernde Ressourcen**: Um Kubernetes-Ressourcen im Cluster-Namespace adressieren zu können, muss in Kubernetes-Syntax die jeweilige Ressource beschrieben werden Siehe hierzu auch [Objects In Kubernetes (engl.)](https://kubernetes.io/docs/concepts/overview/working-with-objects/). Ferner wird bei Ressourcen mit Namespace-Bezug der [Namespace](#beispiel-konfiguration-anlegen) verwendet, in dem das Setup des EcoSystems konfiguriert wurde.

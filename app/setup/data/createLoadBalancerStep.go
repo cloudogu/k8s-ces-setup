@@ -35,7 +35,7 @@ func NewCreateLoadBalancerStep(config *appcontext.SetupJsonConfiguration, client
 
 // GetStepDescription return the human-readable description of the step
 func (fcs *createLoadBalancerStep) GetStepDescription() string {
-	return "Retrieving a new FQDN from the IP of a loadbalancer service"
+	return "Creating the main loadbalancer service for the Cloudogu EcoSystem"
 }
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.

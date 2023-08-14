@@ -95,11 +95,9 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 }
 
 func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *appcontext.SetupContext) error {
-	if setupContext.SetupJsonConfiguration.Naming.Fqdn == "" || setupContext.SetupJsonConfiguration.Naming.Fqdn == "<<ip>>" {
-		err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
-		if err != nil {
-			return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
-		}
+	err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
+	if err != nil {
+		return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
 	}
 
 	if setupContext.SetupJsonConfiguration.Naming.CertificateType == "selfsigned" {
@@ -109,7 +107,7 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 		}
 	}
 
-	err := setupExecutor.RegisterValidationStep()
+	err = setupExecutor.RegisterValidationStep()
 	if err != nil {
 		return fmt.Errorf("failed to register validation setup steps: %w", err)
 	}
