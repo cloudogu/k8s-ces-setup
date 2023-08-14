@@ -110,8 +110,11 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
       * `name`: The specific name of the individual resource.
    * **JSON patch**: A list of one or more JSON patches to apply to the resource, see [JSON patch RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902). These operations are supported:
       * `add` to add new values
-      * `remove` to delete existing values
+         * for this operation, a `value` field with the new value is required
       * `replace` to replace existing values with new values.
+         * for this operation, a `value` field with the new value is required
+      * `remove` to delete existing values
+        * for this operation, any `value` definition must be absent 
 
 Example:
 
@@ -129,10 +132,12 @@ resource_patches:
         path: /spec/additionalIngressAnnotations
         value:
           nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      - op: add
+      - op: replace
         path: /spec/resources
         value:
           dataVolumeSize: 5Gi
+      - op: delete
+        path: /spec/fieldWithATypo
 ```
 
 #### Notes on JSON Patches

@@ -110,8 +110,11 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
     * `name`: Der konkrete Name der einzelnen Ressource
   * **JSON-Patch**: Eine Liste von einem oder mehreren JSON-Patches, die auf die Ressource angewendet werden sollen, siehe hierzu [JSON-Patch RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902). Es werden diese Operationen unterstützt:
     * `add` zum Hinzufügen neuer Werte
-    * `remove` zum Löschen bestehender Werte
+       * für diese Operation muss ein `value`-Feld mit dem neuen Wert existieren
     * `replace` zum Ersetzen bestehender Werte mit neuen Werten
+       * für diese Operation muss ein `value`-Feld mit dem neuen Wert existieren
+    * `remove` zum Löschen bestehender Werte
+       * diese Operation akzeptiert kein `value`-Feld 
 
 Beispiel: 
 
@@ -119,20 +122,22 @@ Beispiel:
 resource_patches:
   - phase: dogu
     resource:
-# hier wird die übliche Schreibweise von Kubernetes-Ressourcen verwendet
+      # the usual notation of Kubernetes resources is used here.
       apiVersion: k8s.cloudogu.com/v1
-      kind: Dogu
+      kind: dogu
       name: nexus
     patches:
-# Hier wird eine YAML-Repräsentation von JSON verwendet, die leichter schreibbar ist. Direktes JSON ist ebenso erlaubt
+      # A YAML representation of JSON is used here, which is easier to write. Direct JSON is also allowed
       - op: add
         path: /spec/additionalIngressAnnotations
         value:
           nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      - op: add
+      - op: replace
         path: /spec/resources
         value:
           dataVolumeSize: 5Gi
+      - op: delete
+        path: /spec/fieldWithATypo
 ```
 
 #### Hinweise zu JSON-Patches
