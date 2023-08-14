@@ -12,10 +12,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 - Allows to configure the IP address placeholder `<<ip>>` in the `setup.json` section `naming/fqdn` as described in the official [setup docs](https://docs.cloudogu.com/de/docs/system-components/ces-setup/operations/setup-json/#fqdn)
+- [#52] Use latest etcd release from dogu registry.
 
 ### Fixed
 - Uses now singular context object for all Kubernetes requests
-
 
 ## [v0.15.0] - 2023-06-13
 ### Added 
