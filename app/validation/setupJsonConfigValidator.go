@@ -15,33 +15,8 @@ type validator struct {
 	registryConfigEncryptedValidator RegistryConfigEncryptedValidator
 }
 
-// NamingValidator is used to validate the naming section of the setup configuration
-type NamingValidator interface {
-	ValidateNaming(naming context.Naming) error
-}
-
-// UserBackendValidator is used to validate the user backend section of the setup configuration
-type UserBackendValidator interface {
-	ValidateUserBackend(backend context.UserBackend) error
-}
-
-// AdminValidator is used to validate the admin section of the setup configuration
-type AdminValidator interface {
-	ValidateAdmin(admin context.User, dsType string) error
-}
-
-// DoguValidator is used to validate the dogu section of the setup configuration
-type DoguValidator interface {
-	ValidateDogus(dogus context.Dogus) error
-}
-
-// RegistryConfigEncryptedValidator is used to validate the registry config encrypted section of the setup configuration
-type RegistryConfigEncryptedValidator interface {
-	ValidateRegistryConfigEncrypted(config *context.SetupConfiguration) error
-}
-
-// NewStartupConfigurationValidator creates a new setup json validator
-func NewStartupConfigurationValidator(registry remote.Registry) *validator {
+// NewSetupJsonConfigurationValidator creates a new setup json validator
+func NewSetupJsonConfigurationValidator(registry remote.Registry) *validator {
 	doguValidator := NewDoguValidator(registry)
 
 	return &validator{
@@ -53,9 +28,9 @@ func NewStartupConfigurationValidator(registry remote.Registry) *validator {
 	}
 }
 
-// ValidateConfiguration checks the section naming, user backend and user from the setup.json configuration
+// Validate checks the section naming, user backend and user from the setup.json configuration
 // see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
-func (v *validator) ValidateConfiguration(configuration *context.SetupConfiguration) error {
+func (v *validator) Validate(configuration *context.SetupJsonConfiguration) error {
 	dogus := configuration.Dogus
 	err := v.doguValidator.ValidateDogus(dogus)
 	if err != nil {

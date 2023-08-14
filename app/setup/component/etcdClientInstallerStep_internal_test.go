@@ -1,7 +1,6 @@
 package component
 
 import (
-	"context"
 	"strings"
 	"testing"
 
@@ -59,12 +58,12 @@ func TestEtcdClientInstallerStep_PerformSetupStep(t *testing.T) {
 		creator := NewEtcdClientInstallerStep(clientSetMock, etcdClientSetupCtx)
 
 		// when
-		err := creator.PerformSetupStep()
+		err := creator.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
 
-		actual, err := clientSetMock.AppsV1().Deployments(testTargetNamespaceName).Get(context.Background(), "etcd-client", metav1.GetOptions{})
+		actual, err := clientSetMock.AppsV1().Deployments(testTargetNamespaceName).Get(testCtx, "etcd-client", metav1.GetOptions{})
 		require.NoError(t, err)
 		assert.Equal(t, "etcd-client", actual.GetName())
 		require.Len(t, actual.Spec.Template.Spec.Containers, 1)

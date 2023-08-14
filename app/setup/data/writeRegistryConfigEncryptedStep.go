@@ -1,19 +1,19 @@
 package data
 
 import (
-	gocontext "context"
+	"context"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
 )
 
 type writeRegistryConfigEncryptedStep struct {
-	configuration *context.SetupConfiguration
+	configuration *appcontext.SetupJsonConfiguration
 	clientSet     kubernetes.Interface
 	namespace     string
 	Writer        MapWriter
@@ -21,11 +21,11 @@ type writeRegistryConfigEncryptedStep struct {
 
 // MapWriter is responsible to write entries into a map[string]map[string]string{}.
 type MapWriter interface {
-	WriteConfigToStringDataMap(registryConfig context.CustomKeyValue) (map[string]map[string]string, error)
+	WriteConfigToStringDataMap(registryConfig appcontext.CustomKeyValue) (map[string]map[string]string, error)
 }
 
 // NewWriteRegistryConfigEncryptedStep create a new setup step which writes the registry config encrypted configuration into the cluster.
-func NewWriteRegistryConfigEncryptedStep(configuration *context.SetupConfiguration, clientSet kubernetes.Interface, namespace string) *writeRegistryConfigEncryptedStep {
+func NewWriteRegistryConfigEncryptedStep(configuration *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeRegistryConfigEncryptedStep {
 	return &writeRegistryConfigEncryptedStep{configuration: configuration, clientSet: clientSet, namespace: namespace, Writer: &stringDataConfigurationWriter{}}
 }
 
@@ -35,7 +35,7 @@ func (wrces *writeRegistryConfigEncryptedStep) GetStepDescription() string {
 }
 
 // PerformSetupStep writes the registry config data into the registry
-func (wrces *writeRegistryConfigEncryptedStep) PerformSetupStep() error {
+func (wrces *writeRegistryConfigEncryptedStep) PerformSetupStep(ctx context.Context) error {
 	resultConfigs, err := wrces.Writer.WriteConfigToStringDataMap(wrces.configuration.RegistryConfigEncrypted)
 	if err != nil {
 		return fmt.Errorf("failed to write registry config encrypted: %w", err)
@@ -48,7 +48,7 @@ func (wrces *writeRegistryConfigEncryptedStep) PerformSetupStep() error {
 
 	// write secrets
 	for dogu, resultConfig := range resultConfigs {
-		err := wrces.createRegistryConfigEncryptedSecret(dogu, resultConfig)
+		err := wrces.createRegistryConfigEncryptedSecret(ctx, dogu, resultConfig)
 		if err != nil {
 			return fmt.Errorf("failed create %s-secrets: %w", dogu, err)
 		}
@@ -96,11 +96,11 @@ func (wrces *writeRegistryConfigEncryptedStep) appendLdapConfig(resultConfigs ma
 	}
 }
 
-func (wrces *writeRegistryConfigEncryptedStep) createRegistryConfigEncryptedSecret(dogu string, stringData map[string]string) error {
+func (wrces *writeRegistryConfigEncryptedStep) createRegistryConfigEncryptedSecret(ctx context.Context, dogu string, stringData map[string]string) error {
 	secretName := dogu + "-secrets"
 	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: wrces.namespace}, StringData: stringData}
 
-	_, err := wrces.clientSet.CoreV1().Secrets(wrces.namespace).Create(gocontext.Background(), secret, metav1.CreateOptions{})
+	_, err := wrces.clientSet.CoreV1().Secrets(wrces.namespace).Create(ctx, secret, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create secret %s: %w", secretName, err)
 	}
@@ -119,7 +119,7 @@ func NewStringDataConfigurationWriter() *stringDataConfigurationWriter {
 
 // WriteConfigToStringDataMap write the given registry config to a map. It uses the delimiter '.' because the keys
 // from the secret do not allow '/' in their data keys
-func (mcw *stringDataConfigurationWriter) WriteConfigToStringDataMap(registryConfig context.CustomKeyValue) (map[string]map[string]string, error) {
+func (mcw *stringDataConfigurationWriter) WriteConfigToStringDataMap(registryConfig appcontext.CustomKeyValue) (map[string]map[string]string, error) {
 	resultConfigs := map[string]map[string]string{}
 
 	// build a string map for every key in registry config encrypted

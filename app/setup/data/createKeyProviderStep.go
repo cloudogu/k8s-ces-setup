@@ -1,8 +1,9 @@
 package data
 
 import (
+	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 const (
@@ -30,12 +31,12 @@ func (kps *KeyProviderSetterStep) GetStepDescription() string {
 }
 
 // PerformSetupStep sets the key provider in the global config
-func (kps *KeyProviderSetterStep) PerformSetupStep() error {
+func (kps *KeyProviderSetterStep) PerformSetupStep(context.Context) error {
 	if kps.KeyProvider == "" {
 		kps.KeyProvider = DefaultKeyProvider
 	}
 
-	keyProviderConfig := context.CustomKeyValue{
+	keyProviderConfig := appcontext.CustomKeyValue{
 		"_global": map[string]interface{}{
 			"key_provider": kps.KeyProvider,
 		},

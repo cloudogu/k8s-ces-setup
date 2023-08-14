@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,7 @@ import (
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/remote/mocks"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
 func TestNewDoguStepGenerator(t *testing.T) {
@@ -20,7 +21,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
 		clusterConfig.Host = "?(?=)/()?;:#=)A=#?);#:########--------/-*/-*/*+23+435647864645a+5dfa+6523+5a6rt+5e+qA=%);=§"
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas"}}
 
 		mockRegistry := &mocks.Registry{}
 
@@ -36,7 +37,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas"}}
 
 		mockRegistry := &mocks.Registry{}
 		mockRegistry.On("Get", "official/ldap").Return(nil, assert.AnError)
@@ -54,7 +55,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap:1.2.3-4", "official/cas:4.3.2-1"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap:1.2.3-4", "official/cas:4.3.2-1"}}
 
 		mockRegistry := &mocks.Registry{}
 		mockRegistry.On("GetVersion", "official/ldap", "1.2.3-4").Return(nil, assert.AnError)
@@ -72,7 +73,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas"}}
 		doguCas := &core.Dogu{Name: "cas"}
 		doguLdap := &core.Dogu{Name: "ldap"}
 
@@ -95,7 +96,7 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas", "official/postfix:1.0.0-1", "official/postgres", "official/redmine:10.0.0-5"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas", "official/postfix:1.0.0-1", "official/postgres", "official/redmine:10.0.0-5"}}
 		doguCas := &core.Dogu{Name: "cas", Version: "6.5.4-2"}
 		doguLdap := &core.Dogu{Name: "ldap", Version: "2.1.0-1"}
 		doguPostfix := &core.Dogu{Name: "postfix", Version: "1.0.0-1"}
@@ -127,7 +128,7 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
 		clusterConfig := &rest.Config{}
-		dogus := context.Dogus{Install: []string{"official/ldap", "official/cas", "official/postfix:1.0.0-1", "official/postgres", "official/redmine:10.0.0-5"}}
+		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas", "official/postfix:1.0.0-1", "official/postgres", "official/redmine:10.0.0-5"}}
 		doguCas := &core.Dogu{Name: "cas", Version: "6.5.4-2", ServiceAccounts: []core.ServiceAccount{{Type: "ldap"}}, Dependencies: []core.Dependency{{Type: "dogu", Name: "ldap"}}}
 		doguLdap := &core.Dogu{Name: "ldap", Version: "2.1.0-1"}
 		doguPostfix := &core.Dogu{Name: "postfix", Version: "1.0.0-1"}
@@ -165,7 +166,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 	t.Run("generates wait step to wait for dogus", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
-		dogus := context.Dogus{}
+		dogus := appcontext.Dogus{}
 
 		clusterConfig := &rest.Config{}
 		serviceAccount := core.ServiceAccount{
@@ -188,7 +189,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 	t.Run("generates wait step to wait for dogus (explicit kind)", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
-		dogus := context.Dogus{}
+		dogus := appcontext.Dogus{}
 
 		clusterConfig := &rest.Config{}
 		serviceAccount := core.ServiceAccount{
@@ -211,7 +212,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 	t.Run("does not generate wait step because there is already a similar waiting step", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
-		dogus := context.Dogus{}
+		dogus := appcontext.Dogus{}
 
 		clusterConfig := &rest.Config{}
 		serviceAccount := core.ServiceAccount{
@@ -237,7 +238,7 @@ func Test_doguStepGenerator_createWaitStepForK8sComponent(t *testing.T) {
 	t.Run("generates wait step to wait for dogus", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
-		dogus := context.Dogus{}
+		dogus := appcontext.Dogus{}
 
 		clusterConfig := &rest.Config{}
 		serviceAccount := core.ServiceAccount{
@@ -260,7 +261,7 @@ func Test_doguStepGenerator_createWaitStepForK8sComponent(t *testing.T) {
 	t.Run("does not generate wait step because there is already a similar waiting step", func(t *testing.T) {
 		// given
 		clientMock := fake.NewSimpleClientset()
-		dogus := context.Dogus{}
+		dogus := appcontext.Dogus{}
 
 		clusterConfig := &rest.Config{}
 		serviceAccount := core.ServiceAccount{
@@ -288,6 +289,6 @@ func (f *fakeExecutorStep) GetStepDescription() string {
 	return "Wait for pod with selector dogu.name=your-most-favorite to be ready"
 }
 
-func (f *fakeExecutorStep) PerformSetupStep() error {
+func (f *fakeExecutorStep) PerformSetupStep(context.Context) error {
 	return nil
 }

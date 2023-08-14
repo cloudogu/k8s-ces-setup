@@ -72,7 +72,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset()
 
 		// when
-		actual, err := builder.NewSetupContext(fakeClient)
+		actual, err := builder.NewSetupContext(testCtx, fakeClient)
 
 		// then
 		require.NoError(t, err)
@@ -115,7 +115,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret)
 
 		// when
-		actual, err := builder.NewSetupContext(fakeClient)
+		actual, err := builder.NewSetupContext(testCtx, fakeClient)
 
 		// then
 		require.NoError(t, err)
@@ -140,7 +140,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset(startupConfigmap, registrySecret)
 
 		// when
-		_, err := builder.NewSetupContext(fakeClient)
+		_, err := builder.NewSetupContext(testCtx, fakeClient)
 
 		// then
 		require.Error(t, err)
@@ -165,7 +165,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset(configConfigmap, registrySecret)
 
 		// when
-		_, err := builder.NewSetupContext(fakeClient)
+		_, err := builder.NewSetupContext(testCtx, fakeClient)
 
 		// then
 		require.Error(t, err)
@@ -189,7 +189,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset(configConfigmap, startupConfigmap)
 
 		// when
-		_, err := builder.NewSetupContext(fakeClient)
+		_, err := builder.NewSetupContext(testCtx, fakeClient)
 
 		// then
 		require.Error(t, err)
@@ -206,7 +206,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder := NewSetupContextBuilder("1.2.3")
 
 		// when
-		_, err = builder.NewSetupContext(nil)
+		_, err = builder.NewSetupContext(testCtx, nil)
 
 		// then
 		require.Error(t, err)
@@ -221,7 +221,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder.DevSetupConfigPath = "invalid"
 
 		// when
-		_, err := builder.NewSetupContext(nil)
+		_, err := builder.NewSetupContext(testCtx, nil)
 
 		// then
 		require.Error(t, err)
@@ -237,7 +237,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder.DevStartupConfigPath = "testdata/invalidSetupJson.json"
 
 		// when
-		_, err := builder.NewSetupContext(nil)
+		_, err := builder.NewSetupContext(testCtx, nil)
 
 		// then
 		require.Error(t, err)
@@ -254,7 +254,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder.DevDoguRegistrySecretPath = "invalid.yaml"
 
 		// when
-		_, err := builder.NewSetupContext(nil)
+		_, err := builder.NewSetupContext(testCtx, nil)
 
 		// then
 		require.Error(t, err)
@@ -269,7 +269,7 @@ func TestGetSetupStateConfigMap(t *testing.T) {
 		clientset := fake.NewSimpleClientset()
 
 		// when
-		actual, err := GetSetupStateConfigMap(clientset, namespace)
+		actual, err := GetSetupStateConfigMap(testCtx, clientset, namespace)
 
 		// then
 		require.NoError(t, err)
@@ -287,7 +287,7 @@ func TestGetSetupStateConfigMap(t *testing.T) {
 		})
 
 		// when
-		_, err := GetSetupStateConfigMap(clientset, namespace)
+		_, err := GetSetupStateConfigMap(testCtx, clientset, namespace)
 
 		// then
 		require.Error(t, err)
@@ -303,7 +303,7 @@ func TestGetSetupStateConfigMap(t *testing.T) {
 		})
 
 		// when
-		_, err := GetSetupStateConfigMap(clientset, namespace)
+		_, err := GetSetupStateConfigMap(testCtx, clientset, namespace)
 
 		// then
 		require.Error(t, err)

@@ -7,17 +7,29 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.16.0] - 2023-08-14
+### Added
+- [#56] Allow to configure resource patches, a powerful way to modify Kubernetes resources during the setup process
+  - please see the [docs](docs/operations/configuration_guide_en.md) for more information
+
+### Changed
+- Allows to configure the IP address placeholder `<<ip>>` in the `setup.json` section `naming/fqdn` as described in the official [setup docs](https://docs.cloudogu.com/de/docs/system-components/ces-setup/operations/setup-json/#fqdn)
+- [#52] Use latest etcd release from dogu registry.
+
+### Fixed
+- Uses now singular context object for all Kubernetes requests
+
 ## [v0.15.0] - 2023-06-13
 ### Added 
-- [#54] Use ip as fqdn from load balancer if missing
-  - With this change, we are improving the development on external cloud providers by identifying the fqdn early on.
+- [#54] Use IP address as FQDN from load-balancer if it is missing
+  - With this change, we are improving the development on external cloud providers by identifying the FQDN early on.
 
 ## [v0.14.0] - 2023-05-16
 ### Fixed
 - [#50] Reduce technical debt
 
 ### Changed
-- [#48] Deploy the etcd client as deployment.
+- [#48] Deploy the etcd client as deployment instead of stateful set.
 
 ## [v0.13.2] - 2023-04-14
 ### Fixed

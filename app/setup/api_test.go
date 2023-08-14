@@ -40,7 +40,7 @@ func TestSetupAPI(t *testing.T) {
 
 		// when
 		logs, err := captureLogs(func() {
-			SetupAPI(routesMock, restConfig, clientSet, setupCtxBuilder)
+			SetupAPI(testCtx, routesMock, restConfig, clientSet, setupCtxBuilder)
 		})
 
 		// then
@@ -83,7 +83,7 @@ func TestSetupAPI(t *testing.T) {
 
 		// when
 		logs, err := captureLogs(func() {
-			SetupAPI(routesMock, restConfig, clientSet, setupCtxBuilder)
+			SetupAPI(testCtx, routesMock, restConfig, clientSet, setupCtxBuilder)
 		})
 
 		// then

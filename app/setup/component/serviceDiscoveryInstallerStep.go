@@ -1,13 +1,14 @@
 package component
 
 import (
+	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/core"
 )
 
 // NewServiceDiscoveryInstallerStep creates a step to install the k8s-service-discovery.
-func NewServiceDiscoveryInstallerStep(setupCtx *context.SetupContext, k8sClient k8sClient) (*serviceDiscoveryInstallerStep, error) {
+func NewServiceDiscoveryInstallerStep(setupCtx *appcontext.SetupContext, k8sClient k8sClient) (*serviceDiscoveryInstallerStep, error) {
 	return &serviceDiscoveryInstallerStep{
 		namespace:              setupCtx.AppConfig.TargetNamespace,
 		resourceURL:            setupCtx.AppConfig.ServiceDiscoveryURL,
@@ -29,7 +30,7 @@ func (sdis *serviceDiscoveryInstallerStep) GetStepDescription() string {
 }
 
 // PerformSetupStep installs the service discovery.
-func (sdis *serviceDiscoveryInstallerStep) PerformSetupStep() error {
+func (sdis *serviceDiscoveryInstallerStep) PerformSetupStep(context.Context) error {
 	fileContent, err := sdis.resourceRegistryClient.GetResourceFileContent(sdis.resourceURL)
 	if err != nil {
 		return err

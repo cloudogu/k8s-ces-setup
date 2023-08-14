@@ -64,7 +64,7 @@ func TestServiceDiscoveryInstallerStep_PerformSetupStep(t *testing.T) {
 		}
 
 		// when
-		err := installer.PerformSetupStep()
+		err := installer.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
@@ -30,7 +30,7 @@ func TestNewGenericConfigurationWriter(t *testing.T) {
 func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 	t.Run("failed to write to config", func(t *testing.T) {
 		// given
-		registryConfig := context.CustomKeyValue{
+		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"test3": "myTestKey3",
 			},
@@ -53,7 +53,7 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 
 	t.Run("set all keys correctly", func(t *testing.T) {
 		// given
-		registryConfig := context.CustomKeyValue{
+		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"test": map[string]string{
 					"t1": "myTestt1",
