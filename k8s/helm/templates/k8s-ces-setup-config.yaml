@@ -14,6 +14,6 @@ data:
       {{- end }}
     {{- end }}
     log_level: {{ or .Values.log_level "ERROR"}}
-    etcd_client_image_repo:{{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
+    etcd_client_image_repo: {{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
     key_provider: {{ or .Values.key_provider "pkcs1v15"}}
     resource_patches: {{ or .Values.resource_patches ""}}

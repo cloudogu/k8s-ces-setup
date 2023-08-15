@@ -44,7 +44,12 @@ include build/make/k8s.mk
 include build/make/mocks.mk
 include build/make/release.mk
 
-K8S_PRE_GENERATE_TARGETS=template-dev-only-image-pull-policy
+K8S_PRE_GENERATE_TARGETS=k8s-create-temporary-resource template-dev-only-image-pull-policy
+
+HELM_DOGU_REGISTRY_ARGS=--set=dogu_registry_secret.username='${DOGU_REGISTRY_USERNAME}' --set=dogu_registry_secret.password='${DOGU_REGISTRY_PASSWORD}'
+HELM_DOCKER_REGISTRY_ARGS=--set=docker_registry_secret.username='${DOCKER_REGISTRY_USERNAME}' --set=docker_registry_secret.password='${DOCKER_REGISTRY_PASSWORD}'
+HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
+ADDITIONAL_HELM_APPLY_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
 
 ##@ EcoSystem
 
@@ -94,15 +99,17 @@ run: ## Run a setup from your host.
 	go run ./main.go
 
 .PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource: create-temporary-release-resource template-dev-only-image-pull-policy
+k8s-create-temporary-resource: $(K8S_RESOURCE_TEMP_FOLDER)
+	@cp $(K8S_SETUP_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
+	@$(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").image)=\"$(IMAGE)\"" $(K8S_RESOURCE_TEMP_YAML)
+
+
+.PHONY: create-temporary-dev-resource
+create-temporary-dev-resource: $(K8S_RESOURCE_TEMP_FOLDER) k8s-create-temporary-resource template-dev-only-image-pull-policy
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
 	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
-
-.PHONY: create-temporary-release-resource
-create-temporary-release-resource: $(K8S_RESOURCE_TEMP_FOLDER)
-	@cp $(K8S_SETUP_CONFIG_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
 	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
-	@cat $(K8S_SETUP_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
+	@cat $(K8S_SETUP_CONFIG_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
 
 .PHONY: template-dev-only-image-pull-policy
 template-dev-only-image-pull-policy: $(BINARY_YQ)
