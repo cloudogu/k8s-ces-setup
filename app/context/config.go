@@ -20,6 +20,8 @@ type Config struct {
 	LogLevel logrus.Level `yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
 	TargetNamespace string `yaml:"target_namespace"`
+	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
+	ComponentOperatorChart string `yaml:"component_operator_chart"`
 	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
 	DoguOperatorURL string `yaml:"dogu_operator_url"`
 	// ServiceDiscoveryURL sets the K8s resource URL which controls the installation of the service discovery into the current cluster.

@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/k8s-ces-setup/app/helm"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -113,6 +114,20 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
 	}
 
+	ociEndPoint, err := e.SetupContext.HelmRepositoryData.GetOciEndpoint()
+	if err != nil {
+		return fmt.Errorf("failed get OCI-endpoint of helm-repo: %w", err)
+	}
+	helmClient, err := helm.NewClient(e.SetupContext.AppConfig.TargetNamespace, ociEndPoint, appcontext.IsDevelopmentStage(e.SetupContext.Stage), logrus.StandardLogger().Infof)
+	if err != nil {
+		return fmt.Errorf("failed to create helm-client: %w", err)
+	}
+
+	componentOpInstallerStep, err := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
+	if err != nil {
+		return fmt.Errorf("failed to create new component-operator installer step: %w", err)
+	}
+
 	etcdSrvInstallerStep, err := component.NewEtcdServerInstallerStep(e.SetupContext, k8sApplyClient)
 	if err != nil {
 		return fmt.Errorf("failed to create new etcd server installer step: %w", err)
@@ -140,6 +155,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	}
 
 	e.RegisterSetupStep(createNodeMasterStep)
+	e.RegisterSetupStep(componentOpInstallerStep)
 	e.RegisterSetupStep(etcdSrvInstallerStep)
 	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, component.PodTimeoutInSeconds()))
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))

@@ -57,6 +57,8 @@ rules:
     resources:
       - customresourcedefinitions
     verbs:
+      - get
+      - list
       - create
       - patch
       - update
@@ -374,6 +376,9 @@ spec:
             - name: dogu-registry-cert
               mountPath: /etc/ssl/certs/dogu-registry-cert.pem
               subPath: dogu-registry-cert.pem
+            - mountPath: "/tmp/.helmregistry"
+              name: component-operator-helm-registry
+              readOnly: true
       volumes:
         - configMap:
             name: k8s-ces-setup-config
@@ -386,6 +391,9 @@ spec:
           secret:
             secretName: dogu-registry-cert
             optional: true
+        - name: component-operator-helm-registry
+          secret:
+            secretName: component-operator-helm-registry
       serviceAccountName: k8s-ces-setup
       nodeSelector:
         kubernetes.io/os: linux
