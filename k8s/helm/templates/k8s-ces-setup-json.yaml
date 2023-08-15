@@ -8,5 +8,5 @@ metadata:
     app.kubernetes.io/name: k8s-ces-setup
 data:
   setup.json: |
-    {{ .Values.setup_json | toJson | nindent 4 }}
+    {{ .Values.setup_json | nindent 4 }}
 {{- end }}
