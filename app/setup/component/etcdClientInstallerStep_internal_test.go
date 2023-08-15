@@ -13,7 +13,7 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
-const etcdClientTestTargetNamespaceName = "ecosystem"
+const etcdClientTestTargetNamespaceName = "myfavouritenamespace-1"
 
 var etcdClientSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",

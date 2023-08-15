@@ -25,10 +25,11 @@ func Test_createSetupRouter(t *testing.T) {
 
 		t.Setenv(context.EnvironmentVariableTargetNamespace, "myTestNamespace")
 		t.Setenv(context.EnvironmentVariableStage, "development")
-		contextBuilder := &context.SetupContextBuilder{}
+		contextBuilder := context.NewSetupContextBuilder("dev")
 		contextBuilder.DevSetupConfigPath = "testdata/k8s-ces-setup-testdata.yaml"
 		contextBuilder.DevStartupConfigPath = "testdata/testSetup.json.yaml"
 		contextBuilder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
+		contextBuilder.DevDoguRegistrySecretPath = "testdata/test-helm-repository.yaml"
 
 		// when
 		router, err := createSetupRouter(contextBuilder)

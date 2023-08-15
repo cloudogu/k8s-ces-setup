@@ -1,7 +1,9 @@
 target_namespace: "ecosystem"
 log_level: "DEBUG"
-dogu_operator_url: https://dop.yaml
-service_discovery_url: https://sd.yaml
-etcd_server_url: https://etcds.yaml
+component_operator_chart: "k8s/k8s-component-operator:0.0.2"
+components:
+  "k8s/k8s-etcd": "1.2.3"
+  "k8s/k8s-dogu-operator": "0.0.1"
+  "k8s/k8s-service-discovery": "latest"
 etcd_client_image_repo: https://etcdc.yaml
 key_provider: pkcs1v15

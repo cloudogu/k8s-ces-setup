@@ -69,6 +69,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder.DevStartupConfigPath = "testdata/testSetupJson.json"
 		builder.DevSetupConfigPath = "testdata/testConfig.yaml"
 		builder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
+		builder.DevHelmRepositoryDataPath = "testdata/testHelmRepoData.yaml"
 		fakeClient := fake.NewSimpleClientset()
 
 		// when
@@ -78,9 +79,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "1.2.3", actual.AppVersion)
 		assert.Equal(t, "myTestNamespace", actual.AppConfig.TargetNamespace)
-		assert.Equal(t, "https://dop.yaml", actual.AppConfig.DoguOperatorURL)
-		assert.Equal(t, "https://sd.yaml", actual.AppConfig.ServiceDiscoveryURL)
-		assert.Equal(t, "https://etcds.yaml", actual.AppConfig.EtcdServerResourceURL)
+		assert.Equal(t, "k8s/k8s-component-operator:0.0.2", actual.AppConfig.ComponentOperatorChart)
 		assert.Equal(t, "https://etcdc.yaml", actual.AppConfig.EtcdClientImageRepo)
 		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
 		assert.Equal(t, "user", actual.DoguRegistryConfiguration.Username)
@@ -112,7 +111,12 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 			StringData: registrySecretData,
 		}
 
-		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret)
+		helmConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "component-operator-helm-repository",
+			Namespace: "myTestNamespace",
+		}, Data: map[string]string{"endpoint": "http://helm.repo"}}
+
+		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret, helmConfigmap)
 
 		// when
 		actual, err := builder.NewSetupContext(testCtx, fakeClient)
@@ -196,6 +200,36 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Contains(t, err.Error(), "dogu registry secret k8s-dogu-operator-dogu-registry not found")
 	})
 
+	t.Run("helm repo config not found", func(t *testing.T) {
+		// given
+		builder := NewSetupContextBuilder("1.2.3")
+		configData := map[string]string{"k8s-ces-setup.yaml": string(configBytes)}
+		configConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-config",
+			Namespace: "myTestNamespace",
+		}, Data: configData}
+		startupData := map[string]string{"setup.json": string(setupJSONBytes)}
+		startupConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-json",
+			Namespace: "myTestNamespace",
+		}, Data: startupData}
+		registrySecretData := map[string]string{"endpoint": "endpoint", "username": "username", "password": "password"}
+		registrySecret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-dogu-operator-dogu-registry",
+			Namespace: "myTestNamespace"},
+			StringData: registrySecretData,
+		}
+
+		fakeClient := fake.NewSimpleClientset(configConfigmap, startupConfigmap, registrySecret)
+
+		// when
+		_, err := builder.NewSetupContext(testCtx, fakeClient)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "helm repository configMap component-operator-helm-repository not found")
+	})
+
 	t.Run("cannot not read current namespace", func(t *testing.T) {
 		// given
 		originalNamespace, _ := GetEnvVar(EnvironmentVariableTargetNamespace)
@@ -259,6 +293,24 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "could not find registry secret at invalid.yaml")
+	})
+
+	t.Run("cannot not find helm repo config", func(t *testing.T) {
+		// given
+		t.Setenv(EnvironmentVariableStage, StageDevelopment)
+
+		builder := NewSetupContextBuilder("1.2.3")
+		builder.DevSetupConfigPath = "testdata/testConfig.yaml"
+		builder.DevStartupConfigPath = "testdata/testSetupJson.json"
+		builder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
+		builder.DevHelmRepositoryDataPath = "invalid.yaml"
+
+		// when
+		_, err := builder.NewSetupContext(testCtx, nil)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "could not find configuration at invalid.yaml")
 	})
 }
 
