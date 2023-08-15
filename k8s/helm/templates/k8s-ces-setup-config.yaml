@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-ces-setup-config
+  labels:
+    app: ces
+    app.kubernetes.io/name: k8s-ces-setup
+data:
+  k8s-ces-setup.yaml: |
+    {{- if .Values.components }}
+    components:
+      {{- range $component, $tag := .Values.components}}
+      {{ printf "%s%s%s" $component ":" $tag | nindent 6 }}
+      {{- end }}
+    {{- end }}
+    log_level: {{ or .Values.log_level "ERROR"}}
+    etcd_client_image_repo:{{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
+    key_provider: {{ or .Values.key_provider "pkcs1v15"}}
+    resource_patches: {{ or .Values.resource_patches ""}}
