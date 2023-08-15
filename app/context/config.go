@@ -22,12 +22,8 @@ type Config struct {
 	TargetNamespace string `yaml:"target_namespace"`
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
 	ComponentOperatorChart string `yaml:"component_operator_chart"`
-	// DoguOperatorResourceURL sets the K8s resource URL which controls the installation of the operator into the current cluster.
-	DoguOperatorURL string `yaml:"dogu_operator_url"`
-	// ServiceDiscoveryURL sets the K8s resource URL which controls the installation of the service discovery into the current cluster.
-	ServiceDiscoveryURL string `yaml:"service_discovery_url"`
-	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
-	EtcdServerResourceURL string `yaml:"etcd_server_url"`
+	// Components sets the List of Components that should be installed by the setup
+	Components map[string]string `yaml:"components"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values

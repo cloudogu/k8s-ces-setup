@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudogu/k8s-ces-setup/app/helm"
+	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
-	"github.com/cloudogu/k8s-apply-lib/apply"
-	k8sv1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
-
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
@@ -21,8 +19,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
-
-const k8sSetupFieldManagerName = "k8s-ces-setup"
 
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
@@ -105,15 +101,6 @@ func (e *Executor) PerformSetup(ctx context.Context) (err error, errCausingActio
 
 // RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	k8sApplyClient, scheme1, err := apply.New(e.ClusterConfig, k8sSetupFieldManagerName)
-	if err != nil {
-		return fmt.Errorf("failed to create k8s apply client: %w", err)
-	}
-	err = k8sv1.AddToScheme(scheme1)
-	if err != nil {
-		return fmt.Errorf("failed add applier scheme to dogu CRD scheme handling: %w", err)
-	}
-
 	ociEndPoint, err := e.SetupContext.HelmRepositoryData.GetOciEndpoint()
 	if err != nil {
 		return fmt.Errorf("failed get OCI-endpoint of helm-repo: %w", err)
@@ -128,39 +115,53 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create new component-operator installer step: %w", err)
 	}
 
-	etcdSrvInstallerStep, err := component.NewEtcdServerInstallerStep(e.SetupContext, k8sApplyClient)
-	if err != nil {
-		return fmt.Errorf("failed to create new etcd server installer step: %w", err)
-	}
-
-	doguOpInstallerStep, err := component.NewDoguOperatorInstallerStep(e.SetupContext, k8sApplyClient)
-	if err != nil {
-		return fmt.Errorf("failed to create new dogu operator installer step: %w", err)
-	}
-
-	serviceDisInstallerStep, err := component.NewServiceDiscoveryInstallerStep(e.SetupContext, k8sApplyClient)
-	if err != nil {
-		return fmt.Errorf("failed to create new service discovery installer step: %w", err)
-	}
-
 	namespace := e.SetupContext.AppConfig.TargetNamespace
+
+	// create component steps
+	ecoSystemClient, err := componentEcoSystem.NewForConfig(e.ClusterConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create K8s Component-EcoSystem client: %w", err)
+	}
+	componentSteps := make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
+	componentInstalledSteps := make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
+	index := 0
+	for fullComponentName, version := range e.SetupContext.AppConfig.Components {
+		componentName := fullComponentName[strings.LastIndex(fullComponentName, "/")+1:]
+		componentNameSpace := fullComponentName[:strings.LastIndex(fullComponentName, "/")]
+
+		componentSteps[index] = component.NewInstallComponentsStep(ecoSystemClient, componentName, componentNameSpace, version, namespace)
+
+		labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, componentName)
+		componentInstalledSteps[index] = component.NewWaitForComponentStep(ecoSystemClient, labelSelector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
+		index++
+	}
+
 	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create node master file creation step: %w", err)
 	}
 
-	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
+	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, namespace)
 	if err != nil {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
+	// Register steps
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(componentOpInstallerStep)
-	e.RegisterSetupStep(etcdSrvInstallerStep)
-	e.RegisterSetupStep(component.NewWaitForPodStep(e.ClientSet, "statefulset.kubernetes.io/pod-name=etcd-0", namespace, component.PodTimeoutInSeconds()))
+
+	// install components
+	for _, step := range componentSteps {
+		e.RegisterSetupStep(step)
+	}
+
+	// wait for components to be installed
+	for _, step := range componentInstalledSteps {
+		e.RegisterSetupStep(step)
+	}
+
 	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
-	e.RegisterSetupStep(doguOpInstallerStep)
-	e.RegisterSetupStep(serviceDisInstallerStep)
+
 	// Since this step should patch resources created in this phase, it should be executed last.
 	e.RegisterSetupStep(componentResourcePatchStep)
 

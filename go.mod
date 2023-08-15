@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/cloudogu/cesapp-lib v0.12.0
 	github.com/cloudogu/k8s-apply-lib v0.4.1
+	github.com/cloudogu/k8s-component-operator v0.0.2
 	github.com/cloudogu/k8s-dogu-operator v0.30.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/mittwald/go-helm-client v0.12.3

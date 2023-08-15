@@ -13,10 +13,12 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
+const etcdClientTestTargetNamespaceName = "ecosystem"
+
 var etcdClientSetupCtx = &ctx.SetupContext{
 	AppVersion: "1.2.3",
 	AppConfig: &ctx.Config{
-		TargetNamespace:     testTargetNamespaceName,
+		TargetNamespace:     etcdClientTestTargetNamespaceName,
 		EtcdClientImageRepo: "registryurl/registryname/repo:tag",
 	},
 }
@@ -63,7 +65,7 @@ func TestEtcdClientInstallerStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		actual, err := clientSetMock.AppsV1().Deployments(testTargetNamespaceName).Get(testCtx, "etcd-client", metav1.GetOptions{})
+		actual, err := clientSetMock.AppsV1().Deployments(etcdClientTestTargetNamespaceName).Get(testCtx, "etcd-client", metav1.GetOptions{})
 		require.NoError(t, err)
 		assert.Equal(t, "etcd-client", actual.GetName())
 		require.Len(t, actual.Spec.Template.Spec.Containers, 1)

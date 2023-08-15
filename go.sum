@@ -104,6 +104,8 @@ github.com/cloudogu/cesapp-lib v0.12.0 h1:+yRVk65DljGtJj/gNpgBRhvIJHfGy7kr4/iEw1
 github.com/cloudogu/cesapp-lib v0.12.0/go.mod h1:PTQqI3xs1ReJMXYE6BGTF33yAfmS4J7P8UiE4AwDMDY=
 github.com/cloudogu/k8s-apply-lib v0.4.1 h1:2bXWFLDS1lyxUbdMBfBnAvii9p6ALwZ7Mb7VmWt+qd8=
 github.com/cloudogu/k8s-apply-lib v0.4.1/go.mod h1:2bRnmxhZBaskxUBFuOX7HDzxRX48jlPGJ+Uzkn/X+0I=
+github.com/cloudogu/k8s-component-operator v0.0.2 h1:Kkgw1yf5w3RDtyCcp5lnM4gGifYk9MDk9Ce46StRUf4=
+github.com/cloudogu/k8s-component-operator v0.0.2/go.mod h1:qykG23iLwglJdhgiWRQu9nJY0TRJBuwOoj6N57Zixsc=
 github.com/cloudogu/k8s-dogu-operator v0.30.0 h1:Rgrwu6SUNr0qDU3XZ02fmIatGyvijLlTTxWpDi3SEcY=
 github.com/cloudogu/k8s-dogu-operator v0.30.0/go.mod h1:bkDYHnjjBnIeN0OnSoqAQkDfb5eqK9Iqf/PDQXwy32Y=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
@@ -498,7 +500,7 @@ github.com/nelsam/hel/v2 v2.3.2/go.mod h1:1ZTGfU2PFTOd5mx22i5O0Lc2GY933lQ2wb/ggy
 github.com/nelsam/hel/v2 v2.3.3/go.mod h1:1ZTGfU2PFTOd5mx22i5O0Lc2GY933lQ2wb/ggy+rL3w=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
-github.com/onsi/ginkgo v1.12.1 h1:mFwc4LvZ0xpSvDZ3E+k8Yte0hLOMxXUlP+yXtJqkYfQ=
+github.com/onsi/ginkgo v1.16.5 h1:8xi0RTUf59SOSfEtZMvwTvXYMzG4gV23XVHOZiXNtnE=
 github.com/onsi/ginkgo/v2 v2.9.5 h1:+6Hr4uxzP4XIUyAkg61dWBw8lb/gc4/X5luuxN/EC+Q=
 github.com/onsi/gomega v1.27.7 h1:fVih9JD6ogIiHUN6ePK7HJidyEDpWGVB5mzM7cWNXoU=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
