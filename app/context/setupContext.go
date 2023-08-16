@@ -118,50 +118,58 @@ func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet k
 
 func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
 	if IsDevelopmentStage(scb.stage) {
-		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		helmRepositoryData, err := ReadHelmRepositoryDataFromFile(scb.DevHelmRepositoryDataPath)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		return config, setupJson, doguRegistrySecret, helmRepositoryData, nil
-	} else {
-		config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		setupJson, err := ReadSetupConfigFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		helmRepositoryData, err := ReadHelmRepositoryDataFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-
-		return config, setupJson, doguRegistrySecret, helmRepositoryData, err
+		return scb.getDevConfig()
 	}
+
+	return scb.getConfigFromCluster(ctx, clientSet, targetNamespace)
+}
+
+func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+	config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	helmRepositoryData, err := ReadHelmRepositoryDataFromFile(scb.DevHelmRepositoryDataPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return config, setupJson, doguRegistrySecret, helmRepositoryData, nil
+}
+
+func (scb *SetupContextBuilder) getConfigFromCluster(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+	config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	setupJson, err := ReadSetupConfigFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	helmRepositoryData, err := ReadHelmRepositoryDataFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return config, setupJson, doguRegistrySecret, helmRepositoryData, err
 }
 
 func IsDevelopmentStage(stage string) bool {

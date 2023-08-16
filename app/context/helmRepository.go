@@ -27,7 +27,7 @@ func (hrd *HelmRepositoryData) GetOciEndpoint() (string, error) {
 
 // ReadHelmRepositoryDataFromCluster reads the helm repository data from the kubernetes configmap.
 func ReadHelmRepositoryDataFromCluster(ctx context.Context, client kubernetes.Interface, namespace string) (*HelmRepositoryData, error) {
-	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(context.TODO(), HelmRepositoryConfigMapName, metav1.GetOptions{})
+	configMap, err := client.CoreV1().ConfigMaps(namespace).Get(ctx, HelmRepositoryConfigMapName, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("helm repository configMap %s not found: %w", HelmRepositoryConfigMapName, err)
 	} else if err != nil {
