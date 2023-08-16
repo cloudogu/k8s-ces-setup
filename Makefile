@@ -2,7 +2,7 @@
 ARTIFACT_ID=k8s-ces-setup
 VERSION=0.15.0
 
-GOTAG?=1.20.4
+GOTAG?=1.20
 MAKEFILES_VERSION=7.10.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
