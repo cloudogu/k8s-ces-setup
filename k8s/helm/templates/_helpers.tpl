@@ -15,3 +15,20 @@ Creates the docker config json string used as a docker secret.
   {{- $passwort := index . 2 }}
   {"auths":{"{{ $url }}":{"username":"{{ $username }}","password":"{{ $passwort }}","email":"test@mtest.de","auth":"{{ printf "%s%s%s" $username ":" $passwort | b64enc}}"}}}
 {{- end }}
+
+{{- define "printCloudoguLogo" }}
+{{- printf "\n" }}
+...
+                    ./////,
+                ./////==//////*
+               ////.  ___   ////.
+        ,**,. ////  ,////A,  */// ,**,.
+   ,/////////////*  */////*  *////////////A
+  ////'        \VA.   '|'   .///'       '///*
+ *///  .*///*,         |         .*//*,   ///*
+ (///  (//////)**--_./////_----*//////)   ///)
+  V///   '°°°°      (/////)      °°°°'   ////
+   V/////(////////\. '°°°' ./////////(///(/'
+      'V/(/////////////////////////////V'
+{{- printf "\n" }}
+{{- end }}
