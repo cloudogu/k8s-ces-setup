@@ -6,6 +6,7 @@ metadata:
     {{- include "labels" }}
 data:
   k8s-ces-setup.yaml: |
+    component-operator-chart: {{ .Values.component_operator_chart }}
     dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
     service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
     etcd_server_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-etcd
