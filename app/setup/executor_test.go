@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"errors"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -197,6 +198,13 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 }
 
 func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
+	// override default controller method to retrieve a kube config
+	oldGetConfigOrDieDelegate := ctrl.GetConfigOrDie
+	defer func() { ctrl.GetConfigOrDie = oldGetConfigOrDieDelegate }()
+	ctrl.GetConfigOrDie = func() *rest.Config {
+		return &rest.Config{}
+	}
+
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given
 		testContext := &appcontext.SetupContext{

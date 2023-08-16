@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 )
 
@@ -52,6 +53,13 @@ func TestSetupAPI(t *testing.T) {
 		// given
 		t.Setenv("POD_NAMESPACE", "ecosystem")
 		t.Setenv("STAGE", "development")
+
+		// override default controller method to retrieve a kube config
+		oldGetConfigOrDieDelegate := ctrl.GetConfigOrDie
+		defer func() { ctrl.GetConfigOrDie = oldGetConfigOrDieDelegate }()
+		ctrl.GetConfigOrDie = func() *rest.Config {
+			return &rest.Config{}
+		}
 
 		routesMock := newMockGinRoutes(t)
 		routesMock.EXPECT().POST("/api/v1/setup", mock.AnythingOfType("gin.HandlerFunc")).RunAndReturn(func(_ string, handlerFunc ...gin.HandlerFunc) gin.IRoutes {
