@@ -53,6 +53,9 @@ func NewClient(namespace string, helmRepoOciEndpoint string, debug bool, debugLo
 // InstallOrUpgradeChart uses Helm to install the given chart in the given namespace.
 func (c *Client) InstallOrUpgradeChart(ctx context.Context, namespace string, chart string, version string) error {
 	chartName := chart[strings.LastIndex(chart, "/")+1:]
+	if len(chartName) <= 0 {
+		return fmt.Errorf("error reading chartname '%s': wrong format", chart)
+	}
 
 	chartSpec := &helmclient.ChartSpec{
 		ReleaseName: chartName,

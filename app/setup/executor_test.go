@@ -233,6 +233,25 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to create K8s Component-EcoSystem client")
 	})
+
+	t.Run("failed to get oci-endpoint of helm-repo", func(t *testing.T) {
+		// given
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
+			HelmRepositoryData: &appcontext.HelmRepositoryData{Endpoint: "helm.repo"},
+		}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed get OCI-endpoint of helm-repo")
+	})
 }
 
 func Test_getRemoteConfig(t *testing.T) {

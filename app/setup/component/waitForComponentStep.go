@@ -14,16 +14,16 @@ import (
 var DefaultComponentWaitTimeOut5Minutes = time.Second * 300
 
 type waitForComponentStep struct {
-	clientSet     ecoSystemClient
+	client        componentsClient
 	labelSelector string
 	namespace     string
 	timeout       time.Duration
 }
 
 // NewWaitForComponentStep creates a new setup step which on waits for a component with a specific label
-func NewWaitForComponentStep(client ecoSystemClient, labelSelector string, namespace string, timeout time.Duration) *waitForComponentStep {
+func NewWaitForComponentStep(client componentsClient, labelSelector string, namespace string, timeout time.Duration) *waitForComponentStep {
 	return &waitForComponentStep{
-		clientSet:     client,
+		client:        client,
 		labelSelector: labelSelector,
 		namespace:     namespace,
 		timeout:       timeout,
@@ -42,7 +42,7 @@ func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
 
 // isComponentInstalled does a watch on a component and returns nil if the component is installed and the configured timout is not reached
 func (wfcs *waitForComponentStep) isComponentInstalled(ctx context.Context) error {
-	watch, err := wfcs.clientSet.Components(wfcs.namespace).Watch(ctx, metav1.ListOptions{LabelSelector: wfcs.labelSelector})
+	watch, err := wfcs.client.Watch(ctx, metav1.ListOptions{LabelSelector: wfcs.labelSelector})
 	if err != nil {
 		return fmt.Errorf("failed to create watch on component: %w", err)
 	}

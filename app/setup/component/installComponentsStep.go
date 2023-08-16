@@ -8,12 +8,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ecoSystemClient interface {
-	Components(namespace string) ecosystem.ComponentInterface
+type componentsClient interface {
+	ecosystem.ComponentInterface
 }
 
 type installComponentsStep struct {
-	client             ecoSystemClient
+	client             componentsClient
 	componentName      string
 	componentNamespace string
 	version            string
@@ -21,21 +21,21 @@ type installComponentsStep struct {
 }
 
 // NewInstallComponentsStep creates a new step responsible to apply a component resource to the cluster, and, thus, starting the component installation.
-func NewInstallComponentsStep(client ecoSystemClient, componentName string, componentNamespace string, version string, namespace string) *installComponentsStep {
+func NewInstallComponentsStep(client componentsClient, componentName string, componentNamespace string, version string, namespace string) *installComponentsStep {
 	return &installComponentsStep{client: client, componentName: componentName, componentNamespace: componentNamespace, version: version, namespace: namespace}
 }
 
 // GetStepDescription return the human-readable description of the step
 func (ics *installComponentsStep) GetStepDescription() string {
-	return fmt.Sprintf("Installing component [%s:%s]", ics.componentName, ics.version)
+	return fmt.Sprintf("Installing component '%s/%s:%s'", ics.componentNamespace, ics.componentName, ics.version)
 }
 
 // PerformSetupStep applies a component resource for the configured component to the cluster.
 func (ics *installComponentsStep) PerformSetupStep(ctx context.Context) error {
 	cr := getComponentCr(ics.componentName, ics.componentNamespace, ics.version, ics.namespace)
-	_, err := ics.client.Components(cr.Namespace).Create(ctx, cr, metav1.CreateOptions{})
+	_, err := ics.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to apply component '%s:%s' : %w", ics.componentName, ics.version, err)
+		return fmt.Errorf("failed to apply component '%s/%s:%s' : %w", ics.componentNamespace, ics.componentName, ics.version, err)
 	}
 
 	return nil

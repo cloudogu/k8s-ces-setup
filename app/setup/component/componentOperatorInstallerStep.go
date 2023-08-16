@@ -19,12 +19,12 @@ type componentOperatorInstallerStep struct {
 }
 
 // NewComponentOperatorInstallerStep creates new instance of the component-operator
-func NewComponentOperatorInstallerStep(setupCtx *appcontext.SetupContext, helmClient helmClient) (*componentOperatorInstallerStep, error) {
+func NewComponentOperatorInstallerStep(setupCtx *appcontext.SetupContext, helmClient helmClient) *componentOperatorInstallerStep {
 	return &componentOperatorInstallerStep{
 		namespace:  setupCtx.AppConfig.TargetNamespace,
 		chart:      setupCtx.AppConfig.ComponentOperatorChart,
 		helmClient: helmClient,
-	}, nil
+	}
 }
 
 // GetStepDescription returns a human-readable description of the component-operator installation step.

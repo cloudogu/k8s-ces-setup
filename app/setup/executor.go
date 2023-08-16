@@ -110,30 +110,14 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("failed to create helm-client: %w", err)
 	}
 
-	componentOpInstallerStep, err := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
-	if err != nil {
-		return fmt.Errorf("failed to create new component-operator installer step: %w", err)
-	}
-
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
+	componentOpInstallerStep := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
+
 	// create component steps
-	ecoSystemClient, err := componentEcoSystem.NewForConfig(e.ClusterConfig)
+	componentSteps, componentWaitSteps, err := e.createComponentSteps(namespace)
 	if err != nil {
-		return fmt.Errorf("failed to create K8s Component-EcoSystem client: %w", err)
-	}
-	componentSteps := make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
-	componentInstalledSteps := make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
-	index := 0
-	for fullComponentName, version := range e.SetupContext.AppConfig.Components {
-		componentName := fullComponentName[strings.LastIndex(fullComponentName, "/")+1:]
-		componentNameSpace := fullComponentName[:strings.LastIndex(fullComponentName, "/")]
-
-		componentSteps[index] = component.NewInstallComponentsStep(ecoSystemClient, componentName, componentNameSpace, version, namespace)
-
-		labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, componentName)
-		componentInstalledSteps[index] = component.NewWaitForComponentStep(ecoSystemClient, labelSelector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
-		index++
+		return fmt.Errorf("failed to create component-steps: %w", err)
 	}
 
 	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
@@ -156,7 +140,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	}
 
 	// wait for components to be installed
-	for _, step := range componentInstalledSteps {
+	for _, step := range componentWaitSteps {
 		e.RegisterSetupStep(step)
 	}
 
@@ -166,6 +150,30 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	e.RegisterSetupStep(componentResourcePatchStep)
 
 	return nil
+}
+
+func (e *Executor) createComponentSteps(namespace string) (componentSteps []ExecutorStep, waitSteps []ExecutorStep, err error) {
+	ecoSystemClient, err := componentEcoSystem.NewForConfig(e.ClusterConfig)
+	if err != nil {
+		return componentSteps, waitSteps, fmt.Errorf("failed to create K8s Component-EcoSystem client: %w", err)
+	}
+	componentsClient := ecoSystemClient.Components(namespace)
+
+	componentSteps = make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
+	waitSteps = make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
+	index := 0
+	for fullComponentName, version := range e.SetupContext.AppConfig.Components {
+		componentName := fullComponentName[strings.LastIndex(fullComponentName, "/")+1:]
+		componentNameSpace := fullComponentName[:strings.LastIndex(fullComponentName, "/")]
+
+		componentSteps[index] = component.NewInstallComponentsStep(componentsClient, componentName, componentNameSpace, version, namespace)
+
+		labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, componentName)
+		waitSteps[index] = component.NewWaitForComponentStep(componentsClient, labelSelector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
+		index++
+	}
+
+	return
 }
 
 func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, clusterConfig *rest.Config, targetNamespace string) (*resourcePatchStep, error) {
