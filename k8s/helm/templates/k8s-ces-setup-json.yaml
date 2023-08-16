@@ -4,8 +4,7 @@ kind: ConfigMap
 metadata:
   name: k8s-ces-setup-json
   labels:
-    app: ces
-    app.kubernetes.io/name: k8s-ces-setup
+    {{- include "labels" }}
 data:
   setup.json: |
     {{ .Values.setup_json | nindent 4 }}
