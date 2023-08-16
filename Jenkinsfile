@@ -22,6 +22,9 @@ productionReleaseBranch = "main"
 developmentBranch = "develop"
 currentBranch = "${env.BRANCH_NAME}"
 
+registry = "registry.cloudogu.com"
+registry_namespace = "k8s"
+
 node('docker') {
     timestamps {
         properties([
@@ -207,7 +210,7 @@ void stageAutomaticRelease() {
         }
 
         stage('Regenerate resources for release') {
-            make 'create-temporary-release-resource'
+            make 'k8s-create-temporary-resource'
         }
 
         stage('Push to Registry') {
@@ -215,6 +218,21 @@ void stageAutomaticRelease() {
 
             DoguRegistry registry = new DoguRegistry(this)
             registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", "${setupVersion}")
+        }
+
+        stage('Push Helm chart to Harbor') {
+            new Docker(this)
+                    .image("golang:${goVersion}")
+                    .mountJenkinsUser()
+                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                            {
+                                make 'k8s-helm-package-release'
+
+                                withCredentials([usernamePassword(credentialsId: 'harborhelmchartpush', usernameVariable: 'HARBOR_USERNAME', passwordVariable: 'HARBOR_PASSWORD')]) {
+                                    sh ".bin/helm registry login ${registry} --username '${HARBOR_USERNAME}' --password '${HARBOR_PASSWORD}'"
+                                    sh ".bin/helm push target/make/k8s/helm/${repositoryName}-${setupVersion}.tgz oci://${registry}/${registry_namespace}/"
+                                }
+                            }
         }
     }
 }
