@@ -6,19 +6,8 @@ This document information to support the development on the `k8s-ces-setup`.
 
 First, development files should be created to be used instead of the cluster values:
 
-Dogu-operator-resource:
-- place a suitable YAML file (e.g. `dev-dogu-operator.yaml`) under `k8s/dev-resources/`.
-- `make serve-local-yaml` returns all resources in the directory
-   <!-- markdown-link-check-disable-next-line -->
-   - Test: http://localhost:9876/
-   - a DNS/host alias is useful to communicate from the local K8s cluster to this HTTP server
-   - the target needs Python3
-
-`k8s/dev-config/k8s-ces-setup.yaml`:
-- `namespace` specifies in which namespace the Cloudogu EcoSystem should be installed
-- `dogu_operator_url` specifies the Dogu operator resource
-   <!-- markdown-link-check-disable-next-line -->
-   - e.g. `http://192.168.56.1:9876/dev-dogu-operator.yaml` (see above)
+* `k8s/dev-config/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_en.md)
+* `k8s/dev-config/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_en.md)
 
 ### execution with `go run` or an IDE
 
@@ -45,19 +34,14 @@ curl -I --request POST --url http://192.168.56.2:30080/api/v1/setup
 
 ## Restore pre-setup state
 
-Sometimes it is necessary to turn the time back to the beginning, e.g. to check installation routines. This can be done with the following commands (pay attention to your **current namespace**):
+Sometimes it is necessary to turn the time back to the beginning, e.g. to check installation routines.
+This can be done with the make target `k8s-clean` (pay attention to the **current namespace**):
 
 ```bash
-# delete the resources directly created by the setup
-make k8s-delete
-# deletes target namespace and all namespaced resources in it (pods, deployments, secrets, etc.)
-kubectl delete ns your-namespace
-# deletes CRD so that it can be initially imported with the dogu operator
-kubectl delete crd dogus.k8s.cloudogu.com
-# deletes clusterroles/bindings from setup installations
-kubectl delete clusterroles k8s-dogu-operator-metrics-reader ingress-nginx
-kubectl delete clusterrolebindings ingress-nginx
-# manually delete resources that may still be deployed incorrectly
+# delete all dogus & components and all the resources directly created by the setup
+make k8s-clean
+
+# manually delete any resources that may still have been incorrectly created
 ...
 ```
 
