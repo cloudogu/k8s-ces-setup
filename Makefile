@@ -98,11 +98,13 @@ setup-etcd-port-forward:
 run: ## Run a setup from your host.
 	go run ./main.go
 
-.PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource: $(K8S_RESOURCE_TEMP_FOLDER)
+.PHONY: copy-setup-resources
+copy-setup-resources:
 	@cp $(K8S_SETUP_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
-	@$(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").image)=\"$(IMAGE)\"" $(K8S_RESOURCE_TEMP_YAML)
 
+.PHONY: k8s-create-temporary-resource
+k8s-create-temporary-resource: $(K8S_RESOURCE_TEMP_FOLDER) copy-setup-resources template-dev-only-image-pull-policy
+	@$(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").image)=\"$(IMAGE)\"" $(K8S_RESOURCE_TEMP_YAML)
 
 .PHONY: create-temporary-dev-resource
 create-temporary-dev-resource: $(K8S_RESOURCE_TEMP_FOLDER) k8s-create-temporary-resource template-dev-only-image-pull-policy
