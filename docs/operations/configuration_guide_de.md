@@ -58,9 +58,9 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 ### component_operator_chart
 
 * YAML-Key: `component_operator_chart`
-* Typ: `String` als HelmChart-Bezeichner des [Komponenten-Operator](http://github.com/cloudogu/k8s-component-operator) (inkl. Namespace unf Version)
+* Typ: `String` als HelmChart-Bezeichner des [Komponenten-Operator](http://github.com/cloudogu/k8s-component-operator) (inkl. Namespace und Version)
 * Notwendige Konfiguration
-* Beschreibung: Der Komponenten-Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Das angegebene HelmChart gibt auf die zu installierende Version des Komponenten-Operators an.
+* Beschreibung: Der Komponenten-Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Das angegebene HelmChart gibt die zu installierende Version des Komponenten-Operators an.
 * Beispiel: `k8s/k8s-component-operator:0.0.2`
 
 ### components

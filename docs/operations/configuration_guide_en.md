@@ -58,7 +58,7 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 ### component_operator_chart
 
 * YAML key: `component_operator_chart`.
-* Type: `String` as HelmChart identifier of the [component operator](http://github.com/cloudogu/k8s-component-operator) (incl. namespace unf version).
+* Type: `String` as HelmChart identifier of the [component operator](http://github.com/cloudogu/k8s-component-operator) (incl. namespace and version).
 * Necessary configuration
 * Description: The component operator is a central component in the EcoSystem and must be installed. The specified HelmChart indicates the version of the component operator to be installed.
 * Example: `k8s/k8s-component-operator:0.0.2`
