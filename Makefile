@@ -49,8 +49,9 @@ K8S_PRE_GENERATE_TARGETS=k8s-create-temporary-resource template-dev-only-image-p
 #TODO test pw
 HELM_DOGU_REGISTRY_ARGS=--set=dogu_registry_secret.username='${DOGU_REGISTRY_USERNAME}' --set=dogu_registry_secret.password='${DOGU_REGISTRY_PASSWORD}'
 HELM_DOCKER_REGISTRY_ARGS=--set=docker_registry_secret.username='${DOCKER_REGISTRY_USERNAME}' --set=docker_registry_secret.password='${DOCKER_REGISTRY_PASSWORD}'
+HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.username='${HELM_REGISTRY_USERNAME}' --set=helm_registry_secret.password='${HELM_REGISTRY_PASSWORD}'
 HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
-ADDITIONAL_HELM_APPLY_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
+ADDITIONAL_HELM_APPLY_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_HELM_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
 
 ##@ EcoSystem
 

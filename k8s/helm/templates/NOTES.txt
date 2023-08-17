@@ -43,6 +43,14 @@ Warning: Specified no mandatory credentials for secret {{ $dockerSecretName }}. 
         kubectl create secret docker-registry {{ $dockerSecretName }} --namespace={{ .Release.Namespace }} --docker-username=yourusername --docker-password=yourpassword --docker-server={{ .Values.docker_registry_secret.url }} --docker-email=youremail
 {{ end }}
 
+{{- $helmSecretName := "component-operator-helm-registry" }}
+{{- if not (and .Values.helm_registry_secret.username .Values.helm_registry_secret.password) }}
+Warning: Specified no mandatory credentials for secret {{ $helmSecretName }}. You must create it before the setup can start.
+    Use the corresponding fields in the values.yaml and upgrade the chart.
+    Ignore this warning if you create it manually with:
+        kubectl create secret generic {{ $helmSecretName }} --namespace={{ .Release.Namespace }} --from-literal=config.json="{\"auths\": {\"{{ .Values.helm_registry_secret.url }}": {\"auth\": \"$(printf "%s:%s" "yourusername" "yourpassword" | base64)\"}}}"
+{{ end }}
+
 {{- $setupJsonName := "k8s-ces-setup-json" }}
 {{- if not .Values.setup_json }}
 Warning:

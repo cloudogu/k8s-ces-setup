@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: k8s-ces-setup-config
   labels:
-    {{- include "labels" }}
+    {{- include "labels" . | nindent 4}}
 data:
   k8s-ces-setup.yaml: |
     component-operator-chart: {{ .Values.component_operator_chart }}

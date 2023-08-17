@@ -40,6 +40,13 @@ dogu_registry_secret:
 #  username:
 #  password:
 
+# Credentials for the helm registry used by the components.
+# It is mandatory to set username and password.
+helm_registry_secret:
+  url: registry.cloudogu.com
+#  username:
+#  password:
+
 # Configuration for the Cloudogu EcoSystem. If all sections are completed k8s-ces-setup will start the process immediately.
 # Example:
 #setup_json:
