@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@f565dd4bca053fa1eadf6345fd1dcb519639f398')
+@Library('github.com/cloudogu/ces-build-lib@e83c30bb7831b29f786b2f24d8dd1692927442db')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
