@@ -5,6 +5,7 @@ package component
 import (
 	context "context"
 
+	helmclient "github.com/mittwald/go-helm-client"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -21,13 +22,13 @@ func (_m *mockHelmClient) EXPECT() *mockHelmClient_Expecter {
 	return &mockHelmClient_Expecter{mock: &_m.Mock}
 }
 
-// InstallOrUpgradeChart provides a mock function with given fields: ctx, namespace, chart, version
-func (_m *mockHelmClient) InstallOrUpgradeChart(ctx context.Context, namespace string, chart string, version string) error {
-	ret := _m.Called(ctx, namespace, chart, version)
+// InstallOrUpgrade provides a mock function with given fields: ctx, chart
+func (_m *mockHelmClient) InstallOrUpgrade(ctx context.Context, chart *helmclient.ChartSpec) error {
+	ret := _m.Called(ctx, chart)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, namespace, chart, version)
+	if rf, ok := ret.Get(0).(func(context.Context, *helmclient.ChartSpec) error); ok {
+		r0 = rf(ctx, chart)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -35,33 +36,31 @@ func (_m *mockHelmClient) InstallOrUpgradeChart(ctx context.Context, namespace s
 	return r0
 }
 
-// mockHelmClient_InstallOrUpgradeChart_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstallOrUpgradeChart'
-type mockHelmClient_InstallOrUpgradeChart_Call struct {
+// mockHelmClient_InstallOrUpgrade_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstallOrUpgrade'
+type mockHelmClient_InstallOrUpgrade_Call struct {
 	*mock.Call
 }
 
-// InstallOrUpgradeChart is a helper method to define mock.On call
+// InstallOrUpgrade is a helper method to define mock.On call
 //   - ctx context.Context
-//   - namespace string
-//   - chart string
-//   - version string
-func (_e *mockHelmClient_Expecter) InstallOrUpgradeChart(ctx interface{}, namespace interface{}, chart interface{}, version interface{}) *mockHelmClient_InstallOrUpgradeChart_Call {
-	return &mockHelmClient_InstallOrUpgradeChart_Call{Call: _e.mock.On("InstallOrUpgradeChart", ctx, namespace, chart, version)}
+//   - chart *helmclient.ChartSpec
+func (_e *mockHelmClient_Expecter) InstallOrUpgrade(ctx interface{}, chart interface{}) *mockHelmClient_InstallOrUpgrade_Call {
+	return &mockHelmClient_InstallOrUpgrade_Call{Call: _e.mock.On("InstallOrUpgrade", ctx, chart)}
 }
 
-func (_c *mockHelmClient_InstallOrUpgradeChart_Call) Run(run func(ctx context.Context, namespace string, chart string, version string)) *mockHelmClient_InstallOrUpgradeChart_Call {
+func (_c *mockHelmClient_InstallOrUpgrade_Call) Run(run func(ctx context.Context, chart *helmclient.ChartSpec)) *mockHelmClient_InstallOrUpgrade_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+		run(args[0].(context.Context), args[1].(*helmclient.ChartSpec))
 	})
 	return _c
 }
 
-func (_c *mockHelmClient_InstallOrUpgradeChart_Call) Return(_a0 error) *mockHelmClient_InstallOrUpgradeChart_Call {
+func (_c *mockHelmClient_InstallOrUpgrade_Call) Return(_a0 error) *mockHelmClient_InstallOrUpgrade_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *mockHelmClient_InstallOrUpgradeChart_Call) RunAndReturn(run func(context.Context, string, string, string) error) *mockHelmClient_InstallOrUpgradeChart_Call {
+func (_c *mockHelmClient_InstallOrUpgrade_Call) RunAndReturn(run func(context.Context, *helmclient.ChartSpec) error) *mockHelmClient_InstallOrUpgrade_Call {
 	_c.Call.Return(run)
 	return _c
 }

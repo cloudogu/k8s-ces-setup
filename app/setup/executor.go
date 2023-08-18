@@ -3,8 +3,8 @@ package setup
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/helm"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
+	componentHelm "github.com/cloudogu/k8s-component-operator/pkg/helm"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -101,11 +101,7 @@ func (e *Executor) PerformSetup(ctx context.Context) (err error, errCausingActio
 
 // RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 func (e *Executor) RegisterComponentSetupSteps() error {
-	ociEndPoint, err := e.SetupContext.HelmRepositoryData.GetOciEndpoint()
-	if err != nil {
-		return fmt.Errorf("failed get OCI-endpoint of helm-repo: %w", err)
-	}
-	helmClient, err := helm.NewClient(e.SetupContext.AppConfig.TargetNamespace, ociEndPoint, appcontext.IsDevelopmentStage(e.SetupContext.Stage), logrus.StandardLogger().Infof)
+	helmClient, err := componentHelm.NewClient(e.SetupContext.AppConfig.TargetNamespace, e.SetupContext.HelmRepositoryData, appcontext.IsDevelopmentStage(e.SetupContext.Stage), logrus.StandardLogger().Infof)
 	if err != nil {
 		return fmt.Errorf("failed to create helm-client: %w", err)
 	}

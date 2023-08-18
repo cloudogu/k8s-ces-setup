@@ -3,14 +3,13 @@ package component
 import (
 	"context"
 	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DefaultComponentWaitTimeOut5Minutes contains the period  when a
+// DefaultComponentWaitTimeOut5Minutes contains the default period  of 5 minutes to wait for components to get installed
 var DefaultComponentWaitTimeOut5Minutes = time.Second * 300
 
 type waitForComponentStep struct {
@@ -55,11 +54,10 @@ func (wfcs *waitForComponentStep) isComponentInstalled(ctx context.Context) erro
 
 	for event := range watch.ResultChan() {
 		component, ok := event.Object.(*v1.Component)
-		logger := log.FromContext(ctx)
 		if !ok {
-			logger.Error(fmt.Errorf("failed to cast event to component: selector=[%s] type=[%s]; object=[%+v]",
-				wfcs.labelSelector, event.Type, event.Object), "error wait for component")
-			continue
+			timer.Stop()
+			return fmt.Errorf("error wait for component: failed to cast event to component: selector=[%s] type=[%s]; object=[%+v]",
+				wfcs.labelSelector, event.Type, event.Object)
 		}
 
 		if component.Status.Status == v1.ComponentStatusInstalled {

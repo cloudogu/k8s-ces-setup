@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	helmclient "github.com/mittwald/go-helm-client"
 	"strings"
+	"time"
 )
 
 type helmClient interface {
-	// InstallOrUpgradeChart uses Helm to install the given chart in the given namespace.
-	InstallOrUpgradeChart(ctx context.Context, namespace string, chart string, version string) error
+	// InstallOrUpgrade takes a component and applies the corresponding helmChart.
+	InstallOrUpgrade(ctx context.Context, chart *helmclient.ChartSpec) error
 }
 
 type componentOperatorInstallerStep struct {
@@ -39,5 +41,24 @@ func (cois *componentOperatorInstallerStep) PerformSetupStep(ctx context.Context
 		return fmt.Errorf("componentOperatorChart '%s' has a wrong format. Must be '<chartName>:<version>'; e.g.: 'foo/bar:1.2.3'", cois.chart)
 	}
 
-	return cois.helmClient.InstallOrUpgradeChart(ctx, cois.namespace, chartSplit[0], chartSplit[1])
+	fullChartName := chartSplit[0]
+	chartVersion := chartSplit[1]
+
+	chartName := fullChartName[strings.LastIndex(fullChartName, "/")+1:]
+	if len(chartName) <= 0 {
+		return fmt.Errorf("error reading chartname '%s': wrong format", fullChartName)
+	}
+
+	chartSpec := &helmclient.ChartSpec{
+		ReleaseName: chartName,
+		ChartName:   fullChartName,
+		Namespace:   cois.namespace,
+		Version:     chartVersion,
+		// This timeout prevents context exceeded errors from the used k8s client from the helm library.
+		Timeout: time.Second * 300,
+		// Wait for the release to deployed and ready
+		Wait: true,
+	}
+
+	return cois.helmClient.InstallOrUpgrade(ctx, chartSpec)
 }

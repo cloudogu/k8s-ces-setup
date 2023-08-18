@@ -2,14 +2,11 @@ package component
 
 import (
 	"context"
-	"fmt"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
-	"github.com/go-logr/logr/funcr"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"testing"
 	"time"
 
@@ -107,13 +104,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		require.ErrorContains(t, err, "failed to create watch on component:")
 	})
 
-	t.Run("should log error when watch returns an unexpected object", func(t *testing.T) {
+	t.Run("should fail when watch returns an unexpected object", func(t *testing.T) {
 		// given
-		logs := []string{}
-		logger := funcr.New(func(prefix, args string) {
-			logs = append(logs, fmt.Sprintf("%s: %s", prefix, args))
-		}, funcr.Options{})
-		testCtx := log.IntoContext(context.TODO(), logger)
+		testCtx := context.TODO()
 
 		watcher := watch.NewFake()
 
@@ -137,9 +130,8 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		err := step.PerformSetupStep(testCtx)
 
 		// then
-		require.NoError(t, err)
-		assert.Len(t, logs, 1)
-		assert.Contains(t, logs[0], "failed to cast event to component: selector=[app=test] type=[ADDED]; object=[&Namespace")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "error wait for component: failed to cast event to component: selector=[app=test] type=[ADDED];")
 	})
 
 	t.Run("should fail to perform setup on timeout", func(t *testing.T) {
