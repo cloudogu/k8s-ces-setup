@@ -6,16 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.16.0] - 2023-08-14
 ### Added
 - [#56] Allow to configure resource patches, a powerful way to modify Kubernetes resources during the setup process
   - please see the [docs](docs/operations/configuration_guide_en.md) for more information
 
 ### Changed
 - Allows to configure the IP address placeholder `<<ip>>` in the `setup.json` section `naming/fqdn` as described in the official [setup docs](https://docs.cloudogu.com/de/docs/system-components/ces-setup/operations/setup-json/#fqdn)
+- [#52] Use latest etcd release from dogu registry.
 
 ### Fixed
 - Uses now singular context object for all Kubernetes requests
-
 
 ## [v0.15.0] - 2023-06-13
 ### Added 

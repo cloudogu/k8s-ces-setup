@@ -327,7 +327,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.15.0"
+          image: "cloudogu/k8s-ces-setup:0.16.0"
           imagePullPolicy: IfNotPresent
           env:
             - name: GIN_MODE
