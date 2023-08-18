@@ -2,7 +2,7 @@
 
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
-component_operator_chart: k8s/k8s-component-operator:latest
+component_operator_chart: k8s/k8s-component-operator:0.0.2
 
 # Components to be installed by the k8s-ces-setup.
 # Mandatory components are listed below as the default. Moreover, one can specify components like k8s-ces-control or
@@ -10,9 +10,9 @@ component_operator_chart: k8s/k8s-component-operator:latest
 #
 # Format: <namespace>/<name>: <version>
 components:
-  k8s/k8s-dogu-operator: latest
-  k8s/k8s-service-discovery: latest
-  k8s/k8s-etcd: latest
+  k8s/k8s-etcd: 3.5.7-4
+  k8s/k8s-dogu-operator: 0.35.0
+  k8s/k8s-service-discovery: 0.13.0
 
 # Image of the etcd client. This is currently used for debugging.
 etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
