@@ -11,10 +11,15 @@ Hinweise zur Installation des Setups selbst liegen in der [Installationsanleitun
 Das automatische Setup einer CES-Instanz ganz ohne weitere Benutzerinteraktion ("unattended setup") soll so ähnlich wie möglich zum herkömmlichen CES-Setup stattfinden.
 
 **Voraussetzungen für ein unattended Setup:**
-1. [Dogu-](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_de.md) und [Image-Instanz credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_de.md) werden als secrets bereitgestellt
-2. [Setup-Konfiguration](../operations/configuration_guide_de.md) liegt in einer `ConfigMap` im gleichen Namespace, in dem das Setup läuft
-3. (noch nicht umgesetzt) ein Setup-Deskriptor `setup.json` liegt vor
-4. Ein Clusteradministrator muss das Setup lauffähig deployen (siehe unten)
+1. Dogu-Operator-Credentials wird als Secrets bereitgestellt
+   * [Dogu-Registry credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_de.md) 
+   * [Image-Instanz credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_de.md) 
+2. Komponenten-Operator-Config wird bereitgestellt
+   * [Helm-Repository-credentials](../operations/installation_guide_de.md#setup-ausbringen)
+   * [Helm-Repository-config](../operations/installation_guide_de.md#setup-ausbringen)
+3. [Setup-Konfiguration](../operations/configuration_guide_de.md) liegt in einer `ConfigMap` im gleichen Namespace, in dem das Setup läuft
+4. [Setup-Deskriptor](../operations/custom_setup_configuration_de.md) `setup.json` liegt vor
+5. Ein Clusteradministrator muss das Setup lauffähig deployen (siehe unten)
 
 **Durchführung:**
 Es erfolgt in mehreren Schritten, die die Abbildung oben gut veranschaulicht:
@@ -34,19 +39,18 @@ Vorbereitung (Deployment des Setups):
    - im Produktionsbetrieb wird diese durch das Setup-Deployment bereitgestellt
    - im Entwicklungsbetrieb kann diese auch von lokalen Kube-Configs ausgelesen werden
 3. Dogu- und Image-Credentials auslesen
-4. etcd-Server in den neuen Namespace installieren
+4. Komponenten-Operator im neuen Namespace installieren
+5. Komponenten (etcd, dogu-operator, service-discovery, ...) als Komponenten-CRs in den neuen Namespace installieren
 5. etcd-Client in den neuen Namespace installieren
-6. Dogu-Operator in den neuen Namespace installieren
-6. Service Discovery in den neuen Namespace installieren
-7. (noch nicht umgesetzt) Dogus (gemäß `setup.json` installieren)
+7. Dogus (gemäß `setup.json`) als Dogu-CRs in den neuen Namespace installieren
 
 ## Benötigte Berechtigungen zur Ausführung des Setups
 
 Das Setup läuft grundsätzlich immer in dem Namespace, der für das zukünftige Cloudogu EcoSystem betriebsbereit gemacht werden soll.
 
-Das Setup hängt bzgl. der nötigen Berechtigungen sehr stark von den zu installierenden Ressourcen ab, insbesondere dem Dogu-Operator. Da dessen Ressourcen mit jeweiligen Releases schwanken können, benötigt der das Setup **alle Rechte auf den Zielnamespace (Role/RoleBinding)**.
+Das Setup hängt bzgl. der nötigen Berechtigungen sehr stark von den zu installierenden Ressourcen ab, insbesondere dem Komponenten- und dem Dogu-Operator. Da dessen Ressourcen mit jeweiligen Releases schwanken können, benötigt der das Setup **alle Rechte auf den Zielnamespace (Role/RoleBinding)**.
 
-Hinzu kommt, dass jedenfalls über den Dogu-Operator eine CustomResourceDefinition (CRD) installiert werden muss. CRDs gelten  grundsätzlich clusterweit. Daher benötigt das Setup zusätzlich das Recht **zur Erzeugung/Aktualisierung von CRDs (ClusterRole/ClusterRoleBinding)**.
+Hinzu kommt, dass jedenfalls über den Dogu-Operator eine CustomResourceDefinition (CRD) installiert werden muss. CRDs gelten grundsätzlich clusterweit. Daher benötigt das Setup zusätzlich das Recht **zur Erzeugung/Aktualisierung von CRDs (ClusterRole/ClusterRoleBinding)**.
 
 ## (Unstructured) YAML-Ressourcen auf die K8s-API anwenden
 

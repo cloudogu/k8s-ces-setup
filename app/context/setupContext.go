@@ -23,6 +23,10 @@ const (
 	SecretDoguRegistryDevPath = "k8s/dev-resources/dogu-registry-secret.yaml"
 	// SecretDockerRegistry is the name of the secret containing the docker registry credentials.
 	SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
+	// HelmRepositoryConfigMapName is the name of the configMap containing the endpoint of the HelmRepository.
+	HelmRepositoryConfigMapName = "component-operator-helm-repository"
+	// HelmRepositoryDevPath is the path to the config containing the endpoint of the HelmRepository. This is used for development.
+	HelmRepositoryDevPath = "k8s/dev-resources/helm-repository.yaml"
 	// SetupConfigConfigmap is the name of the config map containing the setup config.
 	SetupConfigConfigmap = "k8s-ces-setup-config"
 	// SetupConfigConfigmapDevPath is the path to the config map containing the setup config. This is used for development.
@@ -50,26 +54,32 @@ const (
 // SetupContext contains all context information provided by the setup.
 type SetupContext struct {
 	AppVersion                string
+	Stage                     string
 	AppConfig                 *Config
 	SetupJsonConfiguration    *SetupJsonConfiguration
 	DoguRegistryConfiguration *DoguRegistrySecret
+	HelmRepositoryData        *HelmRepositoryData
 }
 
 // SetupContextBuilder contains information to create a setup context
 type SetupContextBuilder struct {
 	version                   string
+	stage                     string
 	DevSetupConfigPath        string
 	DevStartupConfigPath      string
 	DevDoguRegistrySecretPath string
+	DevHelmRepositoryDataPath string
 }
 
 // NewSetupContextBuilder creates a new builder to create a setup context. Default dev resources paths are used.
 func NewSetupContextBuilder(version string) *SetupContextBuilder {
 	return &SetupContextBuilder{
 		version:                   version,
+		stage:                     os.Getenv(EnvironmentVariableStage),
 		DevSetupConfigPath:        SetupConfigConfigmapDevPath,
 		DevStartupConfigPath:      SetupStartUpConfigMapDevPath,
 		DevDoguRegistrySecretPath: SecretDoguRegistryDevPath,
+		DevHelmRepositoryDataPath: HelmRepositoryDevPath,
 	}
 }
 
@@ -82,7 +92,7 @@ func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet k
 		return nil, fmt.Errorf("could not read current namespace: %w", err)
 	}
 
-	config, setupJson, doguRegistrySecret, err := scb.getConfigurations(ctx, clientSet, targetNamespace)
+	config, setupJson, doguRegistrySecret, helmRepositoryData, err := scb.getConfigurations(ctx, clientSet, targetNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -98,45 +108,72 @@ func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet k
 
 	return &SetupContext{
 		AppVersion:                scb.version,
+		Stage:                     scb.stage,
 		AppConfig:                 config,
 		SetupJsonConfiguration:    setupJson,
 		DoguRegistryConfiguration: doguRegistrySecret,
+		HelmRepositoryData:        helmRepositoryData,
 	}, nil
 }
 
-func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, error) {
-	if os.Getenv(EnvironmentVariableStage) == StageDevelopment {
-		config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		return config, setupJson, doguRegistrySecret, nil
-	} else {
-		config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		setupJson, err := ReadSetupConfigFromCluster(ctx, clientSet, targetNamespace)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
-		doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(ctx, clientSet, targetNamespace)
-
-		return config, setupJson, doguRegistrySecret, err
+func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+	if IsDevelopmentStage(scb.stage) {
+		return scb.getDevConfig()
 	}
+
+	return scb.getConfigFromCluster(ctx, clientSet, targetNamespace)
+}
+
+func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+	config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	setupJson, err := ReadSetupConfigFromFile(scb.DevStartupConfigPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	doguRegistrySecret, err := ReadDoguRegistrySecretFromFile(scb.DevDoguRegistrySecretPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	helmRepositoryData, err := ReadHelmRepositoryDataFromFile(scb.DevHelmRepositoryDataPath)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return config, setupJson, doguRegistrySecret, helmRepositoryData, nil
+}
+
+func (scb *SetupContextBuilder) getConfigFromCluster(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+	config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	setupJson, err := ReadSetupConfigFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	doguRegistrySecret, err := ReadDoguRegistrySecretFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	helmRepositoryData, err := ReadHelmRepositoryDataFromCluster(ctx, clientSet, targetNamespace)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return config, setupJson, doguRegistrySecret, helmRepositoryData, err
+}
+
+func IsDevelopmentStage(stage string) bool {
+	return stage == StageDevelopment
 }
 
 // GetSetupStateConfigMap returns or creates if it does not exist the configmap map for presenting the state of the setup process

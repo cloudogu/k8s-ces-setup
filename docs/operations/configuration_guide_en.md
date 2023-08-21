@@ -23,9 +23,11 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
-    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
-    etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
+    component_operator_chart: "k8s/k8s-component-operator:0.0.2"
+    components:
+      "k8s/k8s-etcd": "3.5.7-4"
+      "k8s/k8s-dogu-operator": "0.35.0"
+      "k8s/k8s-service-discovery": "0.13.0"
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
     resource_patches:
@@ -53,29 +55,31 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * Necessary configuration
 * Description: Sets the log level of the `k8s-ces-setup` and thus how accurate the log output of the application should be.
 
-### dogu_operator_version
+### component_operator_chart
 
-* YAML key: `dogu_operator_version`
-* Type: `String` as link to the desired [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator) version
+* YAML key: `component_operator_chart`.
+* Type: `String` as HelmChart identifier of the [component operator](http://github.com/cloudogu/k8s-component-operator) (incl. namespace and version).
 * Necessary configuration
-* Description: The Dogu Operator is a central component in the EcoSystem and must be installed. The given link points to the version of the Dogu Operator to be installed. The link must point to a valid K8s YAML resource of the `k8s-dogu-operator`. This will be appended to the release of the `k8s-dogu-operator` on each release.
-* Example: `https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
+* Description: The component operator is a central component in the EcoSystem and must be installed. The specified HelmChart indicates the version of the component operator to be installed.
+* Example: `k8s/k8s-component-operator:0.0.2`
 
-### service_discovery_url
+> **Note:** "latest" can be specified as version to use the highest available version of the component operator.
 
-* YAML key: `service_discovery_url`
-* Type: `String` as link to the desired [Service Discovery](http://github.com/cloudogu/k8s-service-discovery) version.
+### components
+
+* YAML key: `components`
+* Type: `Map` of CES components to be installed and the respective version
 * Necessary configuration
-* Description: Service Discovery is a central component in EcoSystem and must be installed. The specified link points to the version of Service Discovery to be installed. The link must point to a valid K8s YAML resource of the `k8s-service-discovery`. This will be appended to the release of the `k8s-service-discovery` on each release.
-* Example: `https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml`
+* Description: Setup installs all specified CES components using the [component operator](http://github.com/cloudogu/k8s-component-operator). The following components are required, among others: [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery), [Etcd](http://github.com/cloudogu/k8s-etcd)
+* Example:
+  ```yaml
+  components:
+  "k8s/k8s-etcd": "3.5.7-4"
+  "k8s/k8s-dogu-operator": "0.35.0"
+  "k8s/k8s-service-discovery": "0.13.0"
+  ```
 
-### etcd_server_url
-
-* YAML key: `etcd_server_url`
-* Type: `String` as link to the desired [Etcd](http://github.com/cloudogu/k8s-etcd) version
-* Necessary configuration
-* Description: The Etcd is a central component in the EcoSystem and must be installed. The specified link points to the version of the EcoSystem Etcd to be installed. The link must point to a valid K8s YAML resource of the `k8s-etcd`. This is located directly in the repository under the path `manifests/etcd.yaml`.
-* Example: `https://github.com/cloudogu/k8s-etcd/blob/develop/manifests/etcd.yaml`
+> **Note:** "latest" can be specified as version to use the highest available version of the respective component.
 
 ### etcd_client_image_repo
 
