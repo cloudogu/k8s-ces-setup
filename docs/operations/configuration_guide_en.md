@@ -63,6 +63,8 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * Description: The component operator is a central component in the EcoSystem and must be installed. The specified HelmChart indicates the version of the component operator to be installed.
 * Example: `k8s/k8s-component-operator:0.0.2`
 
+> **Note:** "latest" can be specified as version to use the highest available version of the component operator.
+
 ### components
 
 * YAML key: `components`
@@ -76,6 +78,8 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
   "k8s/k8s-dogu-operator": "0.35.0"
   "k8s/k8s-service-discovery": "0.13.0"
   ```
+
+> **Note:** "latest" can be specified as version to use the highest available version of the respective component.
 
 ### etcd_client_image_repo
 

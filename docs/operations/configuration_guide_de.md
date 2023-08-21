@@ -63,6 +63,8 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * Beschreibung: Der Komponenten-Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Das angegebene HelmChart gibt die zu installierende Version des Komponenten-Operators an.
 * Beispiel: `k8s/k8s-component-operator:0.0.2`
 
+> **Hinweis:** als Version kann "latest" angegeben werden um die höchste, verfügbare Version des Komponenten-Operators zu verwenden.
+
 ### components
 
 * YAML-Key: `components`
@@ -76,6 +78,8 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
       "k8s/k8s-dogu-operator": "0.35.0"
       "k8s/k8s-service-discovery": "0.13.0"
   ```
+
+> **Hinweis:** als Version kann "latest" angegeben werden um die höchste, verfügbare Version der jeweiligen Komponente zu verwenden.
 
 ### etcd_client_image_repo
 
