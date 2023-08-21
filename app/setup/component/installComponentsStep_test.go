@@ -85,6 +85,45 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 	})
+	t.Run("should successfully perform setup for 'latest' version", func(t *testing.T) {
+		// given
+		namespace := "testNS"
+		testCtx := context.TODO()
+
+		expectedComponent := &v1.Component{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "testComponent",
+				Namespace: namespace,
+				Labels: map[string]string{
+					"app":                    "ces",
+					"app.kubernetes.io/name": "testComponent",
+				},
+			},
+			Spec: v1.ComponentSpec{
+				Name:      "testComponent",
+				Namespace: "testing",
+				Version:   "",
+			},
+		}
+
+		componentsClientMock := newMockComponentsClient(t)
+		componentsClientMock.EXPECT().Create(testCtx, expectedComponent, metav1.CreateOptions{}).Return(nil, nil)
+
+		step := &installComponentsStep{
+			client:             componentsClientMock,
+			namespace:          namespace,
+			componentName:      "testComponent",
+			componentNamespace: "testing",
+			version:            "latest",
+		}
+
+		// when
+		err := step.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+	})
 	t.Run("should fail to perform setup for error in component client", func(t *testing.T) {
 		// given
 		namespace := "testNS"

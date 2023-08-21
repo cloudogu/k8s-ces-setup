@@ -50,8 +50,16 @@ func getComponentCr(componentName string, componentNameSpace string, version str
 	cr.Namespace = k8sNamespace
 	cr.Spec.Name = componentName
 	cr.Spec.Namespace = componentNameSpace
-	cr.Spec.Version = version
+	cr.Spec.Version = patchHelmChartVersion(version)
 	cr.Labels = labels
 
 	return cr
+}
+
+func patchHelmChartVersion(version string) string {
+	if version == "latest" {
+		return ""
+	}
+
+	return version
 }
