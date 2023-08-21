@@ -23,9 +23,11 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
-    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
-    etcd_server_url: https://raw.githubusercontent.com/cloudogu/k8s-etcd/develop/manifests/etcd.yaml
+    component_operator_chart: "k8s/k8s-component-operator:0.0.2"
+    components:
+      "k8s/k8s-etcd": "3.5.7-4"
+      "k8s/k8s-dogu-operator": "0.35.0"
+      "k8s/k8s-service-discovery": "0.13.0"
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
     resource_patches:
@@ -53,29 +55,27 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * Notwendige Konfiguration
 * Beschreibung: Setzt das Log Level des `k8s-ces-setup` und somit wie genau die Log-Ausgaben der Applikation sein sollen.
 
-### dogu_operator_version
+### component_operator_chart
 
-* YAML-Key: `dogu_operator_version`
-* Typ: `String` als Link zu der gewünschten [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator) Version
+* YAML-Key: `component_operator_chart`
+* Typ: `String` als HelmChart-Bezeichner des [Komponenten-Operator](http://github.com/cloudogu/k8s-component-operator) (inkl. Namespace und Version)
 * Notwendige Konfiguration
-* Beschreibung: Der Dogu Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Der angegebene Link zeigt auf die zu installierende Version des Dogu Operators. Der Link muss auf eine valide K8s-YAML-Ressource des `k8s-dogu-operator` zeigen. Diese wird bei jeder Veröffentlichung an das Release des `k8s-dogu-operator` gehängt.
-* Beispiel: `https://github.com/cloudogu/k8s-dogu-operator/releases/download/v0.2.0/k8s-dogu-operator_0.2.0.yaml`
+* Beschreibung: Der Komponenten-Operator ist eine zentrale Komponente im EcoSystem und muss installiert werden. Das angegebene HelmChart gibt die zu installierende Version des Komponenten-Operators an.
+* Beispiel: `k8s/k8s-component-operator:0.0.2`
 
-### service_discovery_url
+### components
 
-* YAML-Key: `service_discovery_url`
-* Typ: `String` als Link zu der gewünschten [Service Discovery](http://github.com/cloudogu/k8s-service-discovery) Version
+* YAML-Key: `components`
+* Typ: `Map` von zu installierenden CES-Komponenten und der jeweiligen Version
 * Notwendige Konfiguration
-* Beschreibung: Die Service Discovery ist eine zentrale Komponente im EcoSystem und muss installiert werden. Der angegebene Link zeigt auf die zu installierende Version der Service Discovery. Der Link muss auf eine valide K8s-YAML-Ressource der `k8s-service-discovery` zeigen. Diese wird bei jeder Veröffentlichung an das Release der `k8s-service-discovery` gehängt.
-* Beispiel: `https://github.com/cloudogu/k8s-service-discovery/releases/download/v0.1.0/k8s-service-discovery_0.1.0.yaml`
-
-### etcd_server_url
-
-* YAML-Key: `etcd_server_url`
-* Typ: `String` als Link zu der gewünschten [Etcd](http://github.com/cloudogu/k8s-etcd) Version
-* Notwendige Konfiguration
-* Beschreibung: Der Etcd ist eine zentrale Komponente im EcoSystem und muss installiert werden. Der angegebene Link zeigt auf die zu installierende Version des EcoSystem-Etcd. Der Link muss auf eine valide K8s-YAML-Ressource des `k8s-etcd` zeigen. Diese liegt direkt im Repository unter dem Pfad `manifests/etcd.yaml`.
-* Beispiel: `https://github.com/cloudogu/k8s-etcd/blob/develop/manifests/etcd.yaml`
+* Beschreibung: Das Setup installiert alle angegebenen CES Komponenten mit Hilfe des [Komponenten-Operators](http://github.com/cloudogu/k8s-component-operator). Folgende Komponenten werden u.a. benötigt: [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery), [Etcd](http://github.com/cloudogu/k8s-etcd)
+* Beispiel: 
+  ```yaml
+    components:
+      "k8s/k8s-etcd": "3.5.7-4"
+      "k8s/k8s-dogu-operator": "0.35.0"
+      "k8s/k8s-service-discovery": "0.13.0"
+  ```
 
 ### etcd_client_image_repo
 

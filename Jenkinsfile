@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@1.65.0')
+@Library('github.com/cloudogu/ces-build-lib@99c84661de69c44716139ba49747219b90be58a9')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -10,7 +10,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
-goVersion = "1.20.4"
+goVersion = "1.20"
 
 // Configuration of repository
 repositoryOwner = "cloudogu"

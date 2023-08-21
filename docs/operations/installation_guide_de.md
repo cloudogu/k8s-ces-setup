@@ -38,6 +38,10 @@ kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
     --docker-server=registry.cloudogu.com \
     --docker-username="your-ces-instance-id" \
     --docker-password="your-ces-instance-password"
+kubectl create configmap component-operator-helm-repository \
+    --from-literal=endpoint="https://registry.cloudogu.com"
+kubectl create secret generic component-operator-helm-registry \
+    --from-literal=config.json="{\"auths\": {\"https://registry.cloudogu.com\": {\"auth\": \"$(printf "%s:%s" "your-ces-instance-id" "your-ces-instance-password" | base64)\"}}}"
 
 # Hinweis: Die setup-Ressource muss mit dem passenden Namespace (hier: your-target-namespace) angepasst werden
 wget https://raw.githubusercontent.com/cloudogu/k8s-ces-setup/develop/k8s/k8s-ces-setup.yaml

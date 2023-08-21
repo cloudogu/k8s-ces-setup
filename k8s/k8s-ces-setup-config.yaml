@@ -11,9 +11,35 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
-    dogu_operator_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-dogu-operator
-    service_discovery_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-service-discovery
-    etcd_server_url: https://dogu.cloudogu.com/api/v1/k8s/k8s/k8s-etcd
+    component_operator_chart: "k8s/k8s-component-operator:0.0.2"
+    components:
+      "k8s/k8s-etcd": "3.5.7-4"
+      "k8s/k8s-dogu-operator": "0.35.0"
+      "k8s/k8s-service-discovery": "0.13.0"
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
     resource_patches:
+      - phase: dogu
+        resource:
+          apiVersion: k8s.cloudogu.com/v1
+          kind: Dogu
+          name: nexus
+        patches:
+          - op: add
+            path: /spec/additionalIngressAnnotations
+            value:
+              nginx.ingress.kubernetes.io/proxy-body-size: "0"
+          - op: add
+            path: /spec/resources
+            value:
+              dataVolumeSize: 5Gi
+      - phase: loadbalancer
+        resource:
+          apiVersion: v1
+          kind: Service
+          name: ces-loadbalancer
+        patches:
+          - op: add
+            path: /metadata/annotations
+            value:
+              service.beta.kubernetes.io/azure-load-balancer-internal: "true"

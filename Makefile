@@ -2,7 +2,7 @@
 ARTIFACT_ID=k8s-ces-setup
 VERSION=0.16.0
 
-GOTAG?=1.20.4
+GOTAG?=1.20
 MAKEFILES_VERSION=7.10.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
@@ -71,23 +71,26 @@ serve-local-yaml:
 
 .PHONY: k8s-clean
 k8s-clean: ## Cleans all resources deployed by the setup
-	@kubectl delete --all dogus --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete all -l app.kubernetes.io/name=k8s-ces-setup --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete all -l app.kubernetes.io/name=k8s-ces-setup-finisher --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete all -l app.kubernetes.io/name=etcd --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete all -l run=etcd-client --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete all -l control-plane=controller-manager --namespace=$(K8S_CURRENT_NAMESPACE) || true
-	@kubectl delete secret k8s-dogu-operator-dogu-registry || true
-	@kubectl delete secret docker-registry k8s-dogu-operator-docker-registry || true
-	@kubectl get clusterroles,clusterrolebindings | grep k8s-dogu-operator | sed 's| .*||g' | xargs kubectl delete - || true
-	@kubectl get clusterroles,clusterrolebindings | grep k8s-service-discovery | sed 's| .*||g' | xargs kubectl delete - || true
-	@kubectl create ns $(K8S_CURRENT_NAMESPACE) || true
-	@kubectl ns $(K8S_CURRENT_NAMESPACE)
-	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
-	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-email="" --docker-password=${DOCKER_REGISTRY_PASSWORD}
-	@make build
+	@echo "Cleaning in namespace $(NAMESPACE)"
+	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@kubectl delete --all components --namespace=$(NAMESPACE) || true
+	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
+	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
+	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
+	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
+	@make k8s-create-secrets
 
-##@ Build
+.PHONY: k8s-create-secrets
+k8s-create-secrets: ## Cleans all resources deployed by the setup
+	@kubectl delete secret k8s-dogu-operator-dogu-registry || true
+	@kubectl delete secret k8s-dogu-operator-docker-registry || true
+	@kubectl delete configmap component-operator-helm-repository || true
+	@kubectl delete secret component-operator-helm-registry || true
+	@kubectl create secret generic k8s-dogu-operator-dogu-registry --from-literal=endpoint=${DOGU_REGISTRY_URL} --from-literal=username=${DOGU_REGISTRY_USERNAME} --from-literal=password=${DOGU_REGISTRY_PASSWORD}
+	@kubectl create secret docker-registry k8s-dogu-operator-docker-registry --docker-server=${DOCKER_REGISTRY_URL} --docker-username=${DOCKER_REGISTRY_USERNAME} --docker-password=${DOCKER_REGISTRY_PASSWORD}
+	@kubectl create configmap component-operator-helm-repository --from-literal=endpoint=${HELM_REPO_ENDPOINT}
+	@kubectl create secret generic component-operator-helm-registry --from-literal=config.json='{"auths": {"${HELM_REPO_ENDPOINT}": {"auth": "$(shell printf "%s:%s" "${HELM_REPO_USERNAME}" "${HELM_REPO_PASSWORD}" | base64)"}}}'
+
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
