@@ -5,10 +5,11 @@ go 1.20
 require (
 	github.com/cloudogu/cesapp-lib v0.12.0
 	github.com/cloudogu/k8s-apply-lib v0.4.1
-	github.com/cloudogu/k8s-component-operator v0.0.0-20230818070411-aef7787c3e64
+	github.com/cloudogu/k8s-component-operator v0.0.3
 	github.com/cloudogu/k8s-dogu-operator v0.30.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-logr/logr v1.2.4
+	github.com/mittwald/go-helm-client v0.12.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
@@ -104,7 +105,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/mittwald/go-helm-client v0.12.3 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
