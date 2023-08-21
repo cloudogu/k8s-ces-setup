@@ -2,6 +2,7 @@
 
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
+# TODO set default value to "latest"
 component_operator_chart: k8s/k8s-component-operator:0.0.2
 
 # Components to be installed by the k8s-ces-setup.
@@ -9,6 +10,7 @@ component_operator_chart: k8s/k8s-component-operator:0.0.2
 # k8s-backup-operator.
 #
 # Format: <namespace>/<name>: <version>
+# TODO set default values to "latest"
 components:
   k8s/k8s-etcd: 3.5.7-4
   k8s/k8s-dogu-operator: 0.35.0

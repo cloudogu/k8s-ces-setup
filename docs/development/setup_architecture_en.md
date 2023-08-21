@@ -26,9 +26,10 @@ It is done in several steps, which the figure above illustrates well:
 
 Preparation (deployment of the setup):
 - A. Admin creates target namespace
-- B. Admin creates required setup data in target namespace
+- B. Admin configures required setup data in `values.yaml` from the Helm-Chart
    - Instance credentials
    - Setup configuration
+   - Component versions
 - C. Admin deploys the setup
 - D. Admin triggers the setup execution (see below)
 
