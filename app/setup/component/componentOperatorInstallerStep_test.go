@@ -76,6 +76,34 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 	})
+	t.Run("should successfully perform setup for 'latest' version", func(t *testing.T) {
+		// given
+		testCtx := context.TODO()
+
+		chartSpec := &helmclient.ChartSpec{
+			ReleaseName: "testChart",
+			ChartName:   "foo/testChart",
+			Namespace:   "testing",
+			Version:     "",
+			Timeout:     time.Second * 300,
+			Wait:        true,
+		}
+
+		helmClientMock := newMockHelmClient(t)
+		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(nil)
+
+		step := &componentOperatorInstallerStep{
+			namespace:  "testing",
+			chart:      "foo/testChart:latest",
+			helmClient: helmClientMock,
+		}
+
+		// when
+		err := step.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+	})
 	t.Run("should fail to perform setup for wrong chart format", func(t *testing.T) {
 		// given
 		testCtx := context.TODO()

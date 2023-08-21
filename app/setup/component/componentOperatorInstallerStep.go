@@ -53,7 +53,7 @@ func (cois *componentOperatorInstallerStep) PerformSetupStep(ctx context.Context
 		ReleaseName: chartName,
 		ChartName:   fullChartName,
 		Namespace:   cois.namespace,
-		Version:     chartVersion,
+		Version:     patchHelmChartVersion(chartVersion),
 		// This timeout prevents context exceeded errors from the used k8s client from the helm library.
 		Timeout: time.Second * 300,
 		// Wait for the release to deployed and ready
