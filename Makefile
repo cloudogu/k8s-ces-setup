@@ -55,7 +55,7 @@ ADDITIONAL_HELM_APPLY_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARG
 ##@ EcoSystem
 
 .PHONY: build
-build: k8s-delete image-import k8s-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
+build: k8s-helm-delete image-import k8s-helm-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
 
 ##@ Development (without go container)
 

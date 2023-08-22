@@ -23,7 +23,6 @@ For a completely automatic setup all necessary regions must be defined in the `s
 A complete description of the individual regions and their configuration values follows in a later chapter.
 
 ## Differences to conventional `ces-setup`
-<!-- markdown-link-check-disable-next-line -->
 The `k8s-ces-setup` differs from the [ces-setup](https://github.com/cloudogu/ces-setup) in that an EcoSystem does not run on a single VM, but within a Kubernetes cluster on multiple VMs.
 A `setup.json` from the `ces-setup` can be used as setup configuration for the `k8s-ces-setup` without any problems.
 

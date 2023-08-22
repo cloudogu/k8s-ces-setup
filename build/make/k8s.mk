@@ -92,7 +92,7 @@ ${K8S_HELM_RESSOURCES}/Chart.yaml: ${BINARY_HELM} ## Creates the Chart.yaml-temp
 .PHONY: k8s-helm-delete
 k8s-helm-delete: ${BINARY_HELM} ## Uninstalls the current helm chart.
 	@echo "Uninstall helm chart"
-	@${BINARY_HELM} uninstall ${ARTIFACT_ID}
+	@${BINARY_HELM} uninstall ${ARTIFACT_ID} || true
 
 .PHONY: k8s-helm-generate-chart
 k8s-helm-generate-chart: ${K8S_HELM_RESSOURCES}/Chart.yaml $(K8S_RESOURCE_TEMP_FOLDER) ## Generates the final helm chart.

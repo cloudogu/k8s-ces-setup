@@ -98,7 +98,7 @@ helm_registry_secret:
 #    }
 #  }
 ```
-
+<!-- markdown-link-check-disable-next-line -->
 > For more configuration options like operator versions see [values.yaml](https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/helm/values.yaml).
 
 ### Install the Setup
