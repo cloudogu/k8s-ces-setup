@@ -2,6 +2,7 @@ package context
 
 import (
 	_ "embed"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -361,5 +362,30 @@ func TestGetSetupStateConfigMap(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
 		assert.ErrorContains(t, err, "failed to create configmap [k8s-setup-config]")
+	})
+}
+
+func Test_configureLogger(t *testing.T) {
+	t.Run("should use info log level if no one is specified", func(t *testing.T) {
+		// given
+		config := &Config{}
+
+		// when
+		configureLogger(config)
+
+		// then
+		assert.Equal(t, logrus.InfoLevel, logrus.StandardLogger().Level)
+	})
+
+	t.Run("should use log level level from config", func(t *testing.T) {
+		// given
+		level := logrus.ErrorLevel
+		config := &Config{LogLevel: &level}
+
+		// when
+		configureLogger(config)
+
+		// then
+		assert.Equal(t, logrus.ErrorLevel, logrus.StandardLogger().Level)
 	})
 }
