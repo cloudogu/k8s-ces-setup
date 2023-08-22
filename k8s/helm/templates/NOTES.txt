@@ -29,7 +29,7 @@ and apply it to the cluster: kubectl apply -f dogu.yaml --namespace={{ .Release.
 {{- printf "\n" }}
 {{- $doguSecretName := "k8s-dogu-operator-dogu-registry" }}
 {{- if not (and .Values.dogu_registry_secret.username .Values.dogu_registry_secret.password) }}
-Warning: Specified no mandatory credentials for secret {{ $doguSecretName }}. You must create it before the setup can start.
+Warning: No mandatory credentials for secret {{ $doguSecretName }} specified . You must create it before the setup can start.
     Use the corresponding fields in the values.yaml and upgrade the chart.
     Ignore this warning if you created it manually with:
         kubectl create secret generic {{ $doguSecretName }} --namespace={{ .Release.Namespace }} --from-literal=username=yourusername --from-literal=password=yourpassword --from-literal=endpoint={{ .Values.dogu_registry_secret.url }}
@@ -37,7 +37,7 @@ Warning: Specified no mandatory credentials for secret {{ $doguSecretName }}. Yo
 
 {{- $dockerSecretName := "k8s-dogu-operator-docker-registry" }}
 {{- if not (and .Values.docker_registry_secret.username .Values.docker_registry_secret.password) }}
-Warning: Specified no mandatory credentials for secret {{ $dockerSecretName }}. You must create it before the setup can start.
+Warning: No mandatory credentials for secret {{ $dockerSecretName }} specified. You must create it before the setup can start.
     Use the corresponding fields in the values.yaml and upgrade the chart.
     Ignore this warning if you create it manually with:
         kubectl create secret docker-registry {{ $dockerSecretName }} --namespace={{ .Release.Namespace }} --docker-username=yourusername --docker-password=yourpassword --docker-server={{ .Values.docker_registry_secret.url }} --docker-email=youremail
@@ -45,7 +45,7 @@ Warning: Specified no mandatory credentials for secret {{ $dockerSecretName }}. 
 
 {{- $helmSecretName := "component-operator-helm-registry" }}
 {{- if not (and .Values.helm_registry_secret.username .Values.helm_registry_secret.password) }}
-Warning: Specified no mandatory credentials for secret {{ $helmSecretName }}. You must create it before the setup can start.
+Warning: No mandatory credentials for secret {{ $helmSecretName }} specified. You must create it before the setup can start.
     Use the corresponding fields in the values.yaml and upgrade the chart.
     Ignore this warning if you create it manually with:
         kubectl create secret generic {{ $helmSecretName }} --namespace={{ .Release.Namespace }} --from-literal=config.json="{\"auths\": {\"{{ .Values.helm_registry_secret.url }}": {\"auth\": \"$(printf "%s:%s" "yourusername" "yourpassword" | base64)\"}}}"

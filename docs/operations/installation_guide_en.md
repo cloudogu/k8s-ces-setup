@@ -99,7 +99,7 @@ helm_registry_secret:
 #  }
 ```
 
-> For more configuration options like operator versions see [values.yaml](https://github.com/cloudogu/k8s-ces-setup/blob/feature/59_helm_release/k8s/helm/values.yaml).
+> For more configuration options like operator versions see [values.yaml](https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/helm/values.yaml).
 
 ### Install the Setup
 
