@@ -26,10 +26,11 @@ Es erfolgt in mehreren Schritten, die die Abbildung oben gut veranschaulicht:
 
 Vorbereitung (Deployment des Setups):
 - A. Admin legt Zielnamespace an
-- B. Admin legt benötigte Setup-Daten im Zielnamespace an
+- B. Admin legt konfiguriert Setup-Daten im `values.yaml` des Helm-Charts.
   - Instanz Credentials
   - Setup-Konfiguration
-- C. Admin deployt das Setup
+  - Komponenten-Versionen
+- C. Admin deployt das Helm-Chart
 - D. Admin löst die Setup-Ausführung an (siehe unten)
 
 **Setup-Ausführung:**
