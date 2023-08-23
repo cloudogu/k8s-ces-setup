@@ -17,7 +17,7 @@ import (
 // Config contains the common configuration for the setup
 type Config struct {
 	// LogLevel sets the log level for the app
-	LogLevel logrus.Level `yaml:"log_level"`
+	LogLevel *logrus.Level `yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
 	TargetNamespace string `yaml:"target_namespace"`
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
