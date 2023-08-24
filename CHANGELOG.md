@@ -8,6 +8,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Changed
 - [#62] Use `Info` as default log level.
+- [#64] Match Makefile helm variable with those from a newer Makefile version 
 
 ### Added
 - [#59] Add helm chart as release artifact.
