@@ -29,7 +29,7 @@ func TestReadConfig(t *testing.T) {
 		assert.Equal(t, "0.0.1", c.Components["k8s/k8s-dogu-operator"])
 		assert.Equal(t, "latest", c.Components["k8s/k8s-service-discovery"])
 		assert.Equal(t, "https://etcdc.yaml", c.EtcdClientImageRepo)
-		assert.Equal(t, logrus.DebugLevel, c.LogLevel)
+		assert.Equal(t, logrus.DebugLevel, *c.LogLevel)
 	})
 
 	t.Run("fail on non existent config", func(t *testing.T) {

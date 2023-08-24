@@ -213,7 +213,14 @@ func GetEnvVar(name string) (string, error) {
 }
 
 func configureLogger(config *Config) {
-	logrus.SetLevel(config.LogLevel)
+	logLevel := config.LogLevel
+	if logLevel == nil {
+		infoLevel := logrus.InfoLevel
+		logLevel = &infoLevel
+		logrus.Print(fmt.Sprintf("Setting default loglevel: %s", infoLevel))
+	}
+	logrus.SetLevel(*logLevel)
+
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
