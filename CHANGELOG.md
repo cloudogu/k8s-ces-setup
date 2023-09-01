@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
+- [#66] Use new helm registry config from the component-operator where the url is divided in host and schema.
+
+### Changed
 - [#62] Use `Info` as default log level.
 - [#64] Match Makefile helm variable with those from a newer Makefile version 
 
