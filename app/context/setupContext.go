@@ -8,6 +8,8 @@ import (
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/k8s-apply-lib/apply"
 
+	componentOpConfig "github.com/cloudogu/k8s-component-operator/pkg/config"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -58,7 +60,7 @@ type SetupContext struct {
 	AppConfig                 *Config
 	SetupJsonConfiguration    *SetupJsonConfiguration
 	DoguRegistryConfiguration *DoguRegistrySecret
-	HelmRepositoryData        *HelmRepositoryData
+	HelmRepositoryData        *componentOpConfig.HelmRepositoryData
 }
 
 // SetupContextBuilder contains information to create a setup context
@@ -116,7 +118,7 @@ func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet k
 	}, nil
 }
 
-func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *componentOpConfig.HelmRepositoryData, error) {
 	if IsDevelopmentStage(scb.stage) {
 		return scb.getDevConfig()
 	}
@@ -124,7 +126,7 @@ func (scb *SetupContextBuilder) getConfigurations(ctx context.Context, clientSet
 	return scb.getConfigFromCluster(ctx, clientSet, targetNamespace)
 }
 
-func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *componentOpConfig.HelmRepositoryData, error) {
 	config, err := ReadConfigFromFile(scb.DevSetupConfigPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -140,7 +142,7 @@ func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration
 		return nil, nil, nil, nil, err
 	}
 
-	helmRepositoryData, err := ReadHelmRepositoryDataFromFile(scb.DevHelmRepositoryDataPath)
+	helmRepositoryData, err := componentOpConfig.NewHelmRepoDataFromFile(scb.DevHelmRepositoryDataPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -148,7 +150,7 @@ func (scb *SetupContextBuilder) getDevConfig() (*Config, *SetupJsonConfiguration
 	return config, setupJson, doguRegistrySecret, helmRepositoryData, nil
 }
 
-func (scb *SetupContextBuilder) getConfigFromCluster(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *HelmRepositoryData, error) {
+func (scb *SetupContextBuilder) getConfigFromCluster(ctx context.Context, clientSet kubernetes.Interface, targetNamespace string) (*Config, *SetupJsonConfiguration, *DoguRegistrySecret, *componentOpConfig.HelmRepositoryData, error) {
 	config, err := ReadConfigFromCluster(ctx, clientSet, targetNamespace)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -164,7 +166,8 @@ func (scb *SetupContextBuilder) getConfigFromCluster(ctx context.Context, client
 		return nil, nil, nil, nil, err
 	}
 
-	helmRepositoryData, err := ReadHelmRepositoryDataFromCluster(ctx, clientSet, targetNamespace)
+	configMapClient := clientSet.CoreV1().ConfigMaps(targetNamespace)
+	helmRepositoryData, err := componentOpConfig.NewHelmRepoDataFromCluster(ctx, configMapClient)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

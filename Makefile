@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.16.0
 
 GOTAG?=1.20
-MAKEFILES_VERSION=7.12.0
+MAKEFILES_VERSION=7.13.1
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -48,7 +48,7 @@ K8S_PRE_GENERATE_TARGETS=k8s-create-temporary-resource template-dev-only-image-p
 
 HELM_DOGU_REGISTRY_ARGS=--set=dogu_registry_secret.url='${DOGU_REGISTRY_URL}' --set=dogu_registry_secret.username='${DOGU_REGISTRY_USERNAME}' --set=dogu_registry_secret.password='${DOGU_REGISTRY_PASSWORD}'
 HELM_DOCKER_REGISTRY_ARGS=--set=docker_registry_secret.url='${DOCKER_REGISTRY_URL}' --set=docker_registry_secret.username='${DOCKER_REGISTRY_USERNAME}' --set=docker_registry_secret.password='${DOCKER_REGISTRY_PASSWORD}'
-HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.url='${HELM_REGISTRY_URL}' --set=helm_registry_secret.username='${HELM_REGISTRY_USERNAME}' --set=helm_registry_secret.password='${HELM_REGISTRY_PASSWORD}'
+HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.host='${HELM_REGISTRY_HOST}' --set=helm_registry_secret.schema='${HELM_REGISTRY_SCHEMA}' --set=helm_registry_secret.plainHttp='${HELM_REGISTRY_PLAIN_HTTP}' --set=helm_registry_secret.username='${HELM_REGISTRY_USERNAME}' --set=helm_registry_secret.password='${HELM_REGISTRY_PASSWORD}'
 HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
 BINARY_HELM_ADDITIONAL_UPGR_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_HELM_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
 

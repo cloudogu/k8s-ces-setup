@@ -43,7 +43,9 @@ dogu_registry_secret:
 # Credentials for the helm registry used by the components.
 # It is mandatory to set username and password.
 helm_registry_secret:
-  url: https://registry.cloudogu.com
+  host: registry.cloudogu.com
+  schema: oci
+  plainHttp: "false"
 #  username:
 #  password:
 

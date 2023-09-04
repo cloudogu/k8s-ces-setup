@@ -115,7 +115,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		helmConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
 			Name:      "component-operator-helm-repository",
 			Namespace: "myTestNamespace",
-		}, Data: map[string]string{"endpoint": "http://helm.repo"}}
+		}, Data: map[string]string{"endpoint": "helm.repo", "schema": "oci", "palinHttp": "false"}}
 
 		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret, helmConfigmap)
 
@@ -228,7 +228,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "helm repository configMap component-operator-helm-repository not found")
+		assert.Contains(t, err.Error(), "failed to get helm repository configMap component-operator-helm-repository: configmaps \"component-operator-helm-repository\" not found")
 	})
 
 	t.Run("cannot not read current namespace", func(t *testing.T) {
@@ -311,7 +311,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "could not find configuration at invalid.yaml")
+		assert.Contains(t, err.Error(), "failed to read configuration invalid.yaml: open invalid.yaml: no such file or directory")
 	})
 }
 

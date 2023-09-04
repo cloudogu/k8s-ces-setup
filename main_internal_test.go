@@ -29,7 +29,7 @@ func Test_createSetupRouter(t *testing.T) {
 		contextBuilder.DevSetupConfigPath = "testdata/k8s-ces-setup-testdata.yaml"
 		contextBuilder.DevStartupConfigPath = "testdata/testSetup.json.yaml"
 		contextBuilder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
-		contextBuilder.DevDoguRegistrySecretPath = "testdata/test-helm-repository.yaml"
+		contextBuilder.DevHelmRepositoryDataPath = "testdata/test-helm-repository.yaml"
 
 		// when
 		router, err := createSetupRouter(contextBuilder)

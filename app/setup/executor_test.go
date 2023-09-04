@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/core"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	componentOpConfig "github.com/cloudogu/k8s-component-operator/pkg/config"
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -209,7 +210,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		// given
 		testContext := &appcontext.SetupContext{
 			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
-			HelmRepositoryData: &appcontext.HelmRepositoryData{Endpoint: "https://helm.repo"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
 		}
 		executor := &Executor{
 			ClusterConfig: &rest.Config{},
@@ -227,7 +228,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		// given
 		testContext := &appcontext.SetupContext{
 			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
-			HelmRepositoryData: &appcontext.HelmRepositoryData{Endpoint: "https://helm.repo"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
 		}
 		executor := &Executor{
 			SetupContext:  testContext,
