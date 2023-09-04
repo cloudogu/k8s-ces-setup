@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: component-operator-helm-repository
+  labels:
+    app: ces
+data:
+  endpoint: "{{ .Values.helm_registry_secret.host }}"
+  schema: "{{ .Values.helm_registry_secret.schema }}"
+  plainHttp: "{{ .Values.helm_registry_secret.plainHttp }}"

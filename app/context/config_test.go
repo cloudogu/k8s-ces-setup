@@ -23,11 +23,13 @@ func TestReadConfig(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, "ecosystem", c.TargetNamespace)
-		assert.Equal(t, "https://dop.yaml", c.DoguOperatorURL)
-		assert.Equal(t, "https://sd.yaml", c.ServiceDiscoveryURL)
-		assert.Equal(t, "https://etcds.yaml", c.EtcdServerResourceURL)
+		assert.Equal(t, "k8s/k8s-component-operator:0.0.2", c.ComponentOperatorChart)
+		assert.Len(t, c.Components, 3)
+		assert.Equal(t, "1.2.3", c.Components["k8s/k8s-etcd"])
+		assert.Equal(t, "0.0.1", c.Components["k8s/k8s-dogu-operator"])
+		assert.Equal(t, "latest", c.Components["k8s/k8s-service-discovery"])
 		assert.Equal(t, "https://etcdc.yaml", c.EtcdClientImageRepo)
-		assert.Equal(t, logrus.DebugLevel, c.LogLevel)
+		assert.Equal(t, logrus.DebugLevel, *c.LogLevel)
 	})
 
 	t.Run("fail on non existent config", func(t *testing.T) {
@@ -53,7 +55,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 	const testNamespace = "test-namespace"
 	t.Run("should return marshalled config", func(t *testing.T) {
 		// given
-		myFileMap := map[string]string{"k8s-ces-setup.yaml": `dogu_operator_url: https://url.com`}
+		myFileMap := map[string]string{"k8s-ces-setup.yaml": `component_operator_chart: https://url.com`}
 		mockedConfig := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      SetupConfigConfigmap,
@@ -68,7 +70,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		extected := &Config{DoguOperatorURL: "https://url.com"}
+		extected := &Config{ComponentOperatorChart: "https://url.com"}
 		assert.Equal(t, extected, actual)
 	})
 	t.Run("should fail during marshalling config", func(t *testing.T) {

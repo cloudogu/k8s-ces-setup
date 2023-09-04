@@ -3,10 +3,12 @@ package setup
 import (
 	"context"
 	"errors"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 
 	"github.com/cloudogu/cesapp-lib/core"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	componentOpConfig "github.com/cloudogu/k8s-component-operator/pkg/config"
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -197,9 +199,19 @@ func TestExecutor_RegisterFQDNRetrieverStep(t *testing.T) {
 }
 
 func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
+	// override default controller method to retrieve a kube config
+	oldGetConfigOrDieDelegate := ctrl.GetConfigOrDie
+	defer func() { ctrl.GetConfigOrDie = oldGetConfigOrDieDelegate }()
+	ctrl.GetConfigOrDie = func() *rest.Config {
+		return &rest.Config{}
+	}
+
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given
-		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
+		}
 		executor := &Executor{
 			ClusterConfig: &rest.Config{},
 			SetupContext:  testContext,
@@ -212,9 +224,12 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("failed to create applier", func(t *testing.T) {
+	t.Run("failed to create ecosystem-client", func(t *testing.T) {
 		// given
-		testContext := &appcontext.SetupContext{AppConfig: &appcontext.Config{TargetNamespace: "test"}}
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
+		}
 		executor := &Executor{
 			SetupContext:  testContext,
 			ClusterConfig: &rest.Config{ExecProvider: &api.ExecConfig{}, AuthProvider: &api.AuthProviderConfig{}},
@@ -225,7 +240,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to create k8s apply client")
+		assert.Contains(t, err.Error(), "failed to create K8s Component-EcoSystem client")
 	})
 }
 

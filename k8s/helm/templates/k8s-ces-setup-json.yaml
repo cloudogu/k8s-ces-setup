@@ -1,0 +1,11 @@
+{{- if .Values.setup_json }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-ces-setup-json
+  labels:
+    {{- include "labels" . | nindent 4}}
+data:
+  setup.json: |
+    {{ .Values.setup_json | nindent 4 }}
+{{- end }}

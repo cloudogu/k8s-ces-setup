@@ -15,12 +15,16 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 )
 
 func TestSetupAPI(t *testing.T) {
 	t.Run("should fail because of invalid config paths", func(t *testing.T) {
 		// given
+		t.Setenv("POD_NAMESPACE", "ecosystem")
+		t.Setenv("STAGE", "development")
+
 		routesMock := newMockGinRoutes(t)
 		routesMock.EXPECT().POST("/api/v1/setup", mock.AnythingOfType("gin.HandlerFunc")).RunAndReturn(func(_ string, handlerFunc ...gin.HandlerFunc) gin.IRoutes {
 			for _, f := range handlerFunc {
@@ -35,8 +39,6 @@ func TestSetupAPI(t *testing.T) {
 
 		setupCtxBuilder := context.NewSetupContextBuilder("development")
 		setupCtxBuilder.DevSetupConfigPath = "invalid"
-		t.Setenv("POD_NAMESPACE", "ecosystem")
-		t.Setenv("STAGE", "development")
 
 		// when
 		logs, err := captureLogs(func() {
@@ -49,6 +51,16 @@ func TestSetupAPI(t *testing.T) {
 	})
 	t.Run("should fail because of failing auth in dogu registry", func(t *testing.T) {
 		// given
+		t.Setenv("POD_NAMESPACE", "ecosystem")
+		t.Setenv("STAGE", "development")
+
+		// override default controller method to retrieve a kube config
+		oldGetConfigOrDieDelegate := ctrl.GetConfigOrDie
+		defer func() { ctrl.GetConfigOrDie = oldGetConfigOrDieDelegate }()
+		ctrl.GetConfigOrDie = func() *rest.Config {
+			return &rest.Config{}
+		}
+
 		routesMock := newMockGinRoutes(t)
 		routesMock.EXPECT().POST("/api/v1/setup", mock.AnythingOfType("gin.HandlerFunc")).RunAndReturn(func(_ string, handlerFunc ...gin.HandlerFunc) gin.IRoutes {
 			for _, f := range handlerFunc {
@@ -69,8 +81,7 @@ func TestSetupAPI(t *testing.T) {
 		setupCtxBuilder.DevSetupConfigPath = filepath.Join(basepath, context.SetupConfigConfigmapDevPath)
 		setupCtxBuilder.DevStartupConfigPath = filepath.Join(basepath, context.SetupStartUpConfigMapDevPath)
 		setupCtxBuilder.DevDoguRegistrySecretPath = filepath.Join(basepath, "k8s/dev-resources/dogu-registry-secret.example.yaml")
-		t.Setenv("POD_NAMESPACE", "ecosystem")
-		t.Setenv("STAGE", "development")
+		setupCtxBuilder.DevHelmRepositoryDataPath = filepath.Join(basepath, "k8s/dev-resources/helm-repository.yaml")
 
 		// redirect stdout
 		orig := os.Stdout

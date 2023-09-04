@@ -6,14 +6,9 @@ This document describes all necessary steps to install the 'k8s-ces-setup'.
 
 1. a running K8s cluster exists.
 2. `kubectl` has been installed and has been configured for the existing K8s cluster.
+3. `helm` has been installed.
 
-## Installation from GitHub
-
-### Deploy configuration
-
-The `k8s-ces-setup` needs a configuration for the installation. This must be provided in the form of a ConfigMap before the
-before installing the `k8s-ces-setup`. More information about deployment and the individual
-configuration options describes [the configuration guide](configuration_guide_en.md).
+## Installation with Helm
 
 ### Automatic setup via setup.json
 
@@ -23,37 +18,98 @@ inserted into the cluster is described in ["Deployment of a setup configuration"
 
 ### Deploy setup
 
-The installation from GitHub requires the installation YAML, which contains all the required K8s resources. This is located
-in the repository under `k8s/k8s-ces-setup.yaml`. The installation looks like this with `kubectl`:
+The installation with helm requires the configuration of the `values.yaml`.
+A minimal example would be:
 
-```bash
-kubectl create ns your-target-namespace
-kubectl create secret generic k8s-dogu-operator-dogu-registry \
-    --namespace=your-target-namespace \
-    --from-literal=endpoint="https://dogu.cloudogu.com/api/v2/dogus" \
-    --from-literal=username="your-ces-instance-id" \
-    --from-literal=password="your-ces-instance-password"
-kubectl create secret docker-registry k8s-dogu-operator-docker-registry \
-    --namespace=your-target-namespace \
-    --docker-server=registry.cloudogu.com \
-    --docker-username="your-ces-instance-id" \
-    --docker-password="your-ces-instance-password"
+```yaml
+docker_registry_secret:
+  url: https://registry.cloudogu.com
+  username: "your-ces-instance-id"
+  password: "your-ces-instance-password"
 
-# note: the setup resource must be modified with your-target-namespace
-wget https://raw.githubusercontent.com/cloudogu/k8s-ces-setup/develop/k8s/k8s-ces-setup.yaml
-yq "(select(.kind == \"ClusterRoleBinding\").subjects[]|select(.name == \"k8s-ces-setup\")).namespace=\"your-target-namespace\"" k8s-ces-setup.yaml > k8s-ces-setup.patched.yaml
+dogu_registry_secret:
+  url: https://dogu.cloudogu.com/api/v2/dogus
+  username: "your-ces-instance-id"
+  password: "your-ces-instance-password"
 
-kubectl --namespace your-target-namespace apply -f k8s-ces-setup.patched.yaml
+helm_registry_secret:
+  url: https://registry.cloudogu.com
+  username: "your-ces-instance-id"
+  password: "your-ces-instance-password"
+
+# Example test setup.json
+#setup_json:
+#  {
+#    "naming": {
+#      "fqdn": "",
+#      "domain": "k3ces.local",
+#      "certificateType": "selfsigned",
+#      "relayHost": "yourrelayhost.com",
+#      "useInternalIp": false,
+#      "internalIp": ""
+#      "completed": true,
+#    },
+#    "dogus": {
+#      "defaultDogu": "redmine",
+#      "install": [
+#        "official/ldap",
+#        "official/postfix",
+#        "k8s/nginx-static",
+#        "k8s/nginx-ingress",
+#        "official/cas",
+#        "official/postgresql",
+#        "official/redmine",
+#      ],
+#      "completed": true
+#    },
+#    "admin": {
+#      "username": "admin",
+#      "mail": "admin@admin.admin",
+#      "password": "adminpw",
+#      "adminGroup": "cesAdmin",
+#      "adminMember": true,
+#      "sendWelcomeMail": false,
+#      "completed": true
+#    },
+#    "userBackend": {
+#      "dsType": "embedded",
+#      "server": "",
+#      "attributeID": "uid",
+#      "attributeGivenName": "",
+#      "attributeSurname": "",
+#      "attributeFullname": "cn",
+#      "attributeMail": "mail",
+#      "attributeGroup": "memberOf",
+#      "baseDN": "",
+#      "searchFilter": "(objectClass=person)",
+#      "connectionDN": "",
+#      "password": "",
+#      "host": "ldap",
+#      "port": "389",
+#      "loginID": "",
+#      "loginPassword": "",
+#      "encryption": "",
+#      "groupBaseDN": "",
+#      "groupSearchFilter": "",
+#      "groupAttributeName": "",
+#      "groupAttributeDescription": "",
+#      "groupAttributeMember": "",
+#      "completed": true
+#    }
+#  }
 ```
+<!-- markdown-link-check-disable-next-line -->
+> For more configuration options like operator versions see [values.yaml](https://github.com/cloudogu/k8s-ces-setup/blob/develop/k8s/helm/values.yaml).
 
-The k8s-ces-setup should now have started successfully in the cluster. The setup should now be reachable via the IP of the machine at
-the port `30080`.
+### Install the Setup
+
+- `helm registry login registry.cloudogu.com --username "your-ces-instance-id" --password "your-ces-instance-password"`
+- `helm upgrade -i -f values.yaml k8s-ces-setup oci//:registry.cloudogu.com/k8s/k8s-ces-setup `
 
 ### Execute Setup
 
-```bash
-curl -I --request POST --url http://your-cluster-ip-or-fqdn:30080/api/v1/setup
-```
+- `kubectl port-forward service/k8s-ces-setup 30080:8080`
+- `curl -I --request POST --url http://localhost:30080/api/v1/setup`
 
 ### Status of the setup
 

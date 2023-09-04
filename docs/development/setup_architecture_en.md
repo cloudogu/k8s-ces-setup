@@ -11,18 +11,25 @@ Instructions for the installation of the setup itself are available in the [inst
 The automatic setup of a CES instance completely without further user interaction ("unattended setup") should take place as similar as possible to the conventional CES setup.
 
 **Requirements for an unattended setup:**.
-1. [Dogu-](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md) and [Image-Instance credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_de.md) are provided as secrets.
-1. [setup configuration](../operations/configuration_guide_en.md) is located in a `ConfigMap` in the same namespace where the setup runs
-1. (not yet implemented) a setup descriptor `setup.json` was made available
+1. dogu operator credentials is provided as Secrets.
+    * [Dogu registry credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md)
+    * [Image-Instance credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_en.md)
+2. component-operator-config is provided.
+    * [Helm-Repository-credentials](../operations/installation_guide_en.md#deploy-setup)
+    * [helmet-repository-config](../operations/installation_guide_en.md#deploy-setup)
+3. [setup-configuration](../operations/configuration_guide_en.md) is in a `ConfigMap` in the same namespace where the setup runs
+4. [Setup descriptor](../operations/custom_setup_configuration_en.md) `setup.json` is present
+5. a cluster administrator must deploy the setup executable (see below)
 
 **Execution:**
 It is done in several steps, which the figure above illustrates well:
 
 Preparation (deployment of the setup):
 - A. Admin creates target namespace
-- B. Admin creates required setup data in target namespace
+- B. Admin configures required setup data in `values.yaml` from the Helm-Chart
    - Instance credentials
    - Setup configuration
+   - Component versions
 - C. Admin deploys the setup
 - D. Admin triggers the setup execution (see below)
 
@@ -33,17 +40,16 @@ Preparation (deployment of the setup):
    - in production mode this is provided by setup deployment
    - in development mode this can also be read from local cube configs
 3. read dogu and image credentials
-4. install etcd server into the new namespace
-5. install etcd client into the new namespace
-6. install dogu-operator into the new namespace
-6. install service-discovery into the new namespace
-7. install (not yet implemented) Dogus (according to `setup.json`)
+4. install component-operator in the new namespace.
+5. install components (etcd, dogu-operator, service-discovery, ...) as component CRs in the new namespace
+5. install etcd-client into the new namespace
+7. install dogus (according to `setup.json`) as dogu-CRs into the new namespace
 
 ## Necessary permissions to run the setup
 
 The setup always runs in the namespace that is to be made operational for the future Cloudogu EcoSystem.
 
-The setup depends with regard to the necessary permissions very much on the resources to be installed, especially the Dogu operator. Since its resources can fluctuate with respective releases, the setup requires **all rights to the target namespace (Role/RoleBinding)**.
+The setup depends very much on the resources to be installed, especially the component and dogu operator. Since their resources can fluctuate with respective releases, the setup requires **all rights to the target namespace (Role/RoleBinding)**.
 
 In addition, a CustomResourceDefinition (CRD) must be installed via the Dogu operator. CRDs are generally valid cluster-wide. Therefore, the setup additionally requires the right **to create/update CRDs (ClusterRole/ClusterRoleBinding)**.
 

@@ -15,10 +15,9 @@
       "official/postfix",
       "k8s/nginx-static",
       "k8s/nginx-ingress",
-      "official/cas",
-      "official/nexus"
+      "official/cas"
     ],
-    "completed": false
+    "completed": true
   },
   "admin": {
     "username": "admin",

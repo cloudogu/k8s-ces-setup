@@ -7,6 +7,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.16.1] - 2023-09-04
+### Changed
+- [#66] Use new helm registry config from the component-operator where the url is divided in host and schema.
+
+### Changed
+- [#62] Use `Info` as default log level.
+- [#64] Match Makefile helm variable with those from a newer Makefile version 
+
+### Added
+- [#59] Add helm chart as release artifact.
+
 ## [v0.16.0] - 2023-08-14
 ### Added
 - [#56] Allow to configure resource patches, a powerful way to modify Kubernetes resources during the setup process

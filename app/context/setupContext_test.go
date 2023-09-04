@@ -2,6 +2,7 @@ package context
 
 import (
 	_ "embed"
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,6 +70,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		builder.DevStartupConfigPath = "testdata/testSetupJson.json"
 		builder.DevSetupConfigPath = "testdata/testConfig.yaml"
 		builder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
+		builder.DevHelmRepositoryDataPath = "testdata/testHelmRepoData.yaml"
 		fakeClient := fake.NewSimpleClientset()
 
 		// when
@@ -78,9 +80,7 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "1.2.3", actual.AppVersion)
 		assert.Equal(t, "myTestNamespace", actual.AppConfig.TargetNamespace)
-		assert.Equal(t, "https://dop.yaml", actual.AppConfig.DoguOperatorURL)
-		assert.Equal(t, "https://sd.yaml", actual.AppConfig.ServiceDiscoveryURL)
-		assert.Equal(t, "https://etcds.yaml", actual.AppConfig.EtcdServerResourceURL)
+		assert.Equal(t, "k8s/k8s-component-operator:0.0.2", actual.AppConfig.ComponentOperatorChart)
 		assert.Equal(t, "https://etcdc.yaml", actual.AppConfig.EtcdClientImageRepo)
 		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
 		assert.Equal(t, "user", actual.DoguRegistryConfiguration.Username)
@@ -112,7 +112,12 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 			StringData: registrySecretData,
 		}
 
-		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret)
+		helmConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "component-operator-helm-repository",
+			Namespace: "myTestNamespace",
+		}, Data: map[string]string{"endpoint": "helm.repo", "schema": "oci", "palinHttp": "false"}}
+
+		fakeClient := fake.NewSimpleClientset(startupConfigmap, configConfigmap, registrySecret, helmConfigmap)
 
 		// when
 		actual, err := builder.NewSetupContext(testCtx, fakeClient)
@@ -196,6 +201,36 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Contains(t, err.Error(), "dogu registry secret k8s-dogu-operator-dogu-registry not found")
 	})
 
+	t.Run("helm repo config not found", func(t *testing.T) {
+		// given
+		builder := NewSetupContextBuilder("1.2.3")
+		configData := map[string]string{"k8s-ces-setup.yaml": string(configBytes)}
+		configConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-config",
+			Namespace: "myTestNamespace",
+		}, Data: configData}
+		startupData := map[string]string{"setup.json": string(setupJSONBytes)}
+		startupConfigmap := &v1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-ces-setup-json",
+			Namespace: "myTestNamespace",
+		}, Data: startupData}
+		registrySecretData := map[string]string{"endpoint": "endpoint", "username": "username", "password": "password"}
+		registrySecret := &v1.Secret{ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-dogu-operator-dogu-registry",
+			Namespace: "myTestNamespace"},
+			StringData: registrySecretData,
+		}
+
+		fakeClient := fake.NewSimpleClientset(configConfigmap, startupConfigmap, registrySecret)
+
+		// when
+		_, err := builder.NewSetupContext(testCtx, fakeClient)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to get helm repository configMap component-operator-helm-repository: configmaps \"component-operator-helm-repository\" not found")
+	})
+
 	t.Run("cannot not read current namespace", func(t *testing.T) {
 		// given
 		originalNamespace, _ := GetEnvVar(EnvironmentVariableTargetNamespace)
@@ -260,6 +295,24 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "could not find registry secret at invalid.yaml")
 	})
+
+	t.Run("cannot not find helm repo config", func(t *testing.T) {
+		// given
+		t.Setenv(EnvironmentVariableStage, StageDevelopment)
+
+		builder := NewSetupContextBuilder("1.2.3")
+		builder.DevSetupConfigPath = "testdata/testConfig.yaml"
+		builder.DevStartupConfigPath = "testdata/testSetupJson.json"
+		builder.DevDoguRegistrySecretPath = "testdata/testRegistrySecret.yaml"
+		builder.DevHelmRepositoryDataPath = "invalid.yaml"
+
+		// when
+		_, err := builder.NewSetupContext(testCtx, nil)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to read configuration invalid.yaml: open invalid.yaml: no such file or directory")
+	})
 }
 
 func TestGetSetupStateConfigMap(t *testing.T) {
@@ -309,5 +362,30 @@ func TestGetSetupStateConfigMap(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
 		assert.ErrorContains(t, err, "failed to create configmap [k8s-setup-config]")
+	})
+}
+
+func Test_configureLogger(t *testing.T) {
+	t.Run("should use info log level if no one is specified", func(t *testing.T) {
+		// given
+		config := &Config{}
+
+		// when
+		configureLogger(config)
+
+		// then
+		assert.Equal(t, logrus.InfoLevel, logrus.StandardLogger().Level)
+	})
+
+	t.Run("should use log level level from config", func(t *testing.T) {
+		// given
+		level := logrus.ErrorLevel
+		config := &Config{LogLevel: &level}
+
+		// when
+		configureLogger(config)
+
+		// then
+		assert.Equal(t, logrus.ErrorLevel, logrus.StandardLogger().Level)
 	})
 }

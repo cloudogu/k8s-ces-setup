@@ -1,0 +1,137 @@
+# Default values for k8s-ces-setup.
+
+# Chart of the component operator
+# Format: <namespace>/<name>:<version>
+component_operator_chart: k8s/k8s-component-operator:latest
+
+# Components to be installed by the k8s-ces-setup.
+# Mandatory components are listed below as the default. Moreover, one can specify components like k8s-ces-control or
+# k8s-backup-operator.
+#
+# Format: <namespace>/<name>: <version>
+components:
+  k8s/k8s-etcd: latest
+  k8s/k8s-dogu-operator: latest
+  k8s/k8s-service-discovery: latest
+
+# Image of the etcd client. This is currently used for debugging.
+etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
+
+# Key-Provider used for en- and decryption CES-Registry values.
+key_provider: pkcs1v15
+
+# Log-Level of the k8s-ces-setup. Valid values are INFO, WARN, DEBUG and ERROR.
+log_level: DEBUG
+
+# JSON-Patches for resources e.g. ces-loadbalancer service created by k8s-ces-setup.
+#resource_patches:
+
+# Credentials for the docker registry used by the components.
+# It is mandatory to set username and password.
+docker_registry_secret:
+  url: registry.cloudogu.com
+#  username:
+#  password:
+
+# Credentials for the dogu registry used by the components.
+# It is mandatory to set username and password.
+dogu_registry_secret:
+  url: https://dogu.cloudogu.com/api/v2/dogus
+#  username:
+#  password:
+
+# Credentials for the helm registry used by the components.
+# It is mandatory to set username and password.
+helm_registry_secret:
+  host: registry.cloudogu.com
+  schema: oci
+  plainHttp: "false"
+#  username:
+#  password:
+
+# Configuration for the Cloudogu EcoSystem. If all sections are completed k8s-ces-setup will start the process immediately.
+# Example:
+#setup_json:
+#  {
+#    "naming": {
+#      "fqdn": "",
+#      "domain": "k3ces.local",
+#      "certificateType": "selfsigned",
+#      "relayHost": "yourrelayhost.com",
+#      "useInternalIp": false,
+#      "internalIp": ""
+#      "completed": true,
+#    },
+#    "dogus": {
+#      "defaultDogu": "ldap",
+#      "install": [
+#        "official/ldap",
+#        "official/postfix",
+#        "k8s/nginx-static",
+#        "k8s/nginx-ingress",
+#        "official/cas",
+#        "official/postgresql",
+#        "official/redmine",
+#      ],
+#      "completed": false
+#    },
+#    "admin": {
+#      "username": "admin",
+#      "mail": "admin@admin.admin",
+#      "password": "adminpw",
+#      "adminGroup": "cesAdmin",
+#      "adminMember": true,
+#      "sendWelcomeMail": false,
+#      "completed": true
+#    },
+#    "userBackend": {
+#      "dsType": "embedded",
+#      "server": "",
+#      "attributeID": "uid",
+#      "attributeGivenName": "",
+#      "attributeSurname": "",
+#      "attributeFullname": "cn",
+#      "attributeMail": "mail",
+#      "attributeGroup": "memberOf",
+#      "baseDN": "",
+#      "searchFilter": "(objectClass=person)",
+#      "connectionDN": "",
+#      "password": "",
+#      "host": "ldap",
+#      "port": "389",
+#      "loginID": "",
+#      "loginPassword": "",
+#      "encryption": "",
+#      "groupBaseDN": "",
+#      "groupSearchFilter": "",
+#      "groupAttributeName": "",
+#      "groupAttributeDescription": "",
+#      "groupAttributeMember": "",
+#      "completed": true
+#    }
+#  }
+#resource_patches:
+#- phase: dogu
+#  resource:
+#    apiVersion: k8s.cloudogu.com/v1
+#    kind: Dogu
+#    name: nexus
+#  patches:
+#    - op: add
+#      path: /spec/additionalIngressAnnotations
+#      value:
+#        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+#    - op: add
+#      path: /spec/resources
+#      value:
+#        dataVolumeSize: 5Gi
+#- phase: loadbalancer
+#  resource:
+#    apiVersion: v1
+#    kind: Service
+#    name: ces-loadbalancer
+#  patches:
+#    - op: add
+#      path: /metadata/annotations
+#      value:
+#        service.beta.kubernetes.io/azure-load-balancer-internal: "true"

@@ -57,6 +57,8 @@ rules:
     resources:
       - customresourcedefinitions
     verbs:
+      - get
+      - list
       - create
       - patch
       - update
@@ -187,7 +189,7 @@ spec:
         spec:
           containers:
             - name: kubectl-container
-              image: bitnami/kubectl:1.23.6
+              image: bitnami/kubectl:1.27.4
               command:
                 - /bin/entrypoint.sh
               volumeMounts:
@@ -211,7 +213,7 @@ metadata:
     app: ces
     app.kubernetes.io/name: k8s-ces-setup-finisher
 data:
-  entrypoint.sh: "#!/bin/bash\nSTATE=$(kubectl get configmap k8s-setup-config -o jsonpath='{.data.state}');\nif [[ ${STATE} == \"installed\" ]]; then \n  kubectl delete configmap k8s-ces-setup-json || true\n  kubectl delete configmap k8s-setup-config || true\n  kubectl delete deployments,services,configmaps,secrets,roles,rolebindings,clusterroles,clusterrolebindings,serviceaccounts -l app.kubernetes.io/name=k8s-ces-setup || true\n  kubectl patch cronjob cleanup -p '{\"spec\" : {\"suspend\" : true }}'\n  kubectl delete configmap k8s-ces-setup-cleanup-script\n  kubectl delete cronjob k8s-ces-setup-finisher\n  kubectl delete serviceaccount k8s-ces-setup-finisher\n  kubectl delete rolebinding k8s-ces-setup-finisher\nelse \n  echo \"setup seems not to be installed or successfully executed\";\nfi"
+  entrypoint.sh: "#!/bin/bash\nSTATE=$(kubectl get configmap k8s-setup-config -o jsonpath='{.data.state}');\nif [[ ${STATE} == \"installed\" ]]; then \n kubectl get secrets | awk '{print $1\" \"$2}' | grep helm.sh/release | awk '{print $1}' | grep k8s-ces-setup | xargs kubectl delete secrets || true\n kubectl delete configmap k8s-ces-setup-json || true\n  kubectl delete configmap k8s-setup-config || true\n  kubectl delete deployments,services,configmaps,secrets,roles,rolebindings,clusterroles,clusterrolebindings,serviceaccounts -l app.kubernetes.io/name=k8s-ces-setup || true\n  kubectl patch cronjob cleanup -p '{\"spec\" : {\"suspend\" : true }}'\n  kubectl delete configmap k8s-ces-setup-cleanup-script\n  kubectl delete cronjob k8s-ces-setup-finisher\n  kubectl delete serviceaccount k8s-ces-setup-finisher\n  kubectl delete rolebinding k8s-ces-setup-finisher\nelse \n  echo \"setup seems not to be installed or successfully executed\";\nfi"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -325,7 +327,7 @@ spec:
     spec:
       containers:
         - name: k8s-ces-setup
-          image: "cloudogu/k8s-ces-setup:0.16.0"
+          image: "cloudogu/k8s-ces-setup:0.16.1"
           imagePullPolicy: IfNotPresent
           env:
             - name: GIN_MODE
@@ -374,6 +376,9 @@ spec:
             - name: dogu-registry-cert
               mountPath: /etc/ssl/certs/dogu-registry-cert.pem
               subPath: dogu-registry-cert.pem
+            - mountPath: "/tmp/.helmregistry"
+              name: component-operator-helm-registry
+              readOnly: true
       volumes:
         - configMap:
             name: k8s-ces-setup-config
@@ -386,6 +391,9 @@ spec:
           secret:
             secretName: dogu-registry-cert
             optional: true
+        - name: component-operator-helm-registry
+          secret:
+            secretName: component-operator-helm-registry
       serviceAccountName: k8s-ces-setup
       nodeSelector:
         kubernetes.io/os: linux

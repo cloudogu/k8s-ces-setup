@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-ces-setup-config
+  labels:
+    {{- include "labels" . | nindent 4}}
+data:
+  k8s-ces-setup.yaml: |
+    component_operator_chart: "{{ .Values.component_operator_chart }}"
+    {{- if .Values.components }}
+    components:
+      {{- range $component, $tag := .Values.components}}
+      {{- printf "\"%s\"%s \"%s\"" $component ":" $tag | nindent 6 }}
+      {{- end }}
+    {{- end }}
+    log_level: {{ or .Values.log_level "INFO"}}
+    etcd_client_image_repo: {{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
+    key_provider: {{ or .Values.key_provider "pkcs1v15"}}
+    {{- if .Values.resource_patches }}
+    resource_patches:
+    {{- toYaml .Values.resource_patches | nindent 6}}
+    {{- end }}
