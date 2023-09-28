@@ -11,9 +11,11 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     log_level: "DEBUG"
+    component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
     component_operator_chart: "k8s/k8s-component-operator:latest"
     components:
       "k8s/k8s-etcd": "latest"
+      "k8s/k8s-dogu-operator-crd": "latest"
       "k8s/k8s-dogu-operator": "latest"
       "k8s/k8s-service-discovery": "latest"
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0

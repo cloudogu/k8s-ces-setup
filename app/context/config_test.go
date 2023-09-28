@@ -23,6 +23,7 @@ func TestReadConfig(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, "ecosystem", c.TargetNamespace)
+		assert.Equal(t, "k8s/k8s-component-operator-crd:0.0.2", c.ComponentOperatorCrdChart)
 		assert.Equal(t, "k8s/k8s-component-operator:0.0.2", c.ComponentOperatorChart)
 		assert.Len(t, c.Components, 3)
 		assert.Equal(t, "1.2.3", c.Components["k8s/k8s-etcd"])
@@ -55,7 +56,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 	const testNamespace = "test-namespace"
 	t.Run("should return marshalled config", func(t *testing.T) {
 		// given
-		myFileMap := map[string]string{"k8s-ces-setup.yaml": `component_operator_chart: https://url.com`}
+		myFileMap := map[string]string{"k8s-ces-setup.yaml": "component_operator_crd_chart: https://crd.chart\ncomponent_operator_chart: https://url.com"}
 		mockedConfig := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      SetupConfigConfigmap,
@@ -70,7 +71,7 @@ func TestReadConfigFromCluster(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		extected := &Config{ComponentOperatorChart: "https://url.com"}
+		extected := &Config{ComponentOperatorCrdChart: "https://crd.chart", ComponentOperatorChart: "https://url.com"}
 		assert.Equal(t, extected, actual)
 	})
 	t.Run("should fail during marshalling config", func(t *testing.T) {
