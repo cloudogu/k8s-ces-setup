@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.16.1
 
 GOTAG?=1.20
-MAKEFILES_VERSION=7.13.1
+MAKEFILES_VERSION=8.5.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -52,10 +52,13 @@ HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.host='${HELM_REGISTRY_HOST}' 
 HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
 BINARY_HELM_ADDITIONAL_UPGR_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_HELM_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
 
+include build/make/k8s-component.mk
+
+
 ##@ EcoSystem
 
 .PHONY: build
-build: k8s-helm-delete k8s-helm-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
+build: helm-delete helm-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
 
 ##@ Development (without go container)
 
