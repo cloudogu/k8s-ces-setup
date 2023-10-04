@@ -33,7 +33,7 @@ func NewComponentOperatorInstallerStep(setupCtx *appcontext.SetupContext, helmCl
 
 // GetStepDescription returns a human-readable description of the component-operator installation step.
 func (cois *componentOperatorInstallerStep) GetStepDescription() string {
-	return fmt.Sprintf("Install component-operator from %s", cois.chart)
+	return fmt.Sprintf("Install component-operator from %s and component-crd from %s", cois.chart, cois.crdChart)
 }
 
 // PerformSetupStep installs the dogu operator.
