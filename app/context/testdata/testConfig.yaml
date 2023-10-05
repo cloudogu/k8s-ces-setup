@@ -2,8 +2,14 @@ target_namespace: "ecosystem"
 log_level: "DEBUG"
 component_operator_chart: "k8s/k8s-component-operator:0.0.2"
 components:
-  "k8s/k8s-etcd": "1.2.3"
-  "k8s/k8s-dogu-operator": "0.0.1"
-  "k8s/k8s-service-discovery": "latest"
+  k8s-etcd:
+    version: "1.2.3"
+    helmRepositoryNamespace: k8s
+  k8s-dogu-operator:
+    version: "0.0.1"
+    helmRepositoryNamespace: k8s
+  k8s-service-discovery:
+    version: "latest"
+    helmRepositoryNamespace: k8s
 etcd_client_image_repo: https://etcdc.yaml
 key_provider: pkcs1v15

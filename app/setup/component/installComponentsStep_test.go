@@ -16,7 +16,7 @@ func TestNewInstallComponentsStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 
 		// when
-		step := NewInstallComponentsStep(componentsClientMock, "comp", "testing", "0.0.2", "testNS")
+		step := NewInstallComponentsStep(componentsClientMock, "comp", "testing", "0.0.2", "testNS", "deployNS")
 
 		// then
 		assert.NotNil(t, step)
@@ -25,6 +25,7 @@ func TestNewInstallComponentsStep(t *testing.T) {
 		assert.Equal(t, "testing", step.componentNamespace)
 		assert.Equal(t, "0.0.2", step.version)
 		assert.Equal(t, "testNS", step.namespace)
+		assert.Equal(t, "deployNS", step.deployNamespace)
 	})
 }
 

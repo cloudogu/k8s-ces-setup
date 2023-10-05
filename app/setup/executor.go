@@ -20,6 +20,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const longhornComponentName = "k8s-longhorn"
+
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
 	// GetStepDescription returns the description of the setup step. The Executor prints the description of every step
@@ -108,13 +110,18 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
+	ecoSystemClient, err := componentEcoSystem.NewForConfig(e.ClusterConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create K8s Component-EcoSystem client: %w", err)
+	}
+	componentsClient := ecoSystemClient.Components(namespace)
+
 	componentOpInstallerStep := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
 
+	longhornComponentSteps := e.createLonghornSteps(componentsClient)
+
 	// create component steps
-	componentSteps, componentWaitSteps, err := e.createComponentSteps(namespace)
-	if err != nil {
-		return fmt.Errorf("failed to create component-steps: %w", err)
-	}
+	componentSteps, componentWaitSteps := e.createComponentSteps(componentsClient)
 
 	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
 	if err != nil {
@@ -129,6 +136,12 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	// Register steps
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(componentOpInstallerStep)
+
+	// Install and wait for longhorn first because the component operator can't handle the optional relation between longhorn and e.g. etcd.
+	// These steps are maybe empty if longhorn is not part of the component list.
+	for _, step := range longhornComponentSteps {
+		e.RegisterSetupStep(step)
+	}
 
 	// install components
 	for _, step := range componentSteps {
@@ -148,28 +161,47 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	return nil
 }
 
-func (e *Executor) createComponentSteps(namespace string) (componentSteps []ExecutorStep, waitSteps []ExecutorStep, err error) {
-	ecoSystemClient, err := componentEcoSystem.NewForConfig(e.ClusterConfig)
-	if err != nil {
-		return componentSteps, waitSteps, fmt.Errorf("failed to create K8s Component-EcoSystem client: %w", err)
-	}
-	componentsClient := ecoSystemClient.Components(namespace)
+func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.ComponentInterface) []ExecutorStep {
+	var result []ExecutorStep
+	components := e.SetupContext.AppConfig.Components
+	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	componentSteps = make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
-	waitSteps = make([]ExecutorStep, len(e.SetupContext.AppConfig.Components))
-	index := 0
-	for fullComponentName, version := range e.SetupContext.AppConfig.Components {
-		componentName := fullComponentName[strings.LastIndex(fullComponentName, "/")+1:]
-		componentNameSpace := fullComponentName[:strings.LastIndex(fullComponentName, "/")]
-
-		componentSteps[index] = component.NewInstallComponentsStep(componentsClient, componentName, componentNameSpace, version, namespace)
-
-		labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, componentName)
-		waitSteps[index] = component.NewWaitForComponentStep(componentsClient, labelSelector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
-		index++
+	if containsComponent(longhornComponentName, components) {
+		// TODO Label korrekt?
+		componentAttributes := components[longhornComponentName]
+		result = append(result, component.NewInstallComponentsStep(componentsClient, longhornComponentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
+		result = append(result, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(longhornComponentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
+		delete(components, longhornComponentName)
 	}
 
-	return
+	return result
+}
+
+func createComponentLabelSelector(name string) string {
+	return fmt.Sprintf("%s=%s", v1LabelK8sComponent, name)
+}
+
+func containsComponent(component string, components map[string]appcontext.ComponentAttributes) bool {
+	for key, _ := range components {
+		if key == component {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, []ExecutorStep) {
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+	var componentSteps []ExecutorStep
+	var waitSteps []ExecutorStep
+
+	for componentName, componentAttributes := range e.SetupContext.AppConfig.Components {
+		componentSteps = append(componentSteps, component.NewInstallComponentsStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
+		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(componentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
+	}
+
+	return componentSteps, waitSteps
 }
 
 func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, clusterConfig *rest.Config, targetNamespace string) (*resourcePatchStep, error) {

@@ -14,6 +14,16 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 )
 
+// ComponentAttributes defines the component to install.
+type ComponentAttributes struct {
+	// Version specifies the component version.
+	Version string `yaml:"version"`
+	// HelmRepositoryNamespace specifies the helm repository.
+	HelmRepositoryNamespace string `yaml:"helmRepositoryNamespace"`
+	// DeployNamespace specifies the namespace where the helm chart should be deployed to.
+	DeployNamespace string `yaml:"deployNamespace"`
+}
+
 // Config contains the common configuration for the setup
 type Config struct {
 	// LogLevel sets the log level for the app
@@ -23,7 +33,7 @@ type Config struct {
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
 	ComponentOperatorChart string `yaml:"component_operator_chart"`
 	// Components sets the List of Components that should be installed by the setup
-	Components map[string]string `yaml:"components"`
+	Components map[string]ComponentAttributes `yaml:"components"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
 	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
