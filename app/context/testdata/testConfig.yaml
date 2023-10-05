@@ -1,5 +1,6 @@
 target_namespace: "ecosystem"
 log_level: "DEBUG"
+component_operator_crd_chart: "k8s/k8s-component-operator-crd:0.0.2"
 component_operator_chart: "k8s/k8s-component-operator:0.0.2"
 components:
   "k8s/k8s-etcd": "1.2.3"

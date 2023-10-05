@@ -7,6 +7,7 @@ metadata:
 data:
   k8s-ces-setup.yaml: |
     component_operator_chart: "{{ .Values.component_operator_chart }}"
+    component_operator_crd_chart: "{{ .Values.component_operator_crd_chart }}"
     {{- if .Values.components }}
     components:
       {{- range $component, $tag := .Values.components}}
