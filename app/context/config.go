@@ -30,6 +30,8 @@ type Config struct {
 	LogLevel *logrus.Level `yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
 	TargetNamespace string `yaml:"target_namespace"`
+	// ComponentOperatorCrdChart sets the Helm-Chart which controls the installation of the component-operator CRD into the current cluster.
+	ComponentOperatorCrdChart string `yaml:"component_operator_crd_chart"`
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
 	ComponentOperatorChart string `yaml:"component_operator_chart"`
 	// Components sets the List of Components that should be installed by the setup
