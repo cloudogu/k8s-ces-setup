@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.16.2] - 2023-10-05
+### Changed
+- [#68] Change component setup to install CRDs separately
+
 ## [v0.16.1] - 2023-09-04
 ### Changed
 - [#66] Use new helm registry config from the component-operator where the url is divided in host and schema.
