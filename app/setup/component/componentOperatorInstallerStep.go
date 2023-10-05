@@ -38,14 +38,14 @@ func (cois *componentOperatorInstallerStep) GetStepDescription() string {
 
 // PerformSetupStep installs the dogu operator.
 func (cois *componentOperatorInstallerStep) PerformSetupStep(ctx context.Context) error {
-	err := cois.installOrUpgradeChart(ctx, cois.crdChart)
+	err := cois.installChart(ctx, cois.crdChart)
 	if err != nil {
 		return err
 	}
-	return cois.installOrUpgradeChart(ctx, cois.chart)
+	return cois.installChart(ctx, cois.chart)
 }
 
-func (cois *componentOperatorInstallerStep) installOrUpgradeChart(ctx context.Context, chart string) error {
+func (cois *componentOperatorInstallerStep) installChart(ctx context.Context, chart string) error {
 	fullChartName, chartVersion, err := splitChartString(chart)
 	if err != nil {
 		return err
