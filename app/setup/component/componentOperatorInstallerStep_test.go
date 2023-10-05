@@ -36,14 +36,15 @@ func TestComponentOperatorInstallerStep_GetStepDescription(t *testing.T) {
 	t.Run("should get description", func(t *testing.T) {
 		// given
 		step := &componentOperatorInstallerStep{
-			chart: "testChart",
+			chart:    "testChart",
+			crdChart: "testCrdChart",
 		}
 
 		// when
 		desc := step.GetStepDescription()
 
 		// then
-		assert.Equal(t, "Install component-operator from testChart", desc)
+		assert.Equal(t, "Install component-operator from testChart and component-crd from testCrdChart", desc)
 	})
 }
 
