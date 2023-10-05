@@ -8,6 +8,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Added
 - [#70] Add struct for the components to specify attributes like the deployNamespace.
+  - With this change it is possible to install longhorn as a component.
 
 ## [v0.16.1] - 2023-09-04
 ### Changed

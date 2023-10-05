@@ -167,7 +167,6 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
 	if containsComponent(longhornComponentName, components) {
-		// TODO Label korrekt?
 		componentAttributes := components[longhornComponentName]
 		result = append(result, component.NewInstallComponentsStep(componentsClient, longhornComponentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
 		result = append(result, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(longhornComponentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
@@ -182,7 +181,7 @@ func createComponentLabelSelector(name string) string {
 }
 
 func containsComponent(component string, components map[string]appcontext.ComponentAttributes) bool {
-	for key, _ := range components {
+	for key := range components {
 		if key == component {
 			return true
 		}
