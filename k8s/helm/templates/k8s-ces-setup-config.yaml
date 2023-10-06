@@ -10,9 +10,7 @@ data:
     component_operator_crd_chart: "{{ .Values.component_operator_crd_chart }}"
     {{- if .Values.components }}
     components:
-      {{- range $component, $tag := .Values.components}}
-      {{- printf "\"%s\"%s \"%s\"" $component ":" $tag | nindent 6 }}
-      {{- end }}
+    {{- toYaml .Values.components | nindent 6}}
     {{- end }}
     log_level: {{ or .Values.log_level "INFO"}}
     etcd_client_image_repo: {{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
