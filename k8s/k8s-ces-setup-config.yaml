@@ -14,10 +14,18 @@ data:
     component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
     component_operator_chart: "k8s/k8s-component-operator:latest"
     components:
-      "k8s/k8s-etcd": "latest"
-      "k8s/k8s-dogu-operator-crd": "latest"
-      "k8s/k8s-dogu-operator": "latest"
-      "k8s/k8s-service-discovery": "latest"
+      k8s-dogu-operator-crd:
+        version: "latest"
+        helmRepositoryNamespace: k8s
+      k8s-etcd:
+        version: "latest"
+        helmRepositoryNamespace: k8s
+      k8s-dogu-operator:
+        version: "latest"
+        helmRepositoryNamespace: k8s
+      k8s-service-discovery:
+        version: "latest"
+        helmRepositoryNamespace: k8s
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
     resource_patches:
