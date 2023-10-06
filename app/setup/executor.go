@@ -136,7 +136,7 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	e.RegisterSetupStep(componentOpInstallerStep)
 
 	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
-	// These steps are maybe empty if longhorn is not part of the component list.
+	// These steps may be empty if longhorn is not part of the component list.
 	for _, step := range longhornComponentSteps {
 		e.RegisterSetupStep(step)
 	}

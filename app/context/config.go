@@ -18,9 +18,10 @@ import (
 type ComponentAttributes struct {
 	// Version specifies the component version.
 	Version string `yaml:"version"`
-	// HelmRepositoryNamespace specifies the helm repository.
+	// HelmRepositoryNamespace specifies the component namespace inside the originating helm repository, f. i. "k8s" or "official".
 	HelmRepositoryNamespace string `yaml:"helmRepositoryNamespace"`
-	// DeployNamespace specifies the namespace where the helm chart should be deployed to.
+	// DeployNamespace specifies the cluster namespace where the helm chart should be deployed to. If left empty, the currently selected cluster namespace will be used by the component operator.
+	// +optional
 	DeployNamespace string `yaml:"deployNamespace"`
 }
 
