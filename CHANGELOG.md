@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#70] Add struct for the components to specify attributes like the deployNamespace.
+  - With this change it is possible to install longhorn as a component.
 
 ## [v0.16.2] - 2023-10-05
 ### Changed

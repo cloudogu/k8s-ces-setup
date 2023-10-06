@@ -224,6 +224,30 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("should register install/wait longhorn always as first component", func(t *testing.T) {
+		// given
+		components := map[string]appcontext.ComponentAttributes{"k8s-dogu-operator": {}, "k8s-etcd": {}, "k8s-longhorn": {Version: "1.0.0", HelmRepositoryNamespace: "k8s", DeployNamespace: "longhorn-system"}}
+
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test", Components: components, ComponentOperatorChart: "k8s/k8s-component-operator:2.0.0", ComponentOperatorCrdChart: "k8s/k8s-component-operator-crd:2.0.0"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
+		}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-operator from k8s/k8s-component-operator:2.0.0 and component-crd from k8s/k8s-component-operator-crd:2.0.0", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[3].GetStepDescription())
+	})
+
 	t.Run("failed to create ecosystem-client", func(t *testing.T) {
 		// given
 		testContext := &appcontext.SetupContext{
