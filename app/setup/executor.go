@@ -120,7 +120,6 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	longhornComponentSteps := e.createLonghornSteps(componentsClient)
 
-	// create component steps
 	componentSteps, componentWaitSteps := e.createComponentSteps(componentsClient)
 
 	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
@@ -133,22 +132,19 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
-	// Register steps
 	e.RegisterSetupStep(createNodeMasterStep)
 	e.RegisterSetupStep(componentOpInstallerStep)
 
-	// Install and wait for longhorn first because the component operator can't handle the optional relation between longhorn and e.g. etcd.
+	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
 	// These steps are maybe empty if longhorn is not part of the component list.
 	for _, step := range longhornComponentSteps {
 		e.RegisterSetupStep(step)
 	}
 
-	// install components
 	for _, step := range componentSteps {
 		e.RegisterSetupStep(step)
 	}
 
-	// wait for components to be installed
 	for _, step := range componentWaitSteps {
 		e.RegisterSetupStep(step)
 	}
@@ -166,10 +162,17 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 	components := e.SetupContext.AppConfig.Components
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	if containsComponent(longhornComponentName, components) {
-		componentAttributes := components[longhornComponentName]
-		result = append(result, component.NewInstallComponentsStep(componentsClient, longhornComponentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
-		result = append(result, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(longhornComponentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
+	_, containsLonghorn := components[longhornComponentName]
+
+	if containsLonghorn {
+		helmRepoNamespace := components[longhornComponentName].HelmRepositoryNamespace
+		version := components[longhornComponentName].Version
+		deployNamespace := components[longhornComponentName].DeployNamespace
+		installStep := component.NewInstallComponentsStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
+		selector := createComponentLabelSelector(longhornComponentName)
+		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
+		result = append(result, installStep)
+		result = append(result, waitStep)
 		delete(components, longhornComponentName)
 	}
 
@@ -178,16 +181,6 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 
 func createComponentLabelSelector(name string) string {
 	return fmt.Sprintf("%s=%s", v1LabelK8sComponent, name)
-}
-
-func containsComponent(component string, components map[string]appcontext.ComponentAttributes) bool {
-	for key := range components {
-		if key == component {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, []ExecutorStep) {
