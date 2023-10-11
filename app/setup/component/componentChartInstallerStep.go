@@ -43,7 +43,7 @@ func (s *cesComponentChartInstallerStep) PerformSetupStep(ctx context.Context) e
 }
 
 func (s *cesComponentChartInstallerStep) installChart(ctx context.Context, chart string) error {
-	fullChartName, chartVersion, err := splitChartString(chart)
+	fullChartName, chartVersion, err := SplitChartString(chart)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *cesComponentChartInstallerStep) installChart(ctx context.Context, chart
 	return s.helmClient.InstallOrUpgrade(ctx, chartSpec)
 }
 
-func splitChartString(chart string) (string, string, error) {
+func SplitChartString(chart string) (string, string, error) {
 	chartSplit := strings.Split(chart, ":")
 	if len(chartSplit) != 2 {
 		return "", "", fmt.Errorf("componentChart '%s' has a wrong format. Must be '<chartName>:<version>'; e.g.: 'foo/bar:1.2.3'", chart)
@@ -67,6 +67,11 @@ func splitChartString(chart string) (string, string, error) {
 	fullChartName := chartSplit[0]
 	chartVersion := chartSplit[1]
 	return fullChartName, chartVersion, nil
+}
+
+func SplitHelmNamespaceFromChartString(chartString string) (string, string) {
+	split := strings.Split(chartString, "/")
+	return split[0], split[1]
 }
 
 func (s *cesComponentChartInstallerStep) createChartSpec(chartName string, fullChartName string, chartVersion string) *helmclient.ChartSpec {

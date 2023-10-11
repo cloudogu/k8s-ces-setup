@@ -122,7 +122,10 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	certManagerInstallerSteps := e.createCertManagerSteps(helmClient)
 
-	componentOpInstallerSteps := e.createComponentOperatorSteps(helmClient)
+	componentOpInstallerSteps, err := e.createComponentOperatorSteps(helmClient, componentsClient)
+	if err != nil {
+		return err
+	}
 
 	longhornComponentSteps := e.createLonghornSteps(componentsClient)
 
@@ -170,14 +173,54 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	return nil
 }
 
-func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client) []ExecutorStep {
+func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client, componentClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, error) {
 	var result []ExecutorStep
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
 	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
 	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
+	operatorComponentSteps, err := e.appendComponentStepsForComponentOperator(componentClient)
+	if err != nil {
+		return nil, err
+	}
+	result = append(result, operatorComponentSteps...)
 
-	return result
+	return result, nil
+}
+
+func (e *Executor) appendComponentStepsForComponentOperator(componentClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, error) {
+	var result []ExecutorStep
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+
+	stepsCrdChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorCrdChart, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	stepsChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorChart, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	result = append(result, stepsCrdChart...)
+	result = append(result, stepsChart...)
+
+	return result, nil
+}
+
+func (e *Executor) createComponentStepsByString(componentClient componentEcoSystem.ComponentInterface, chartStr string, namespace string) ([]ExecutorStep, error) {
+	var result []ExecutorStep
+
+	fullChartName, chartVersion, err := component.SplitChartString(chartStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to split chart string %s: %w", e.SetupContext.AppConfig.ComponentOperatorChart, err)
+	}
+	helNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
+
+	result = append(result, component.NewInstallComponentsStep(componentClient, name, helNamespace, chartVersion, namespace, namespace))
+	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace, component.DefaultComponentWaitTimeOut5Minutes))
+
+	return result, nil
 }
 
 func (e *Executor) createCertManagerSteps(helmClient *componentHelm.Client) []ExecutorStep {
@@ -206,7 +249,6 @@ func (e *Executor) createComponentChartInstallStepFromComponentList(name string,
 			namespace = c.DeployNamespace
 		}
 		chartUrl := fmt.Sprintf("%s/%s:%s", c.HelmRepositoryNamespace, name, c.Version)
-		delete(components, name)
 
 		return component.NewCesComponentChartInstallerStep(namespace, chartUrl, helmClient)
 	}
