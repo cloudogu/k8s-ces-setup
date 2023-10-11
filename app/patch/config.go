@@ -12,11 +12,11 @@ import (
 // For namespaced resources, the namespace of the setup is inferred.
 type ResourcePatch struct {
 	// Phase is a sequential step in the setup process.
-	Phase Phase `yaml:"phase"`
+	Phase Phase `json:"phase" yaml:"phase"`
 	// ResourceReference uniquely identifies a kubernetes resource that should be patched.
-	Resource ResourceReference `yaml:"resource"`
+	Resource ResourceReference `json:"resource" yaml:"resource"`
 	// Patches contains a series of operations to be applied on the specified kubernetes resource.
-	Patches []JsonPatch `yaml:"patches"`
+	Patches []JsonPatch `json:"patches" yaml:"patches"`
 }
 
 func (rp *ResourcePatch) Validate() error {
@@ -76,11 +76,11 @@ const (
 // ResourceReference uniquely identifies a kubernetes resource.
 type ResourceReference struct {
 	// ApiVersion contains the group and version of the resource.
-	ApiVersion string `yaml:"apiVersion"`
+	ApiVersion string `json:"apiVersion" yaml:"apiVersion"`
 	// Kind contains the resource type.
-	Kind string `yaml:"kind"`
+	Kind string `json:"kind" yaml:"kind"`
 	// Name contains the name of the resource.
-	Name string `yaml:"name"`
+	Name string `json:"name" yaml:"name"`
 }
 
 func (r ResourceReference) GroupVersionKind() schema.GroupVersionKind {

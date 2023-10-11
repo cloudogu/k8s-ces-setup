@@ -51,7 +51,7 @@ func TestReadConfig(t *testing.T) {
 
 		// then
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unmarshal errors")
+		assert.Contains(t, err.Error(), "error unmarshaling")
 	})
 }
 

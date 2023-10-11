@@ -7,9 +7,9 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/yaml"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 )
@@ -17,32 +17,32 @@ import (
 // ComponentAttributes defines the component to install.
 type ComponentAttributes struct {
 	// Version specifies the component version.
-	Version string `yaml:"version"`
+	Version string `json:"version" yaml:"version"`
 	// HelmRepositoryNamespace specifies the component namespace inside the originating helm repository, f. i. "k8s" or "official".
-	HelmRepositoryNamespace string `yaml:"helmRepositoryNamespace"`
+	HelmRepositoryNamespace string `json:"helmRepositoryNamespace" yaml:"helmRepositoryNamespace"`
 	// DeployNamespace specifies the cluster namespace where the helm chart should be deployed to. If left empty, the currently selected cluster namespace will be used by the component operator.
 	// +optional
-	DeployNamespace string `yaml:"deployNamespace"`
+	DeployNamespace string `json:"deployNamespace" yaml:"deployNamespace"`
 }
 
 // Config contains the common configuration for the setup
 type Config struct {
 	// LogLevel sets the log level for the app
-	LogLevel *logrus.Level `yaml:"log_level"`
+	LogLevel *logrus.Level `json:"log_level" yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
-	TargetNamespace string `yaml:"target_namespace"`
+	TargetNamespace string `json:"target_namespace" yaml:"target_namespace"`
 	// ComponentOperatorCrdChart sets the Helm-Chart which controls the installation of the component-operator CRD into the current cluster.
-	ComponentOperatorCrdChart string `yaml:"component_operator_crd_chart"`
+	ComponentOperatorCrdChart string `json:"component_operator_crd_chart" yaml:"component_operator_crd_chart"`
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.
-	ComponentOperatorChart string `yaml:"component_operator_chart"`
+	ComponentOperatorChart string `json:"component_operator_chart" yaml:"component_operator_chart"`
 	// Components sets the List of Components that should be installed by the setup
-	Components map[string]ComponentAttributes `yaml:"components"`
+	Components map[string]ComponentAttributes `json:"components" yaml:"components"`
 	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
-	EtcdClientImageRepo string `yaml:"etcd_client_image_repo"`
+	EtcdClientImageRepo string `json:"etcd_client_image_repo" yaml:"etcd_client_image_repo"`
 	// KeyProvider sets the key provider used to encrypt etcd values
-	KeyProvider string `yaml:"key_provider"`
+	KeyProvider string `json:"key_provider" yaml:"key_provider"`
 	// ResourcePatches contains json patches for kubernetes resources to be applied on certain phases of the setup process.
-	ResourcePatches []patch.ResourcePatch `yaml:"resource_patches"`
+	ResourcePatches []patch.ResourcePatch `json:"resource_patches" yaml:"resource_patches"`
 }
 
 // ReadConfigFromCluster reads the setup config from the cluster state
