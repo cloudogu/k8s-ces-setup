@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.17.1] - 2023-10-11
+### Changed
+- [#72] Update component-operator
+- Update other dependencies
+- Replace go-yaml with sigs.k8s.io/yaml
+
 ## [v0.17.0] - 2023-10-06
 ### Added
 - [#70] Add struct for the components to specify attributes like the deployNamespace.

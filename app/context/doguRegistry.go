@@ -3,20 +3,22 @@ package context
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-apply-lib/apply"
-	"gopkg.in/yaml.v3"
+	"os"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
+	"sigs.k8s.io/yaml"
+
+	"github.com/cloudogu/k8s-apply-lib/apply"
 )
 
 // DoguRegistrySecret defines the credentials and the endpoint for the dogu registry.
 type DoguRegistrySecret struct {
-	Endpoint  string `yaml:"endpoint"`
-	Username  string `yaml:"username"`
-	Password  string `yaml:"password"`
-	URLSchema string `yaml:"urlschema"`
+	Endpoint  string `json:"endpoint" yaml:"endpoint"`
+	Username  string `json:"username" yaml:"username"`
+	Password  string `json:"password" yaml:"password"`
+	URLSchema string `json:"urlschema" yaml:"urlschema"`
 }
 
 // ReadDoguRegistrySecretFromCluster reads the dogu registry credentials from the kubernetes secret.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	helmclient "github.com/mittwald/go-helm-client"
+	helmclient "github.com/cloudogu/k8s-component-operator/pkg/helm/client"
 	"strings"
 	"time"
 )
@@ -81,6 +81,6 @@ func (cois *componentOperatorInstallerStep) createChartSpec(chartName string, fu
 		// This timeout prevents context exceeded errors from the used k8s client from the helm library.
 		Timeout: time.Second * 300,
 		// Wait for the release to deployed and ready
-		Wait: true,
+		Atomic: true,
 	}
 }
