@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.17.1] - 2023-10-11
 ### Changed
 - [#72] Update component-operator
 - Update other dependencies
