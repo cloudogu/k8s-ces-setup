@@ -243,9 +243,60 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		// then
 		require.NoError(t, err)
 		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
-		assert.Equal(t, "Install component-operator from k8s/k8s-component-operator:2.0.0 and component-crd from k8s/k8s-component-operator-crd:2.0.0", executor.Steps[1].GetStepDescription())
-		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[4].GetStepDescription())
+	})
+
+	t.Run("should install cert-manager always before the component-operator", func(t *testing.T) {
+		// given
+		components := map[string]appcontext.ComponentAttributes{"k8s-cert-manager": {HelmRepositoryNamespace: "k8s", Version: "1.0.0"}, "k8s-cert-manager-crd": {HelmRepositoryNamespace: "k8s", Version: "1.0.0"}}
+
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test", Components: components, ComponentOperatorChart: "k8s/k8s-component-operator:2.0.0", ComponentOperatorCrdChart: "k8s/k8s-component-operator-crd:2.0.0"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
+		}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace test", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace test", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[4].GetStepDescription())
+	})
+
+	t.Run("should install component chart in defined deployNamespace", func(t *testing.T) {
+		// given
+		components := map[string]appcontext.ComponentAttributes{"k8s-cert-manager": {HelmRepositoryNamespace: "k8s", Version: "1.0.0", DeployNamespace: "security"}, "k8s-cert-manager-crd": {HelmRepositoryNamespace: "k8s", Version: "1.0.0", DeployNamespace: "security"}}
+
+		testContext := &appcontext.SetupContext{
+			AppConfig:          &appcontext.Config{TargetNamespace: "test", Components: components, ComponentOperatorChart: "k8s/k8s-component-operator:2.0.0", ComponentOperatorCrdChart: "k8s/k8s-component-operator-crd:2.0.0"},
+			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
+		}
+		executor := &Executor{
+			ClusterConfig: &rest.Config{},
+			SetupContext:  testContext,
+		}
+
+		// when
+		err := executor.RegisterComponentSetupSteps()
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace security", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace security", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[4].GetStepDescription())
 	})
 
 	t.Run("failed to create ecosystem-client", func(t *testing.T) {

@@ -37,6 +37,26 @@ rules:
     verbs:
       - "*"
 ---
+# Role in kube-system used to deploy cert-manager because cert-manager do leader election in this namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: k8s-ces-setup
+  namespace: kube-system
+  labels:
+    app: ces
+    app.kubernetes.io/name: k8s-ces-setup
+rules:
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - get
+      - create
+      - delete
+---
 #
 # The cluster role helps the setup to provide the dogu operator with the dogu CRD
 #
@@ -78,6 +98,30 @@ rules:
       - create
       - list
       - watch
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingwebhookconfigurations
+    verbs:
+      - get
+      - create
+      - delete
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -130,6 +174,23 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: k8s-ces-setup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: k8s-ces-setup
+  namespace: kube-system
+  labels:
+    app: ces
+    app.kubernetes.io/name: k8s-ces-setup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: k8s-ces-setup
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ces-setup
+    namespace: '{{ .Namespace }}'
 ---
 #
 # The cluster role binding binds our cluster role to our service account, and, thus, gives him all permission defined

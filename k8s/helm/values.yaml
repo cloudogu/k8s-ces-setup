@@ -34,6 +34,12 @@ components:
 #  k8s-velero:
 #    version: latest
 #    helmRepositoryNamespace: k8s
+#  k8s-cert-manager:
+#    version: latest
+#    helmRepositoryNamespace: k8s
+#  k8s-cert-manager-crd:
+#    version: latest
+#    helmRepositoryNamespace: k8s
 
 # Image of the etcd client. This is currently used for debugging.
 etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0

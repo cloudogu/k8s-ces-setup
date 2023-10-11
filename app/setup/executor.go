@@ -20,7 +20,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const longhornComponentName = "k8s-longhorn"
+const (
+	longhornComponentName       = "k8s-longhorn"
+	certManagerComponentName    = "k8s-cert-manager"
+	certManagerCrdComponentName = "k8s-cert-manager-crd"
+)
 
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
@@ -116,7 +120,9 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	}
 	componentsClient := ecoSystemClient.Components(namespace)
 
-	componentOpInstallerStep := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
+	certManagerInstallerSteps := e.createCertManagerSteps(helmClient)
+
+	componentOpInstallerSteps := e.createComponentOperatorSteps(helmClient)
 
 	longhornComponentSteps := e.createLonghornSteps(componentsClient)
 
@@ -133,7 +139,14 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	}
 
 	e.RegisterSetupStep(createNodeMasterStep)
-	e.RegisterSetupStep(componentOpInstallerStep)
+
+	for _, step := range certManagerInstallerSteps {
+		e.RegisterSetupStep(step)
+	}
+
+	for _, step := range componentOpInstallerSteps {
+		e.RegisterSetupStep(step)
+	}
 
 	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
 	// These steps may be empty if longhorn is not part of the component list.
@@ -153,6 +166,50 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	// Since this step should patch resources created in this phase, it should be executed last.
 	e.RegisterSetupStep(componentResourcePatchStep)
+
+	return nil
+}
+
+func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client) []ExecutorStep {
+	var result []ExecutorStep
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+
+	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
+	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
+
+	return result
+}
+
+func (e *Executor) createCertManagerSteps(helmClient *componentHelm.Client) []ExecutorStep {
+	var result []ExecutorStep
+
+	result = e.appendComponentChartInstallStepToSlice(helmClient, certManagerCrdComponentName, result)
+	result = e.appendComponentChartInstallStepToSlice(helmClient, certManagerComponentName, result)
+
+	return result
+}
+
+func (e *Executor) appendComponentChartInstallStepToSlice(helmClient *componentHelm.Client, name string, steps []ExecutorStep) []ExecutorStep {
+	if step := e.createComponentChartInstallStepFromComponentList(name, helmClient); step != nil {
+		steps = append(steps, step)
+	}
+
+	return steps
+}
+
+func (e *Executor) createComponentChartInstallStepFromComponentList(name string, helmClient *componentHelm.Client) ExecutorStep {
+	components := e.SetupContext.AppConfig.Components
+
+	if c, containsCertManager := components[name]; containsCertManager {
+		namespace := e.SetupContext.AppConfig.TargetNamespace
+		if c.DeployNamespace != "" {
+			namespace = c.DeployNamespace
+		}
+		chartUrl := fmt.Sprintf("%s/%s:%s", c.HelmRepositoryNamespace, name, c.Version)
+		delete(components, name)
+
+		return component.NewCesComponentChartInstallerStep(namespace, chartUrl, helmClient)
+	}
 
 	return nil
 }
