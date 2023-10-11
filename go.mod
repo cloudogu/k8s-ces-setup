@@ -7,10 +7,9 @@ toolchain go1.21.1
 require (
 	github.com/cloudogu/cesapp-lib v0.12.1
 	github.com/cloudogu/k8s-apply-lib v0.4.2
-	github.com/cloudogu/k8s-component-operator v0.0.0-20231004125740-8b61add42fdb
+	github.com/cloudogu/k8s-component-operator v0.0.0-20231011074308-59d0fb53d4f4
 	github.com/cloudogu/k8s-dogu-operator v0.30.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/mittwald/go-helm-client v0.12.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
@@ -24,10 +23,6 @@ require (
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.0
-
-// replace mittwald client with our own until mittwald supports plain HTTP helm registries
-// this should be released in helm v3.13 which is scheduled in September 23
-replace github.com/mittwald/go-helm-client v0.12.3 => github.com/cloudogu/go-helm-client v0.0.0-20230822080918-4b3b24282d0d
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
@@ -167,7 +162,7 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	helm.sh/helm/v3 v3.12.0-dev.1.0.20230817154107-a749b663101d // indirect
+	helm.sh/helm/v3 v3.13.0 // indirect
 	k8s.io/apiextensions-apiserver v0.28.2 // indirect
 	k8s.io/apiserver v0.28.2 // indirect
 	k8s.io/cli-runtime v0.28.2 // indirect

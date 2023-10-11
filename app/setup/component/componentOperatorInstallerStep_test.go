@@ -2,12 +2,14 @@ package component
 
 import (
 	"context"
-	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
-	helmclient "github.com/mittwald/go-helm-client"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	ctx "github.com/cloudogu/k8s-ces-setup/app/context"
+	helmclient "github.com/cloudogu/k8s-component-operator/pkg/helm/client"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewComponentOperatorInstallerStep(t *testing.T) {
@@ -59,7 +61,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		chartSpec := &helmclient.ChartSpec{
@@ -68,7 +70,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -99,7 +101,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		chartSpec := &helmclient.ChartSpec{
@@ -108,7 +110,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -176,7 +178,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -205,7 +207,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -235,7 +237,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -264,7 +266,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		crdChartSpec := &helmclient.ChartSpec{
@@ -273,7 +275,7 @@ func TestComponentOperatorInstallerStep_PerformSetupStep(t *testing.T) {
 			Namespace:   "testing",
 			Version:     "0.1",
 			Timeout:     time.Second * 300,
-			Wait:        true,
+			Atomic:      true,
 		}
 
 		helmClientMock := newMockHelmClient(t)
