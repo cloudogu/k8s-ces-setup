@@ -213,7 +213,7 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 
 	fullChartName, chartVersion, err := component.SplitChartString(chartStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to split chart string %s: %w", e.SetupContext.AppConfig.ComponentOperatorChart, err)
+		return nil, fmt.Errorf("failed to split chart string %s: %w", chartStr, err)
 	}
 	helNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
 

@@ -209,7 +209,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 	t.Run("successfully register steps", func(t *testing.T) {
 		// given
 		testContext := &appcontext.SetupContext{
-			AppConfig:          &appcontext.Config{TargetNamespace: "test"},
+			AppConfig:          &appcontext.Config{TargetNamespace: "test", ComponentOperatorCrdChart: "k8s/comp-op-crd:0.1.0", ComponentOperatorChart: "k8s/comp-op:0.1.0"},
 			HelmRepositoryData: &componentOpConfig.HelmRepositoryData{Endpoint: "https://helm.repo"},
 		}
 		executor := &Executor{
@@ -245,8 +245,12 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
 		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[1].GetStepDescription())
 		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[3].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[4].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-component-operator-crd:2.0.0'", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator-crd to be installed", executor.Steps[4].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-component-operator:2.0.0'", executor.Steps[5].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator to be installed", executor.Steps[6].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[7].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[8].GetStepDescription())
 	})
 
 	t.Run("should install cert-manager always before the component-operator", func(t *testing.T) {
@@ -365,4 +369,30 @@ func Test_getRemoteConfig(t *testing.T) {
 			assert.Equalf(t, tt.want, getRemoteConfig(tt.args.endpoint, tt.args.urlSchema), "getRemoteConfig(%v, %v)", tt.args.endpoint, tt.args.urlSchema)
 		})
 	}
+}
+
+func TestExecutor_appendComponentStepsForComponentOperator(t *testing.T) {
+	t.Run("should fail if component op crd chart has no : as delimiter for chart and version", func(t *testing.T) {
+		// given
+		executor := Executor{SetupContext: &appcontext.SetupContext{AppConfig: &appcontext.Config{ComponentOperatorCrdChart: "k8s/component-op-crd"}}}
+
+		// when
+		_, err := executor.appendComponentStepsForComponentOperator(nil)
+
+		// then
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "failed to split chart string k8s/component-op-crd")
+	})
+
+	t.Run("should fail if component op chart has no : as delimiter for chart and version", func(t *testing.T) {
+		// given
+		executor := Executor{SetupContext: &appcontext.SetupContext{AppConfig: &appcontext.Config{ComponentOperatorCrdChart: "k8s/component-op:latest", ComponentOperatorChart: "k8s/component-op"}}}
+
+		// when
+		_, err := executor.appendComponentStepsForComponentOperator(nil)
+
+		// then
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "failed to split chart string k8s/component-op")
+	})
 }
