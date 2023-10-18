@@ -12,7 +12,7 @@ type componentsClient interface {
 	ecosystem.ComponentInterface
 }
 
-type installComponentsStep struct {
+type installComponentStep struct {
 	client             componentsClient
 	componentName      string
 	componentNamespace string
@@ -21,18 +21,18 @@ type installComponentsStep struct {
 	deployNamespace    string
 }
 
-// NewInstallComponentsStep creates a new step responsible to apply a component resource to the cluster, and, thus, starting the component installation.
-func NewInstallComponentsStep(client componentsClient, componentName string, componentNamespace string, version string, namespace string, deployNamespace string) *installComponentsStep {
-	return &installComponentsStep{client: client, componentName: componentName, componentNamespace: componentNamespace, version: version, namespace: namespace, deployNamespace: deployNamespace}
+// NewInstallComponentStep creates a new step responsible to apply a component resource to the cluster, and, thus, starting the component installation.
+func NewInstallComponentStep(client componentsClient, componentName string, componentNamespace string, version string, namespace string, deployNamespace string) *installComponentStep {
+	return &installComponentStep{client: client, componentName: componentName, componentNamespace: componentNamespace, version: version, namespace: namespace, deployNamespace: deployNamespace}
 }
 
 // GetStepDescription return the human-readable description of the step
-func (ics *installComponentsStep) GetStepDescription() string {
+func (ics *installComponentStep) GetStepDescription() string {
 	return fmt.Sprintf("Installing component '%s/%s:%s'", ics.componentNamespace, ics.componentName, ics.version)
 }
 
 // PerformSetupStep applies a component resource for the configured component to the cluster.
-func (ics *installComponentsStep) PerformSetupStep(ctx context.Context) error {
+func (ics *installComponentStep) PerformSetupStep(ctx context.Context) error {
 	cr := getComponentCr(ics.componentName, ics.componentNamespace, ics.version, ics.namespace, ics.deployNamespace)
 	_, err := ics.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {

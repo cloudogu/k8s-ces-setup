@@ -13,15 +13,15 @@ type helmClient interface {
 	InstallOrUpgrade(ctx context.Context, chart *helmclient.ChartSpec) error
 }
 
-type cesComponentChartInstallerStep struct {
+type installHelmChartStep struct {
 	namespace  string
 	chart      string
 	helmClient helmClient
 }
 
-// NewCesComponentChartInstallerStep creates new instance of a k8s component chart
-func NewCesComponentChartInstallerStep(namespace string, chartUrl string, helmClient helmClient) *cesComponentChartInstallerStep {
-	return &cesComponentChartInstallerStep{
+// NewInstallHelmChartStep creates new instance of a k8s component chart
+func NewInstallHelmChartStep(namespace string, chartUrl string, helmClient helmClient) *installHelmChartStep {
+	return &installHelmChartStep{
 		namespace:  namespace,
 		chart:      chartUrl,
 		helmClient: helmClient,
@@ -29,12 +29,12 @@ func NewCesComponentChartInstallerStep(namespace string, chartUrl string, helmCl
 }
 
 // GetStepDescription returns a human-readable description of the component-chart installation step.
-func (s *cesComponentChartInstallerStep) GetStepDescription() string {
+func (s *installHelmChartStep) GetStepDescription() string {
 	return fmt.Sprintf("Install component-chart from %s in namespace %s", s.chart, s.namespace)
 }
 
 // PerformSetupStep installs the component chart.
-func (s *cesComponentChartInstallerStep) PerformSetupStep(ctx context.Context) error {
+func (s *installHelmChartStep) PerformSetupStep(ctx context.Context) error {
 	if s.chart == "" {
 		return fmt.Errorf("error install component chart: chart url is empty")
 	}
@@ -42,7 +42,7 @@ func (s *cesComponentChartInstallerStep) PerformSetupStep(ctx context.Context) e
 	return s.installChart(ctx, s.chart)
 }
 
-func (s *cesComponentChartInstallerStep) installChart(ctx context.Context, chart string) error {
+func (s *installHelmChartStep) installChart(ctx context.Context, chart string) error {
 	fullChartName, chartVersion, err := SplitChartString(chart)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func SplitHelmNamespaceFromChartString(chartString string) (string, string) {
 	return split[0], split[1]
 }
 
-func (s *cesComponentChartInstallerStep) createChartSpec(chartName string, fullChartName string, chartVersion string) *helmclient.ChartSpec {
+func (s *installHelmChartStep) createChartSpec(chartName string, fullChartName string, chartVersion string) *helmclient.ChartSpec {
 	return &helmclient.ChartSpec{
 		ReleaseName: chartName,
 		ChartName:   fullChartName,

@@ -17,7 +17,7 @@ func TestNewComponentChartInstallerStep(t *testing.T) {
 		helmClientMock := newMockHelmClient(t)
 
 		// when
-		step := NewCesComponentChartInstallerStep("testNS", "testing/co:0.1", helmClientMock)
+		step := NewInstallHelmChartStep("testNS", "testing/co:0.1", helmClientMock)
 
 		// then
 		assert.NotNil(t, step)
@@ -30,7 +30,7 @@ func TestNewComponentChartInstallerStep(t *testing.T) {
 func TestComponentChartInstallerStep_GetStepDescription(t *testing.T) {
 	t.Run("should get description", func(t *testing.T) {
 		// given
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			chart:     "testChart",
 			namespace: "testNS",
 		}
@@ -61,7 +61,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 		helmClientMock := newMockHelmClient(t)
 		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(nil)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/testChart:0.1",
 			helmClient: helmClientMock,
@@ -90,7 +90,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 		helmClientMock := newMockHelmClient(t)
 		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(nil)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/testChart:latest",
 			helmClient: helmClientMock,
@@ -119,7 +119,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 		helmClientMock := newMockHelmClient(t)
 		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(assert.AnError)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/testChart:0.1",
 			helmClient: helmClientMock,
@@ -139,7 +139,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 
 		helmClientMock := newMockHelmClient(t)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/testChart_0.1",
 			helmClient: helmClientMock,
@@ -157,7 +157,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 
 		helmClientMock := newMockHelmClient(t)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/:latest",
 			helmClient: helmClientMock,
@@ -186,7 +186,7 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 		helmClientMock := newMockHelmClient(t)
 		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(assert.AnError)
 
-		step := &cesComponentChartInstallerStep{
+		step := &installHelmChartStep{
 			namespace:  "testing",
 			chart:      "foo/testChart:0.1",
 			helmClient: helmClientMock,

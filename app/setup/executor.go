@@ -177,8 +177,8 @@ func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client
 	var result []ExecutorStep
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
-	result = append(result, component.NewCesComponentChartInstallerStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
+	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
+	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
 	operatorComponentSteps, err := e.appendComponentStepsForComponentOperator(componentClient)
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 	}
 	helmNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
 
-	result = append(result, component.NewInstallComponentsStep(componentClient, name, helmNamespace, chartVersion, namespace, namespace))
+	result = append(result, component.NewInstallComponentStep(componentClient, name, helmNamespace, chartVersion, namespace, namespace))
 	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 
 	return result, nil
@@ -250,7 +250,7 @@ func (e *Executor) createComponentChartInstallStepFromComponentList(name string,
 		}
 		chartUrl := fmt.Sprintf("%s/%s:%s", c.HelmRepositoryNamespace, name, c.Version)
 
-		return component.NewCesComponentChartInstallerStep(namespace, chartUrl, helmClient)
+		return component.NewInstallHelmChartStep(namespace, chartUrl, helmClient)
 	}
 
 	return nil
@@ -267,7 +267,7 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 		helmRepoNamespace := components[longhornComponentName].HelmRepositoryNamespace
 		version := components[longhornComponentName].Version
 		deployNamespace := components[longhornComponentName].DeployNamespace
-		installStep := component.NewInstallComponentsStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
+		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
 		selector := createComponentLabelSelector(longhornComponentName)
 		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
 		result = append(result, installStep)
@@ -288,7 +288,7 @@ func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.Comp
 	var waitSteps []ExecutorStep
 
 	for componentName, componentAttributes := range e.SetupContext.AppConfig.Components {
-		componentSteps = append(componentSteps, component.NewInstallComponentsStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
+		componentSteps = append(componentSteps, component.NewInstallComponentStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
 		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(componentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 	}
 
