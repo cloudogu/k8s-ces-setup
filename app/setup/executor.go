@@ -215,9 +215,9 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 	if err != nil {
 		return nil, fmt.Errorf("failed to split chart string %s: %w", chartStr, err)
 	}
-	helNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
+	helmNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
 
-	result = append(result, component.NewInstallComponentsStep(componentClient, name, helNamespace, chartVersion, namespace, namespace))
+	result = append(result, component.NewInstallComponentsStep(componentClient, name, helmNamespace, chartVersion, namespace, namespace))
 	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 
 	return result, nil
