@@ -243,7 +243,7 @@ func (e *Executor) appendComponentChartInstallStepToSlice(helmClient *componentH
 func (e *Executor) createComponentChartInstallStepFromComponentList(name string, helmClient *componentHelm.Client) ExecutorStep {
 	components := e.SetupContext.AppConfig.Components
 
-	if c, containsCertManager := components[name]; containsCertManager {
+	if c, containsComponentChart := components[name]; containsComponentChart {
 		namespace := e.SetupContext.AppConfig.TargetNamespace
 		if c.DeployNamespace != "" {
 			namespace = c.DeployNamespace
