@@ -76,9 +76,9 @@ func TestExecutor_RegisterSetupStep(t *testing.T) {
 		step3 := newSimpleSetupStep("Step3", false)
 
 		// when
-		executor.RegisterSetupStep(step1)
-		executor.RegisterSetupStep(step3)
-		executor.RegisterSetupStep(step2)
+		executor.RegisterSetupSteps(step1)
+		executor.RegisterSetupSteps(step3)
+		executor.RegisterSetupSteps(step2)
 
 		// then
 		require.NotNil(t, executor.Steps)
@@ -105,10 +105,14 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		step1 := newSimpleSetupStep("Step1", false)
 		step2 := newSimpleSetupStep("Step2", false)
 		step3 := newSimpleSetupStep("Step3", false)
+		step4 := newSimpleSetupStep("Step4", false)
+		step5 := newSimpleSetupStep("Step5", false)
+		stepList := []ExecutorStep{step4, step5}
 
-		executor.RegisterSetupStep(step1)
-		executor.RegisterSetupStep(step3)
-		executor.RegisterSetupStep(step2)
+		executor.RegisterSetupSteps(step1)
+		executor.RegisterSetupSteps(step3)
+		executor.RegisterSetupSteps(step2)
+		executor.RegisterSetupSteps(stepList...)
 
 		// when
 		err, _ := executor.PerformSetup(testCtx)
@@ -118,6 +122,8 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		assert.True(t, step1.PerformedStep)
 		assert.True(t, step2.PerformedStep)
 		assert.True(t, step3.PerformedStep)
+		assert.True(t, step4.PerformedStep)
+		assert.True(t, step5.PerformedStep)
 	})
 
 	t.Run("Perform setup with error on setup step", func(t *testing.T) {
@@ -128,9 +134,9 @@ func TestExecutor_PerformSetup(t *testing.T) {
 		step2 := newSimpleSetupStep("Step2", true)
 		step3 := newSimpleSetupStep("Step3", false)
 
-		executor.RegisterSetupStep(step1)
-		executor.RegisterSetupStep(step2)
-		executor.RegisterSetupStep(step3)
+		executor.RegisterSetupSteps(step1)
+		executor.RegisterSetupSteps(step2)
+		executor.RegisterSetupSteps(step3)
 
 		// when
 		err, uiCause := executor.PerformSetup(testCtx)

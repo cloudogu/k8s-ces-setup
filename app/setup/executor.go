@@ -83,10 +83,12 @@ func getRemoteConfig(endpoint string, urlSchema string) *core.Remote {
 	}
 }
 
-// RegisterSetupStep adds a new step to the setup
-func (e *Executor) RegisterSetupStep(step ExecutorStep) {
-	logrus.Debugf("Register setup step [%s]", step.GetStepDescription())
-	e.Steps = append(e.Steps, step)
+// RegisterSetupSteps adds a new step to the setup
+func (e *Executor) RegisterSetupSteps(steps ...ExecutorStep) {
+	for _, step := range steps {
+		logrus.Debugf("Register setup step [%s]", step.GetStepDescription())
+	}
+	e.Steps = append(e.Steps, steps...)
 }
 
 // PerformSetup starts the setup and executes all registered setup steps
@@ -141,34 +143,17 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
-	e.RegisterSetupStep(createNodeMasterStep)
-
-	for _, step := range certManagerInstallerSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	for _, step := range componentOpInstallerSteps {
-		e.RegisterSetupStep(step)
-	}
-
+	e.RegisterSetupSteps(createNodeMasterStep)
+	e.RegisterSetupSteps(certManagerInstallerSteps...)
+	e.RegisterSetupSteps(componentOpInstallerSteps...)
 	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
 	// These steps may be empty if longhorn is not part of the component list.
-	for _, step := range longhornComponentSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	for _, step := range componentSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	for _, step := range componentWaitSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
-
+	e.RegisterSetupSteps(longhornComponentSteps...)
+	e.RegisterSetupSteps(componentSteps...)
+	e.RegisterSetupSteps(componentWaitSteps...)
+	e.RegisterSetupSteps(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	// Since this step should patch resources created in this phase, it should be executed last.
-	e.RegisterSetupStep(componentResourcePatchStep)
+	e.RegisterSetupSteps(componentResourcePatchStep)
 
 	return nil
 }
@@ -311,14 +296,14 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
 
 	// register steps
-	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
+	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }
@@ -335,9 +320,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 		return fmt.Errorf("could not register installation steps: %w", err)
 	}
 
-	for _, step := range doguSteps {
-		e.RegisterSetupStep(step)
-	}
+	e.RegisterSetupSteps(doguSteps...)
 
 	doguResourcePatchStep, err := createResourcePatchStep(patch.DoguPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
@@ -345,7 +328,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	}
 
 	// Since this step should patch resources created in this phase, it should be executed last.
-	e.RegisterSetupStep(doguResourcePatchStep)
+	e.RegisterSetupSteps(doguResourcePatchStep)
 
 	return nil
 }
@@ -354,7 +337,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	config := e.SetupContext.SetupJsonConfiguration
-	e.RegisterSetupStep(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
+	e.RegisterSetupSteps(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
 
 	loadbalancerResourcePatchStep, err := createResourcePatchStep(
 		patch.LoadbalancerPhase,
@@ -367,13 +350,13 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	}
 
 	// Since this step should patch resources created in this phase, it should be executed after creating the loadbalancer.
-	e.RegisterSetupStep(loadbalancerResourcePatchStep)
+	e.RegisterSetupSteps(loadbalancerResourcePatchStep)
 
 	wantsLoadbalancerIpAddressAsFqdn := config.Naming.Fqdn == "" || config.Naming.Fqdn == "<<ip>>"
 	if wantsLoadbalancerIpAddressAsFqdn {
 		// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
 		// We ignore the case where the public IP address was already assigned but the patch should lead to another.
-		e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+		e.RegisterSetupSteps(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
 	}
 
 	return nil
@@ -381,13 +364,13 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 
 // RegisterValidationStep registers all validation steps
 func (e *Executor) RegisterValidationStep() error {
-	e.RegisterSetupStep(NewValidatorStep(e.Registry, e.SetupContext))
+	e.RegisterSetupSteps(NewValidatorStep(e.Registry, e.SetupContext))
 	return nil
 }
 
 // RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
 	generationStep := data.NewGenerateSSLStep(e.SetupContext.SetupJsonConfiguration)
-	e.RegisterSetupStep(generationStep)
+	e.RegisterSetupSteps(generationStep)
 	return nil
 }
