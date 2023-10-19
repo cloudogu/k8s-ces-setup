@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.18.0] - 2023-10-19
+### Added
+- [#74] Add functionality to install the component `k8s-cert-manager` before all other operators.
+
 ## [v0.17.1] - 2023-10-11
 ### Changed
 - [#72] Update component-operator

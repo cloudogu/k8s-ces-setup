@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.17.1
+VERSION=0.18.0
 
 GOTAG?=1.21.1
 MAKEFILES_VERSION=8.5.0
@@ -76,6 +76,9 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
 	@kubectl delete --all components --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
+	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
+	@helm uninstall k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
+	@helm uninstall k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
