@@ -211,21 +211,13 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 func (e *Executor) createCertManagerSteps(helmClient *componentHelm.Client) []ExecutorStep {
 	var result []ExecutorStep
 
-	result = e.appendComponentChartInstallStepToSlice(helmClient, certManagerCrdComponentName, result)
-	result = e.appendComponentChartInstallStepToSlice(helmClient, certManagerComponentName, result)
+	result = e.createInstallHelmChartStepIfNameExists(certManagerCrdComponentName, helmClient, result)
+	result = e.createInstallHelmChartStepIfNameExists(certManagerComponentName, helmClient, result)
 
 	return result
 }
 
-func (e *Executor) appendComponentChartInstallStepToSlice(helmClient *componentHelm.Client, name string, steps []ExecutorStep) []ExecutorStep {
-	if step := e.createComponentChartInstallStepFromComponentList(name, helmClient); step != nil {
-		steps = append(steps, step)
-	}
-
-	return steps
-}
-
-func (e *Executor) createComponentChartInstallStepFromComponentList(name string, helmClient *componentHelm.Client) ExecutorStep {
+func (e *Executor) createInstallHelmChartStepIfNameExists(name string, helmClient *componentHelm.Client, steps []ExecutorStep) []ExecutorStep {
 	components := e.SetupContext.AppConfig.Components
 
 	if c, containsComponentChart := components[name]; containsComponentChart {
@@ -235,10 +227,10 @@ func (e *Executor) createComponentChartInstallStepFromComponentList(name string,
 		}
 		chartUrl := fmt.Sprintf("%s/%s:%s", c.HelmRepositoryNamespace, name, c.Version)
 
-		return component.NewInstallHelmChartStep(namespace, chartUrl, helmClient)
+		return append(steps, component.NewInstallHelmChartStep(namespace, chartUrl, helmClient))
 	}
 
-	return nil
+	return steps
 }
 
 func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.ComponentInterface) []ExecutorStep {
