@@ -16,7 +16,7 @@ func TestNewInstallComponentsStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 
 		// when
-		step := NewInstallComponentsStep(componentsClientMock, "comp", "testing", "0.0.2", "testNS", "deployNS")
+		step := NewInstallComponentStep(componentsClientMock, "comp", "testing", "0.0.2", "testNS", "deployNS")
 
 		// then
 		assert.NotNil(t, step)
@@ -32,7 +32,7 @@ func TestNewInstallComponentsStep(t *testing.T) {
 func TestInstallComponentsStep_GetStepDescription(t *testing.T) {
 	t.Run("should get description", func(t *testing.T) {
 		// given
-		step := &installComponentsStep{
+		step := &installComponentStep{
 			componentName:      "testComp",
 			componentNamespace: "testing",
 			version:            "0.2.3",
@@ -72,7 +72,7 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Create(testCtx, expectedComponent, metav1.CreateOptions{}).Return(nil, nil)
 
-		step := &installComponentsStep{
+		step := &installComponentStep{
 			client:             componentsClientMock,
 			namespace:          namespace,
 			componentName:      "testComponent",
@@ -111,7 +111,7 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Create(testCtx, expectedComponent, metav1.CreateOptions{}).Return(nil, nil)
 
-		step := &installComponentsStep{
+		step := &installComponentStep{
 			client:             componentsClientMock,
 			namespace:          namespace,
 			componentName:      "testComponent",
@@ -150,7 +150,7 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Create(testCtx, expectedComponent, metav1.CreateOptions{}).Return(nil, assert.AnError)
 
-		step := &installComponentsStep{
+		step := &installComponentStep{
 			client:             componentsClientMock,
 			namespace:          namespace,
 			componentName:      "testComponent",

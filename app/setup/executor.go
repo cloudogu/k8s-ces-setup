@@ -20,7 +20,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-const longhornComponentName = "k8s-longhorn"
+const (
+	longhornComponentName       = "k8s-longhorn"
+	certManagerComponentName    = "k8s-cert-manager"
+	certManagerCrdComponentName = "k8s-cert-manager-crd"
+)
 
 // ExecutorStep describes a valid step in the setup.
 type ExecutorStep interface {
@@ -79,10 +83,12 @@ func getRemoteConfig(endpoint string, urlSchema string) *core.Remote {
 	}
 }
 
-// RegisterSetupStep adds a new step to the setup
-func (e *Executor) RegisterSetupStep(step ExecutorStep) {
-	logrus.Debugf("Register setup step [%s]", step.GetStepDescription())
-	e.Steps = append(e.Steps, step)
+// RegisterSetupSteps adds a new step to the setup
+func (e *Executor) RegisterSetupSteps(steps ...ExecutorStep) {
+	for _, step := range steps {
+		logrus.Debugf("Register setup step [%s]", step.GetStepDescription())
+	}
+	e.Steps = append(e.Steps, steps...)
 }
 
 // PerformSetup starts the setup and executes all registered setup steps
@@ -116,7 +122,12 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	}
 	componentsClient := ecoSystemClient.Components(namespace)
 
-	componentOpInstallerStep := component.NewComponentOperatorInstallerStep(e.SetupContext, helmClient)
+	certManagerInstallerSteps := e.createCertManagerSteps(helmClient)
+
+	componentOpInstallerSteps, err := e.createComponentOperatorSteps(helmClient, componentsClient)
+	if err != nil {
+		return err
+	}
 
 	longhornComponentSteps := e.createLonghornSteps(componentsClient)
 
@@ -132,29 +143,94 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
-	e.RegisterSetupStep(createNodeMasterStep)
-	e.RegisterSetupStep(componentOpInstallerStep)
-
+	e.RegisterSetupSteps(createNodeMasterStep)
+	e.RegisterSetupSteps(certManagerInstallerSteps...)
+	e.RegisterSetupSteps(componentOpInstallerSteps...)
 	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
 	// These steps may be empty if longhorn is not part of the component list.
-	for _, step := range longhornComponentSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	for _, step := range componentSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	for _, step := range componentWaitSteps {
-		e.RegisterSetupStep(step)
-	}
-
-	e.RegisterSetupStep(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
-
+	e.RegisterSetupSteps(longhornComponentSteps...)
+	e.RegisterSetupSteps(componentSteps...)
+	e.RegisterSetupSteps(componentWaitSteps...)
+	e.RegisterSetupSteps(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	// Since this step should patch resources created in this phase, it should be executed last.
-	e.RegisterSetupStep(componentResourcePatchStep)
+	e.RegisterSetupSteps(componentResourcePatchStep)
 
 	return nil
+}
+
+func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client, componentClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, error) {
+	var result []ExecutorStep
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+
+	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
+	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
+	operatorComponentSteps, err := e.appendComponentStepsForComponentOperator(componentClient)
+	if err != nil {
+		return nil, err
+	}
+	result = append(result, operatorComponentSteps...)
+
+	return result, nil
+}
+
+func (e *Executor) appendComponentStepsForComponentOperator(componentClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, error) {
+	var result []ExecutorStep
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+
+	stepsCrdChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorCrdChart, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	stepsChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorChart, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	result = append(result, stepsCrdChart...)
+	result = append(result, stepsChart...)
+
+	return result, nil
+}
+
+func (e *Executor) createComponentStepsByString(componentClient componentEcoSystem.ComponentInterface, chartStr string, namespace string) ([]ExecutorStep, error) {
+	var result []ExecutorStep
+
+	fullChartName, chartVersion, err := component.SplitChartString(chartStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to split chart string %s: %w", chartStr, err)
+	}
+	helmNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
+
+	result = append(result, component.NewInstallComponentStep(componentClient, name, helmNamespace, chartVersion, namespace, namespace))
+	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace, component.DefaultComponentWaitTimeOut5Minutes))
+
+	return result, nil
+}
+
+func (e *Executor) createCertManagerSteps(helmClient *componentHelm.Client) []ExecutorStep {
+	var result []ExecutorStep
+
+	result = e.createInstallHelmChartStepIfNameExists(certManagerCrdComponentName, helmClient, result)
+	result = e.createInstallHelmChartStepIfNameExists(certManagerComponentName, helmClient, result)
+
+	return result
+}
+
+func (e *Executor) createInstallHelmChartStepIfNameExists(name string, helmClient *componentHelm.Client, steps []ExecutorStep) []ExecutorStep {
+	components := e.SetupContext.AppConfig.Components
+
+	if c, containsComponentChart := components[name]; containsComponentChart {
+		namespace := e.SetupContext.AppConfig.TargetNamespace
+		if c.DeployNamespace != "" {
+			namespace = c.DeployNamespace
+		}
+		chartUrl := fmt.Sprintf("%s/%s:%s", c.HelmRepositoryNamespace, name, c.Version)
+
+		return append(steps, component.NewInstallHelmChartStep(namespace, chartUrl, helmClient))
+	}
+
+	return steps
 }
 
 func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.ComponentInterface) []ExecutorStep {
@@ -168,7 +244,7 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 		helmRepoNamespace := components[longhornComponentName].HelmRepositoryNamespace
 		version := components[longhornComponentName].Version
 		deployNamespace := components[longhornComponentName].DeployNamespace
-		installStep := component.NewInstallComponentsStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
+		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
 		selector := createComponentLabelSelector(longhornComponentName)
 		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
 		result = append(result, installStep)
@@ -189,7 +265,7 @@ func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.Comp
 	var waitSteps []ExecutorStep
 
 	for componentName, componentAttributes := range e.SetupContext.AppConfig.Components {
-		componentSteps = append(componentSteps, component.NewInstallComponentsStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
+		componentSteps = append(componentSteps, component.NewInstallComponentStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
 		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(componentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 	}
 
@@ -212,14 +288,14 @@ func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error 
 	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
 
 	// register steps
-	e.RegisterSetupStep(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
-	e.RegisterSetupStep(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
-	e.RegisterSetupStep(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupStep(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
+	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }
@@ -236,9 +312,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 		return fmt.Errorf("could not register installation steps: %w", err)
 	}
 
-	for _, step := range doguSteps {
-		e.RegisterSetupStep(step)
-	}
+	e.RegisterSetupSteps(doguSteps...)
 
 	doguResourcePatchStep, err := createResourcePatchStep(patch.DoguPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, e.SetupContext.AppConfig.TargetNamespace)
 	if err != nil {
@@ -246,7 +320,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 	}
 
 	// Since this step should patch resources created in this phase, it should be executed last.
-	e.RegisterSetupStep(doguResourcePatchStep)
+	e.RegisterSetupSteps(doguResourcePatchStep)
 
 	return nil
 }
@@ -255,7 +329,7 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 	config := e.SetupContext.SetupJsonConfiguration
-	e.RegisterSetupStep(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
+	e.RegisterSetupSteps(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
 
 	loadbalancerResourcePatchStep, err := createResourcePatchStep(
 		patch.LoadbalancerPhase,
@@ -268,13 +342,13 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	}
 
 	// Since this step should patch resources created in this phase, it should be executed after creating the loadbalancer.
-	e.RegisterSetupStep(loadbalancerResourcePatchStep)
+	e.RegisterSetupSteps(loadbalancerResourcePatchStep)
 
 	wantsLoadbalancerIpAddressAsFqdn := config.Naming.Fqdn == "" || config.Naming.Fqdn == "<<ip>>"
 	if wantsLoadbalancerIpAddressAsFqdn {
 		// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
 		// We ignore the case where the public IP address was already assigned but the patch should lead to another.
-		e.RegisterSetupStep(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+		e.RegisterSetupSteps(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
 	}
 
 	return nil
@@ -282,13 +356,13 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 
 // RegisterValidationStep registers all validation steps
 func (e *Executor) RegisterValidationStep() error {
-	e.RegisterSetupStep(NewValidatorStep(e.Registry, e.SetupContext))
+	e.RegisterSetupSteps(NewValidatorStep(e.Registry, e.SetupContext))
 	return nil
 }
 
 // RegisterSSLGenerationStep registers all ssl steps
 func (e *Executor) RegisterSSLGenerationStep() error {
 	generationStep := data.NewGenerateSSLStep(e.SetupContext.SetupJsonConfiguration)
-	e.RegisterSetupStep(generationStep)
+	e.RegisterSetupSteps(generationStep)
 	return nil
 }
