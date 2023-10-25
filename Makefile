@@ -74,6 +74,8 @@ serve-local-yaml:
 k8s-clean: ## Cleans all resources deployed by the setup
 	@echo "Cleaning in namespace $(NAMESPACE)"
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge
+	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge
 	@kubectl delete --all components --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
