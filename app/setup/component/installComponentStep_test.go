@@ -2,6 +2,7 @@ package component
 
 import (
 	"context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -14,9 +15,15 @@ func TestNewInstallComponentsStep(t *testing.T) {
 	t.Run("create without error", func(t *testing.T) {
 		// given
 		componentsClientMock := newMockComponentsClient(t)
+		attributes := appcontext.ComponentAttributes{
+			Version:                 "0.0.2",
+			HelmRepositoryNamespace: "testing",
+			DeployNamespace:         "deployNS",
+			ValuesYamlOverwrite:     "key: val",
+		}
 
 		// when
-		step := NewInstallComponentStep(componentsClientMock, "comp", "testing", "0.0.2", "testNS", "deployNS")
+		step := NewInstallComponentStep(componentsClientMock, "comp", attributes, "testNS")
 
 		// then
 		assert.NotNil(t, step)
@@ -26,6 +33,7 @@ func TestNewInstallComponentsStep(t *testing.T) {
 		assert.Equal(t, "0.0.2", step.version)
 		assert.Equal(t, "testNS", step.namespace)
 		assert.Equal(t, "deployNS", step.deployNamespace)
+		assert.Equal(t, "key: val", step.valuesYamlOverwrite)
 	})
 }
 
@@ -63,9 +71,10 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 				},
 			},
 			Spec: v1.ComponentSpec{
-				Name:      "testComponent",
-				Namespace: "testing",
-				Version:   "4.5.6",
+				Name:                "testComponent",
+				Namespace:           "testing",
+				Version:             "4.5.6",
+				ValuesYamlOverwrite: "key: val",
 			},
 		}
 
@@ -73,11 +82,12 @@ func TestInstallComponentsStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Create(testCtx, expectedComponent, metav1.CreateOptions{}).Return(nil, nil)
 
 		step := &installComponentStep{
-			client:             componentsClientMock,
-			namespace:          namespace,
-			componentName:      "testComponent",
-			componentNamespace: "testing",
-			version:            "4.5.6",
+			client:              componentsClientMock,
+			namespace:           namespace,
+			componentName:       "testComponent",
+			componentNamespace:  "testing",
+			version:             "4.5.6",
+			valuesYamlOverwrite: "key: val",
 		}
 
 		// when
