@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/cloudogu/cesapp-lib v0.12.1
 	github.com/cloudogu/k8s-apply-lib v0.4.2
-	github.com/cloudogu/k8s-component-operator v0.0.0-20231114150812-65d6ecacb899
+	github.com/cloudogu/k8s-component-operator v0.6.0
 	github.com/cloudogu/k8s-dogu-operator v0.38.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
@@ -35,7 +35,6 @@ require (
 	github.com/Microsoft/hcsshim v0.11.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bombsimon/logrusr/v2 v2.0.1 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
