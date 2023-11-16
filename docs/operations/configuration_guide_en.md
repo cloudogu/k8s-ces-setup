@@ -186,7 +186,7 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 #### valuesYamlOverwrite
 * YAML key: `valuesYamlOverwrite`
 * Type: `string`
-* Description: Helm-Values to overwrite configurations of the default values.yaml file. Should be writte as a [multiline-yaml](https://yaml-multiline.info/) string for readability.
+* Description: Helm-Values to overwrite configurations of the default values.yaml file. Should be written as a [multiline-yaml](https://yaml-multiline.info/) string for readability.
 
 ### etcd_client_image_repo
 

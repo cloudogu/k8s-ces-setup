@@ -245,10 +245,10 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 	components := e.SetupContext.AppConfig.Components
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	longhornComponent, containsLonghorn := components[longhornComponentName]
+	longhornComponentAttributes, containsLonghorn := components[longhornComponentName]
 
 	if containsLonghorn {
-		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, longhornComponent, namespace)
+		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, longhornComponentAttributes, namespace)
 		selector := createComponentLabelSelector(longhornComponentName)
 		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
 		result = append(result, installStep)
