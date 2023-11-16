@@ -202,7 +202,14 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 	}
 	helmNamespace, name := component.SplitHelmNamespaceFromChartString(fullChartName)
 
-	result = append(result, component.NewInstallComponentStep(componentClient, name, helmNamespace, chartVersion, namespace, namespace))
+	attributes := appcontext.ComponentAttributes{
+		Version:                 chartVersion,
+		HelmRepositoryNamespace: helmNamespace,
+		DeployNamespace:         namespace,
+		ValuesYamlOverwrite:     "",
+	}
+
+	result = append(result, component.NewInstallComponentStep(componentClient, name, attributes, namespace))
 	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 
 	return result, nil
@@ -238,13 +245,10 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 	components := e.SetupContext.AppConfig.Components
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	_, containsLonghorn := components[longhornComponentName]
+	longhornComponentAttributes, containsLonghorn := components[longhornComponentName]
 
 	if containsLonghorn {
-		helmRepoNamespace := components[longhornComponentName].HelmRepositoryNamespace
-		version := components[longhornComponentName].Version
-		deployNamespace := components[longhornComponentName].DeployNamespace
-		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, helmRepoNamespace, version, namespace, deployNamespace)
+		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, longhornComponentAttributes, namespace)
 		selector := createComponentLabelSelector(longhornComponentName)
 		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace, component.DefaultComponentWaitTimeOut5Minutes)
 		result = append(result, installStep)
@@ -265,7 +269,7 @@ func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.Comp
 	var waitSteps []ExecutorStep
 
 	for componentName, componentAttributes := range e.SetupContext.AppConfig.Components {
-		componentSteps = append(componentSteps, component.NewInstallComponentStep(componentsClient, componentName, componentAttributes.HelmRepositoryNamespace, componentAttributes.Version, namespace, componentAttributes.DeployNamespace))
+		componentSteps = append(componentSteps, component.NewInstallComponentStep(componentsClient, componentName, componentAttributes, namespace))
 		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(componentName), namespace, component.DefaultComponentWaitTimeOut5Minutes))
 	}
 

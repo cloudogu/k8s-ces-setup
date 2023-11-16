@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.19.0] - 2023-11-16
+### Added
+- [#76] components can overwrite their values.yaml-default values
+
 ## [v0.18.0] - 2023-10-19
 ### Added
 - [#74] Add functionality to install the component `k8s-cert-manager` before all other operators.

@@ -33,9 +33,28 @@ dogu_registry_secret:
   password: "your-ces-instance-password"
 
 helm_registry_secret:
-  url: https://registry.cloudogu.com
+  host: https://registry.cloudogu.com
+  schema: oci
+  plainHttp: "false"
   username: "your-ces-instance-id"
   password: "your-ces-instance-password"
+
+component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
+component_operator_chart: "k8s/k8s-component-operator:latest"
+
+components:
+  k8s-etcd:
+    version: latest
+    helmRepositoryNamespace: k8s
+  k8s-dogu-operator:
+    version: latest
+    helmRepositoryNamespace: k8s
+  k8s-dogu-operator-crd:
+    version: latest
+    helmRepositoryNamespace: k8s
+  k8s-service-discovery:
+    version: latest
+    helmRepositoryNamespace: k8s
 
 # Example test setup.json
 #setup_json:

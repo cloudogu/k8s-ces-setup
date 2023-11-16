@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.18.0
+VERSION=0.19.0
 
 GOTAG?=1.21.1
 MAKEFILES_VERSION=8.5.0
@@ -74,6 +74,8 @@ serve-local-yaml:
 k8s-clean: ## Cleans all resources deployed by the setup
 	@echo "Cleaning in namespace $(NAMESPACE)"
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
+	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete --all components --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true

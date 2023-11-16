@@ -29,7 +29,10 @@ components:
     version: latest
     helmRepositoryNamespace: k8s
 #  k8s-snapshot-controller:
-#    version: 5.0.1-3
+#    version: latest
+#    helmRepositoryNamespace: k8s
+#  k8s-snapshot-controller-crd:
+#    version: latest
 #    helmRepositoryNamespace: k8s
 #  k8s-velero:
 #    version: latest

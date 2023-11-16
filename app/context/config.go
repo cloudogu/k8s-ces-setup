@@ -23,6 +23,10 @@ type ComponentAttributes struct {
 	// DeployNamespace specifies the cluster namespace where the helm chart should be deployed to. If left empty, the currently selected cluster namespace will be used by the component operator.
 	// +optional
 	DeployNamespace string `json:"deployNamespace" yaml:"deployNamespace"`
+	// ValuesYamlOverwrite is a multiline-yaml string that is applied alongside the original values.yaml-file of the component.
+	// It can be used to overwrite specific configurations. Lists are overwritten, maps are merged.
+	// +optional
+	ValuesYamlOverwrite string `json:"valuesYamlOverwrite,omitempty"`
 }
 
 // Config contains the common configuration for the setup

@@ -22,12 +22,44 @@ metadata:
     app.kubernetes.io/name: k8s-ces-setup
 data:
   k8s-ces-setup.yaml: |
+    docker_registry_secret:
+      url: https://registry.cloudogu.com
+      username: "your-ces-instance-id"
+      password: "your-ces-instance-password"
+    dogu_registry_secret:
+      url: https://dogu.cloudogu.com/api/v2/dogus
+      username: "your-ces-instance-id"
+      password: "your-ces-instance-password"
+    helm_registry_secret:
+      host: https://registry.cloudogu.com
+      schema: oci
+      plainHttp: "false"
+      username: "your-ces-instance-id"
+      password: "your-ces-instance-password"
     log_level: "DEBUG"
-    component_operator_chart: "k8s/k8s-component-operator:0.0.2"
+    component_operator_crd_chart: "k8s/k8s-component-operator-crd:0.5.1"
+    component_operator_chart: "k8s/k8s-component-operator:0.5.1"
     components:
-      "k8s/k8s-etcd": "3.5.7-4"
-      "k8s/k8s-dogu-operator": "0.35.0"
-      "k8s/k8s-service-discovery": "0.13.0"
+      k8s-longhorn:
+        version: latest
+        helmRepositoryNamespace: k8s
+        deployNamespace: longhorn-system
+        valuesYamlOverwrite: |
+          longhorn:
+            defaultSettings:
+              backupTargetCredentialSecret: my-longhorn-backup-target
+      k8s-etcd:
+        version: "3.5.7-4"
+        helmRepositoryNamespace: k8s
+      k8s-dogu-operator-crd:
+        version: "0.35.0"
+        helmRepositoryNamespace: k8s
+      k8s-dogu-operator:
+        version: "0.35.0"
+        helmRepositoryNamespace: k8s
+      k8s-service-discovery:
+        version: "0.13.0"
+        helmRepositoryNamespace: k8s
     etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
     key_provider: pkcs1v15
     resource_patches:
@@ -48,6 +80,27 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 
 ## Explanation of the configuration values
 
+### docker_registry_secret
+
+* YAML key: `docker_registry_secret`
+* Type: `Map` containing `url`, `username` and `password` of the docker registry
+* Necessary configuration
+* Description: Credentials for the docker registry used by the components.
+
+### dogu_registry_secret
+
+* YAML key: `dogu_registry_secret`
+* Type: `Map` containing `url`, `username` and `password` of the dogu registry
+* Necessary configuration
+* Description: Credentials for the dogu registry used by the components.
+
+### helm_registry_secret
+
+* YAML key: `docker_registry_secret`
+* Type: `Map` containing `host`, `schema`, `username` and `password` of the helm registry, aswell as the `plain_http`-flag
+* Necessary configuration
+* Description: Credentials for the helm registry used by the components.
+
 ### log_level
 
 * YAML key: `log_level`
@@ -55,31 +108,85 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * Necessary configuration
 * Description: Sets the log level of the `k8s-ces-setup` and thus how accurate the log output of the application should be.
 
+### component_operator_crd_chart
+
+* YAML key: `component_operator_crd_chart`.
+* Type: `String` as HelmChart identifier of the [component crd](http://github.com/cloudogu/k8s-component-operator) (incl. namespace and version).
+* Necessary configuration
+* Description: The component crd is a central component in the EcoSystem and must be installed for the component operator to work. The specified HelmChart indicates the version of the component crd to be installed.
+* Example: `k8s/k8s-component-operator:0.5.1`
+
+> **Note:** "latest" can be specified as version to use the highest available version of the component crd.
+
 ### component_operator_chart
 
 * YAML key: `component_operator_chart`.
 * Type: `String` as HelmChart identifier of the [component operator](http://github.com/cloudogu/k8s-component-operator) (incl. namespace and version).
 * Necessary configuration
 * Description: The component operator is a central component in the EcoSystem and must be installed. The specified HelmChart indicates the version of the component operator to be installed.
-* Example: `k8s/k8s-component-operator:0.0.2`
+* Example: `k8s/k8s-component-operator:0.5.1`
 
 > **Note:** "latest" can be specified as version to use the highest available version of the component operator.
 
 ### components
 
 * YAML key: `components`
-* Type: `Map` of CES components to be installed and the respective version
+* Type: `Map` of CES components to be installed and the respective version. Each component is a `Map` in itself.
 * Necessary configuration
-* Description: Setup installs all specified CES components using the [component operator](http://github.com/cloudogu/k8s-component-operator). The following components are required, among others: [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery), [Etcd](http://github.com/cloudogu/k8s-etcd)
+* Description: Setup installs all specified CES components using the [component operator](http://github.com/cloudogu/k8s-component-operator). The following components are required, among others: [Dogu crd](http://github.com/cloudogu/k8s-dogu-operator), [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery), [Etcd](http://github.com/cloudogu/k8s-etcd)
 * Example:
   ```yaml
   components:
-  "k8s/k8s-etcd": "3.5.7-4"
-  "k8s/k8s-dogu-operator": "0.35.0"
-  "k8s/k8s-service-discovery": "0.13.0"
+    k8s-etcd:
+      version: "3.5.7-4"
+      helmRepositoryNamespace: k8s
+    k8s-dogu-operator:
+      version: "0.35.0"
+      helmRepositoryNamespace: k8s
+    #...
   ```
 
+#### single-component
+
+* YAML key: `<name_of_component>`
+* Type: `Map` containing the needed information for that component.
+* Description: A single component inside the `components`-map that will be installed by the [component operator](http://github.com/cloudogu/k8s-component-operator). The following fields are required: `version`, `helmRepositoryNamespace`
+* Example:
+  ```yaml
+      k8s-longhorn:
+        version: latest
+        helmRepositoryNamespace: k8s
+        deployNamespace: longhorn-system
+        valuesYamlOverwrite: |
+          longhorn:
+            defaultSettings:
+              backupTargetCredentialSecret: my-longhorn-backup-target
+    #...
+  ```
+
+#### version
+* YAML key: `version`
+* Type: `string`
+* Necessary configuration
+* Description: The version of the component
+
 > **Note:** "latest" can be specified as version to use the highest available version of the respective component.
+
+#### helmRepositoryNamespace
+* YAML key: `helmRepositoryNamespace`
+* Type: `string`
+* Necessary configuration
+* Description: The namespace of the component in the helm repository
+
+#### deployNamespace
+* YAML key: `deployNamespace`
+* Type: `string`
+* Description: The k8s-namespace, where all resources of the component should be deployed. If this is empty the namespace of the component-operator will be used.
+
+#### valuesYamlOverwrite
+* YAML key: `valuesYamlOverwrite`
+* Type: `string`
+* Description: Helm-Values to overwrite configurations of the default values.yaml file. Should be written as a [multiline-yaml](https://yaml-multiline.info/) string for readability.
 
 ### etcd_client_image_repo
 
