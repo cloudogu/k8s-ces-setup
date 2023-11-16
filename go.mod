@@ -7,7 +7,7 @@ toolchain go1.21.1
 require (
 	github.com/cloudogu/cesapp-lib v0.12.1
 	github.com/cloudogu/k8s-apply-lib v0.4.2
-	github.com/cloudogu/k8s-component-operator v0.5.1
+	github.com/cloudogu/k8s-component-operator v0.6.0
 	github.com/cloudogu/k8s-dogu-operator v0.38.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
