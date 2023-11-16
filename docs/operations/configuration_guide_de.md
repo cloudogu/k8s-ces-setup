@@ -181,7 +181,7 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 #### deployNamespace
 * YAML key: `deployNamespace`
 * Typ: `string`
-* Beschreibung: Der k8s-Namespace, in dem alle Ressourcen der Komponente bereitgestellt werden sollen. Wenn dieser leer ist, wird der Namespace des Komponenten-Operators verwendet.
+* Beschreibung: Der k8s-Namespace, in dem alle Ressourcen der Komponente deployed werden sollen. Wenn dieser leer ist, wird der Namespace des Komponenten-Operators verwendet.
 
 #### valuesYamlOverwrite
 * YAML key: `valuesYamlOverwrite`
