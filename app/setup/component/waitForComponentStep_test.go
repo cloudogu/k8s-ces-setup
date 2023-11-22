@@ -19,14 +19,13 @@ func TestNewWaitForComponentStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 
 		// when
-		step := NewWaitForComponentStep(componentsClientMock, "app=test", "testNS", 5*time.Second)
+		step := NewWaitForComponentStep(componentsClientMock, "app=test", "testNS")
 
 		// then
 		assert.NotNil(t, step)
 		assert.Equal(t, componentsClientMock, step.client)
 		assert.Equal(t, "app=test", step.labelSelector)
 		assert.Equal(t, "testNS", step.namespace)
-		assert.Equal(t, 5*time.Second, step.timeout)
 	})
 }
 
@@ -66,7 +65,6 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 			client:        componentsClientMock,
 			labelSelector: selector,
 			namespace:     namespace,
-			timeout:       5 * time.Second,
 		}
 
 		go func() {
@@ -92,7 +90,6 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 			client:        componentsClientMock,
 			labelSelector: selector,
 			namespace:     namespace,
-			timeout:       5 * time.Second,
 		}
 
 		// when
@@ -117,13 +114,11 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 			client:        componentsClientMock,
 			labelSelector: selector,
 			namespace:     namespace,
-			timeout:       50 * time.Second,
 		}
 
 		go func() {
 			time.Sleep(1 * time.Second)
 			watcher.Add(&corev1.Namespace{})
-			watcher.Add(installedComponent)
 		}()
 
 		// when
@@ -134,7 +129,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		require.ErrorContains(t, err, "error wait for component: failed to cast event to component: selector=[app=test] type=[ADDED];")
 	})
 
-	t.Run("should fail to perform setup on timeout", func(t *testing.T) {
+	t.Run("should fail to perform setup when watch is aborted", func(t *testing.T) {
 		// given
 		testCtx = context.TODO()
 
@@ -147,14 +142,18 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 			client:        componentsClientMock,
 			labelSelector: selector,
 			namespace:     namespace,
-			timeout:       5 * time.Second,
 		}
+
+		go func() {
+			time.Sleep(1 * time.Second)
+			watcher.Stop()
+		}()
 
 		// when
 		err := step.PerformSetupStep(testCtx)
 
 		// then
 		require.Error(t, err)
-		require.ErrorContains(t, err, "component is not ready: timeout reached")
+		require.ErrorContains(t, err, "component is not ready: watch for component aborted")
 	})
 }
