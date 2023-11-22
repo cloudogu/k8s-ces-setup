@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.19.1] - 2023-11-22
+### Fixed
+- [#78] Remove timeout and wait indefinitely for components to get "ready".
+
 ## [v0.19.0] - 2023-11-16
 ### Added
 - [#76] components can overwrite their values.yaml-default values
