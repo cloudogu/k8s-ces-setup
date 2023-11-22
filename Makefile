@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.19.0
+VERSION=0.19.1
 
 GOTAG?=1.21.1
 MAKEFILES_VERSION=8.5.0
