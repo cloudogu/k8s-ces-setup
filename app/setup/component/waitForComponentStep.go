@@ -32,7 +32,7 @@ func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
 	return wfcs.isComponentInstalled(ctx)
 }
 
-// isComponentInstalled does a watch on a component and returns nil if the component is installed and the configured timout is not reached
+// isComponentInstalled does a watch on a component and returns nil if the component is installed
 func (wfcs *waitForComponentStep) isComponentInstalled(ctx context.Context) error {
 	watch, err := wfcs.client.Watch(ctx, metav1.ListOptions{LabelSelector: wfcs.labelSelector})
 	if err != nil {
