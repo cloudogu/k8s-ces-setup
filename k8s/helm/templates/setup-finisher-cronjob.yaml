@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-ces-setup-finisher
+  labels:
+    app: ces
+    app.kubernetes.io/name: k8s-ces-setup-finisher
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: kubectl-container
+              image: {{ or .Values.kubectl_image "bitnami/kubectl:1.27.4"}}
+              command:
+                - /bin/entrypoint.sh
+              volumeMounts:
+                - name: cleanup-script
+                  mountPath: /bin/entrypoint.sh
+                  readOnly: true
+                  subPath: entrypoint.sh
+          restartPolicy: Never
+          serviceAccountName: k8s-ces-setup-finisher
+          volumes:
+            - name: cleanup-script
+              configMap:
+                defaultMode: 0550
+                name: k8s-ces-setup-cleanup-script

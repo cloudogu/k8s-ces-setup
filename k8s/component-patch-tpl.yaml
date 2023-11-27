@@ -1,0 +1,13 @@
+apiVersion: v1
+
+values:
+  images:
+    k8sCesSetup: cloudogu/k8s-ces-setup:0.19.1
+    kubectl: bitnami/kubectl:1.27.4
+    etcdClient: bitnami/etcd:3.5.2-debian-10-r0
+
+patches:
+  values.yaml:
+    k8s_ces_setup_image: "{{ registryFrom .images.k8sCesSetup }}/{{ repositoryFrom .images.k8sCesSetup }}:{{ tagFrom .images.k8sCesSetup }}"
+    kubectl_image: "{{ registryFrom .images.kubectl }}/{{ repositoryFrom .images.kubectl }}:{{ tagFrom .images.kubectl }}"
+    etcd_client_image_repo: "{{ registryFrom .images.etcdClient }}/{{ repositoryFrom .images.etcdClient }}:{{ tagFrom .images.etcdClient }}"
