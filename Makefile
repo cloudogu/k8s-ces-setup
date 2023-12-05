@@ -3,7 +3,7 @@ ARTIFACT_ID=k8s-ces-setup
 VERSION=0.19.1
 
 GOTAG?=1.21.1
-MAKEFILES_VERSION=8.5.0
+MAKEFILES_VERSION=9.0.1
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
