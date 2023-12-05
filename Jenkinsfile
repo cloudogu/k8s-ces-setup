@@ -160,9 +160,9 @@ node('docker') {
 //                    }
 //}
 
-//String getCurrentCommit() {
-//    return sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-//}
+String getCurrentCommit() {
+    return sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+}
 
 void stageStaticAnalysisReviewDog() {
     def commitSha=getCurrentCommit()
