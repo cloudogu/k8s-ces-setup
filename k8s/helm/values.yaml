@@ -1,22 +1,26 @@
-# Default values for k8s-ces-setup.
-k8s_ces_setup_image: cloudogu/k8s-ces-setup:0.19.1
-
+setup:
+  env:
+    stage: production
+    logLevel: info
+  image:
+    repository: cloudogu/k8s-ces-setup
+    tag: 0.19.1
+  imagePullPolicy: IfNotPresent
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
 component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
 component_operator_chart: "k8s/k8s-component-operator:latest"
-
 # Components to be installed by the k8s-ces-setup.
 # Mandatory components are listed below as the default. Moreover, one can specify components like k8s-ces-control or
 # k8s-backup-operator.
 #
 # Format: <namespace>/<name>: <version>
 components:
-# Use longhorn if your cluster has no storage provisioner.
-#  k8s-longhorn:
-#    version: latest
-#    helmRepositoryNamespace: k8s
-#    deployNamespace: longhorn-system
+  # Use longhorn if your cluster has no storage provisioner.
+  k8s-longhorn:
+    version: latest
+    helmRepositoryNamespace: k8s
+    deployNamespace: longhorn-system
   k8s-etcd:
     version: latest
     helmRepositoryNamespace: k8s
@@ -47,16 +51,12 @@ components:
 
 # Image of the etcd client. This is currently used for debugging.
 etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
-
 # Image of the setup finisher job.
 kubectl_image: bitnami/kubectl:1.27.4
-
 # Key-Provider used for en- and decryption CES-Registry values.
 key_provider: pkcs1v15
-
 # Log-Level of the k8s-ces-setup. Valid values are INFO, WARN, DEBUG and ERROR.
 log_level: DEBUG
-
 # JSON-Patches for resources e.g. ces-loadbalancer service created by k8s-ces-setup.
 #resource_patches:
 
@@ -80,8 +80,8 @@ helm_registry_secret:
   host: registry.cloudogu.com
   schema: oci
   plainHttp: "false"
-#  username:
-#  password:
+  #  username:
+  #  password:
 
 # Configuration for the Cloudogu EcoSystem. If all sections are completed k8s-ces-setup will start the process immediately.
 # Example:

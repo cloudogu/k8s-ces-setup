@@ -1,13 +1,9 @@
-#
-# The deployment for the setup
-#
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k8s-ces-setup
+  name: {{ include "k8s-ces-setup.name" . }}
   labels:
-    app: ces
-    app.kubernetes.io/name: k8s-ces-setup
+    {{- include "k8s-ces-setup.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
@@ -15,14 +11,17 @@ spec:
   template:
     metadata:
       labels:
-        app: ces
-        app.kubernetes.io/name: k8s-ces-setup
+        {{- include "k8s-ces-setup.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: k8s-ces-setup
-          image: {{ or .Values.k8s_ces_setup_image "cloudogu/k8s-ces-setup:0.19.1"}}
-          imagePullPolicy: IfNotPresent
+        - name: {{ include "k8s-ces-setup.name" . }}
+          image: {{ .Values.setup.image.repository }}:{{ .Values.setup.image.tag }}
+          imagePullPolicy: {{ .Values.setup.imagePullPolicy | default "IfNotPresent" }}
           env:
+            - name: LOG_LEVEL
+              value: {{ .Values.setup.env.logLevel | default "info" }}
+            - name: STAGE
+              value: {{ .Values.setup.env.stage | default "production" }}
             - name: GIN_MODE
               value: release
             - name: POD_NAMESPACE
@@ -74,10 +73,10 @@ spec:
               readOnly: true
       volumes:
         - configMap:
-            name: k8s-ces-setup-config
+            name: {{ include "k8s-ces-setup.name" . }}-config
           name: k8s-ces-setup-config
         - configMap:
-            name: k8s-ces-setup-json
+            name: {{ include "k8s-ces-setup.name" . }}-json
             optional: true
           name: k8s-ces-setup-json
         - name: dogu-registry-cert
@@ -87,6 +86,6 @@ spec:
         - name: component-operator-helm-registry
           secret:
             secretName: component-operator-helm-registry
-      serviceAccountName: k8s-ces-setup
+      serviceAccountName: {{ include "k8s-ces-setup.name" . }}
       nodeSelector:
         kubernetes.io/os: linux

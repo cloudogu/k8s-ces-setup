@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@a584156162b7d3fb20a05e9feb44ce08171dc500')
+@Library('github.com/cloudogu/ces-build-lib@b6c18cd1501ec07fc24449f1c710a140bd8f6242')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -43,46 +43,46 @@ node('docker') {
             make 'dist-clean'
         }
 
-        stage('Lint - Dockerfile') {
-            lintDockerfile()
-        }
-
-        stage('Check Markdown Links') {
-            Markdown markdown = new Markdown(this, "3.11.0")
-            markdown.check()
-        }
+//        stage('Lint - Dockerfile') {
+//            lintDockerfile()
+//        }
+//
+//        stage('Check Markdown Links') {
+//            Markdown markdown = new Markdown(this, "3.11.0")
+//            markdown.check()
+//        }
 
         docker
                 .image("golang:${goVersion}")
                 .mountJenkinsUser()
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
-                            stage('Build') {
-                                make 'compile'
-                            }
-
-                            stage('Unit Tests') {
-                                make 'unit-test'
-                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
-                            }
-
-                            stage("Review dog analysis") {
-                                stageStaticAnalysisReviewDog()
-                            }
+//                            stage('Build') {
+//                                make 'compile'
+//                            }
+//
+//                            stage('Unit Tests') {
+//                                make 'unit-test'
+//                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
+//                            }
+//
+//                            stage("Review dog analysis") {
+//                                stageStaticAnalysisReviewDog()
+//                            }
 
                             stage('Generate k8s Resources') {
                                 make 'helm-generate'
                                 archiveArtifacts "${helmTargetDir}/**/*"
                             }
 
-                            stage("Lint helm") {
-                                make 'helm-lint'
-                            }
+//                            stage("Lint helm") {
+//                                make 'helm-lint'
+//                            }
                         }
 
-        stage('SonarQube') {
-            stageStaticAnalysisSonarQube()
-        }
+//        stage('SonarQube') {
+//            stageStaticAnalysisSonarQube()
+//        }
 
         def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 

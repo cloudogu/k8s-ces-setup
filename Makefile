@@ -11,8 +11,6 @@ MAKEFILES_VERSION=9.0.1
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
-## Image URL to use all building/pushing image targets
-IMAGE_DEV=${K3CES_REGISTRY_URL_PREFIX}/${ARTIFACT_ID}:${VERSION}
 IMAGE=cloudogu/${ARTIFACT_ID}:${VERSION}
 
 K8S_RESOURCE_DIR=${WORKDIR}/k8s
@@ -51,6 +49,14 @@ HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.host='${HELM_REGISTRY_HOST}' 
 HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
 BINARY_HELM_ADDITIONAL_UPGR_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_HELM_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
 
+K8S_COMPONENT_SOURCE_VALUES = ${HELM_SOURCE_DIR}/values.yaml
+K8S_COMPONENT_TARGET_VALUES = ${HELM_TARGET_DIR}/values.yaml
+HELM_PRE_APPLY_TARGETS=template-stage template-log-level template-image-pull-policy
+HELM_PRE_GENERATE_TARGETS = helm-values-update-image-version
+HELM_POST_GENERATE_TARGETS = helm-values-replace-image-repo
+CHECK_VAR_TARGETS=check-all-vars
+IMAGE_IMPORT_TARGET=image-import
+
 include build/make/k8s-component.mk
 
 
@@ -58,6 +64,69 @@ include build/make/k8s-component.mk
 
 .PHONY: build
 build: helm-delete helm-apply ## Builds a new version of the setup and deploys it into the K8s-EcoSystem.
+
+.PHONY: helm-values-update-image-version
+helm-values-update-image-version: $(BINARY_YQ)
+	@echo "Updating the image version in source values.yaml to ${VERSION}..."
+	@$(BINARY_YQ) -i e ".setup.image.tag = \"${VERSION}\"" ${K8S_COMPONENT_SOURCE_VALUES}
+
+.PHONY: helm-values-replace-image-repo
+helm-values-replace-image-repo: $(BINARY_YQ)
+	@if [[ ${STAGE} == "development" ]]; then \
+      		echo "Setting dev image repo in target values.yaml!" ;\
+    		$(BINARY_YQ) -i e ".setup.image.repository=\"${IMAGE_DEV}\"" "${K8S_COMPONENT_TARGET_VALUES}" ;\
+    	fi
+
+.PHONY: template-stage
+template-stage: $(BINARY_YQ)
+	@if [[ ${STAGE} == "development" ]]; then \
+  		echo "Setting STAGE env in deployment to ${STAGE}!" ;\
+		$(BINARY_YQ) -i e ".setup.manager.env.stage=\"${STAGE}\"" ${K8S_COMPONENT_TARGET_VALUES} ;\
+	fi
+
+.PHONY: template-log-level
+template-log-level: ${BINARY_YQ}
+	@if [[ "${STAGE}" == "development" ]]; then \
+      echo "Setting LOG_LEVEL env in deployment to ${LOG_LEVEL}!" ; \
+      $(BINARY_YQ) -i e ".setup.env.logLevel=\"${LOG_LEVEL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+    fi
+
+.PHONY: template-image-pull-policy
+template-image-pull-policy: $(BINARY_YQ)
+	@if [[ "${STAGE}" == "development" ]]; then \
+          echo "Setting pull policy to always!" ; \
+          $(BINARY_YQ) -i e ".setup.imagePullPolicy=\"Always\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+    fi
+
+.PHONY: template-dogu-registry
+template-dogu-registry: $(BINARY_YQ)
+	@if [[ "${STAGE}" == "development" ]]; then \
+          echo "Template dogu registry!" ; \
+          $(BINARY_YQ) -i e ".dogu_registry_secret.url=\"${DOGU_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".dogu_registry_secret.username=\"${DOGU_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".dogu_registry_secret.password=\"${DOGU_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+    fi
+
+.PHONY: template-docker-registry
+template-docker-registry: $(BINARY_YQ)
+	@if [[ "${STAGE}" == "development" ]]; then \
+          echo "Template docker registry!" ; \
+          $(BINARY_YQ) -i e ".docker_registry_secret.url=\"${DOCKER_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".docker_registry_secret.username=\"${DOCKER_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".docker_registry_secret.password=\"${DOCKER_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+    fi
+
+.PHONY: template-helm-registry
+template-helm-registry: $(BINARY_YQ)
+	@if [[ "${STAGE}" == "development" ]]; then \
+          echo "Template helm registry!" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.url=\"${HELM_REGISTRY_HOST}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.username=\"${HELM_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.password=\"${HELM_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.schema=\"${HELM_REGISTRY_SCHEMA}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.plainHttp=\"${HELM_REGISTRY_PLAIN_HTTP}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+    fi
+
 
 ##@ Development (without go container)
 
@@ -95,14 +164,6 @@ setup-etcd-port-forward:
 .PHONY: run
 run: ## Run a setup from your host.
 	go run ./main.go
-
-.PHONY: copy-setup-resources
-copy-setup-resources:
-	@cp $(K8S_SETUP_RESOURCE_YAML) $(K8S_RESOURCE_TEMP_YAML)
-
-.PHONY: k8s-create-temporary-resource
-k8s-create-temporary-resource: $(K8S_RESOURCE_TEMP_FOLDER) copy-setup-resources template-dev-only-image-pull-policy
-	@$(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").image)=\"$(IMAGE)\"" $(K8S_RESOURCE_TEMP_YAML)
 
 .PHONY: create-temporary-dev-resource
 create-temporary-dev-resource: $(K8S_RESOURCE_TEMP_FOLDER) k8s-create-temporary-resource template-dev-only-image-pull-policy

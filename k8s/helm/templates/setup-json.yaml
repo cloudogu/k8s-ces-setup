@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-ces-setup-json
+  name: {{ include "k8s-ces-setup.name" . }}-json
   labels:
-    {{- include "labels" . | nindent 4}}
+    {{- include "k8s-ces-setup.labels" .| nindent 4 }}
 data:
   setup.json: |
     {{ .Values.setup_json | nindent 4 }}

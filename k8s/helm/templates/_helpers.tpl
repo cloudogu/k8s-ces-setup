@@ -1,10 +1,37 @@
-{{/*
-Application labels
-*/}}
-{{- define "labels" -}}
-app: ces
-app.kubernetes.io/name: k8s-ces-setup
+{{- define "k8s-ces-setup.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{- define "k8s-ces-setup-finisher.name" -}}
+{{- "k8s-ces-setup-finisher"}}
+{{- end }}
+
+
+
+{{/* All-in-one labels */}}
+{{- define "k8s-ces-setup.labels" -}}
+app: ces
+helm.sh/chart:  {{- printf " %s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{ include "k8s-ces-setup.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/* Selector labels */}}
+{{- define "k8s-ces-setup.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "k8s-ces-setup.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "k8s-ces-setup-finisher.labels" -}}
+app: ces
+helm.sh/chart:  {{- printf " %s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/name: {{ include "k8s-ces-setup-finisher.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
 
 {{/*
 Creates the docker config json string used as a docker secret.
