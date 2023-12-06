@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@f0e13cd81b7cf889fe283c03ec729502c44066e6')
+@Library('github.com/cloudogu/ces-build-lib@2a13113cce344c9afafa3b7f52d72be67dab6c8e')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -109,10 +109,6 @@ node('docker') {
 
             stage("wait for k8s-specific dogu (it has special needs)") {
                 k3d.waitForDeploymentRollout("nginx-ingress", 300, 10)
-            }
-
-            stage('Restore development resources') {
-                sh "git restore ${sourceDeploymentYaml}"
             }
 
             stageAutomaticRelease()
