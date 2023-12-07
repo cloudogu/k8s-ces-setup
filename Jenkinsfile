@@ -43,46 +43,46 @@ node('docker') {
             make 'dist-clean'
         }
 
-//        stage('Lint - Dockerfile') {
-//            lintDockerfile()
-//        }
-//
-//        stage('Check Markdown Links') {
-//            Markdown markdown = new Markdown(this, "3.11.0")
-//            markdown.check()
-//        }
+        stage('Lint - Dockerfile') {
+            lintDockerfile()
+        }
+
+        stage('Check Markdown Links') {
+            Markdown markdown = new Markdown(this, "3.11.0")
+            markdown.check()
+        }
 
         docker
                 .image("golang:${goVersion}")
                 .mountJenkinsUser()
                 .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                         {
-//                            stage('Build') {
-//                                make 'compile'
-//                            }
-//
-//                            stage('Unit Tests') {
-//                                make 'unit-test'
-//                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
-//                            }
-//
-//                            stage("Review dog analysis") {
-//                                stageStaticAnalysisReviewDog()
-//                            }
+                            stage('Build') {
+                                make 'compile'
+                            }
+
+                            stage('Unit Tests') {
+                                make 'unit-test'
+                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
+                            }
+
+                            stage("Review dog analysis") {
+                                stageStaticAnalysisReviewDog()
+                            }
 
                             stage('Generate k8s Resources') {
                                 make 'helm-generate'
                                 archiveArtifacts "${helmTargetDir}/**/*"
                             }
 
-//                            stage("Lint helm") {
-//                                make 'helm-lint'
-//                            }
+                            stage("Lint helm") {
+                                make 'helm-lint'
+                            }
                         }
 
-//        stage('SonarQube') {
-//            stageStaticAnalysisSonarQube()
-//        }
+        stage('SonarQube') {
+            stageStaticAnalysisSonarQube()
+        }
 
         def k3d = new K3d(this, "${WORKSPACE}", "${WORKSPACE}/k3d", env.PATH)
 
@@ -105,9 +105,7 @@ node('docker') {
                                          "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
                                          "k8s-etcd"             : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                 ])
-                k3d.configureComponentOperatorVersion("0.6.0")
-                echo "values.yaml: "
-                sh "cat k3d_values.yaml"
+                k3d.configureComponentOperatorVersion("latest")
             }
 
             stage('Install and Trigger Setup (trigger warning: setup)') {
