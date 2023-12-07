@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@2a13113cce344c9afafa3b7f52d72be67dab6c8e')
+@Library('github.com/cloudogu/ces-build-lib@dd856a34b8d8b9c6d700d01e2a76b0074e1a8075')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -101,6 +101,11 @@ node('docker') {
                 k3d.assignExternalIP()
                 k3d.configureSetupJson()
                 k3d.configureSetupImage(cessetupImageName)
+                k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-etcd"             : ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-promtail"         : ["version": "latest", "helmRepositoryNamespace": "k8s"]])
+                k3d.configureComponentOperatorVersion("0.6.0")
             }
 
             stage('Install and Trigger Setup (trigger warning: setup)') {
@@ -112,7 +117,7 @@ node('docker') {
             }
 
             stageAutomaticRelease()
-        } catch(Exception e) {
+        } catch (Exception e) {
             k3d.collectAndArchiveLogs()
             throw e as java.lang.Throwable
         } finally {
@@ -128,7 +133,7 @@ String getCurrentCommit() {
 }
 
 void stageStaticAnalysisReviewDog() {
-    def commitSha=getCurrentCommit()
+    def commitSha = getCurrentCommit()
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
         withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
             make 'static-analysis'

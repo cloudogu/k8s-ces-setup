@@ -52,11 +52,6 @@ func main() {
 
 func createSetupRouter(setupContextBuilder *appcontext.SetupContextBuilder) (*gin.Engine, error) {
 	logrus.Print("Starting k8s-ces-setup...")
-	logrus.Print("Starting k8s-ces-setup...")
-	logrus.Print("Starting k8s-ces-setup...")
-	logrus.Print("Starting k8s-ces-setup...")
-	logrus.Print("Starting k8s-ces-setup...")
-	logrus.Print("Starting k8s-ces-setup...")
 
 	clusterConfig, err := ctrl.GetConfig()
 	if err != nil {
