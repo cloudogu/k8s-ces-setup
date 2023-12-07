@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@939faedd7a8d2009cd3012327695ebc7d07095ec')
+@Library('github.com/cloudogu/ces-build-lib@24518edad424e34d051e7e4b7c3f722db1e7256a')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -104,12 +104,14 @@ node('docker') {
                 k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                                          "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
                                          "k8s-etcd"             : ["version": "latest", "helmRepositoryNamespace": "k8s"],
-                                         "k8s-promtail"         : ["version": "latest", "helmRepositoryNamespace": "k8s"]])
+                ])
                 k3d.configureComponentOperatorVersion("0.6.0")
+                echo "values.yaml: "
+                sh "cat k3d_values.yaml"
             }
 
             stage('Install and Trigger Setup (trigger warning: setup)') {
-                k3d.helm("install -f values.yaml ${repositoryName} ${helmChartDir}")
+                k3d.helm("install -f k3d_values.yaml ${repositoryName} ${helmChartDir}")
             }
 
             stage("wait for k8s-specific dogu (it has special needs)") {
