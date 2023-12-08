@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script
+  labels:
+    {{- include "k8s-ces-setup.labels" .| nindent 4 }}
+data:
+  entrypoint.sh: "#!/bin/bash\nSTATE=$(kubectl get configmap k8s-setup-config -o jsonpath='{.data.state}');\nif [[ ${STATE} == \"installed\" ]]; then \n kubectl get secrets | awk '{print $1\" \"$2}' | grep helm.sh/release | awk '{print $1}' | grep k8s-ces-setup | xargs kubectl delete secrets || true\n kubectl delete configmap k8s-ces-setup-json || true\n  kubectl delete configmap k8s-setup-config || true\n  kubectl delete deployments,services,configmaps,secrets,roles,rolebindings,clusterroles,clusterrolebindings,serviceaccounts -l app.kubernetes.io/name=k8s-ces-setup || true\n  kubectl patch cronjob cleanup -p '{\"spec\" : {\"suspend\" : true }}'\n  kubectl delete configmap k8s-ces-setup-cleanup-script\n  kubectl delete cronjob k8s-ces-setup-finisher\n  kubectl delete serviceaccount k8s-ces-setup-finisher\n  kubectl delete rolebinding k8s-ces-setup-finisher\nelse \n  echo \"setup seems not to be installed or successfully executed\";\nfi"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+  labels:
+    app: ces
+    app.kubernetes.io/name: k8s-ces-setup-finisher
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+      - clusterroles
+      - clusterrolebindings
+    verbs:
+      - delete
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+  labels:
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+    namespace: '{{ .Release.Namespace }}'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+  labels:
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+      - configmaps
+      - services
+      - secrets
+      - deployments
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+      - serviceaccounts
+      - cronjobs
+    verbs:
+      - delete
+      - get
+      - list
+  - apiGroups:
+      - "*"
+    resources:
+      - cronjobs
+    verbs:
+      - patch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+  labels:
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
+  labels:
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: k8s-ces-setup-finisher
+subjects:
+  - kind: ServiceAccount
+    name: k8s-ces-setup-finisher
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-ces-setup-finisher
+  labels:
+    {{- include "k8s-ces-setup.labels" .| nindent 4 }}
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: kubectl-container
+              image: {{ or .Values.kubectl_image "bitnami/kubectl:1.27.4"}}
+              command:
+                - /bin/entrypoint.sh
+              volumeMounts:
+                - name: cleanup-script
+                  mountPath: /bin/entrypoint.sh
+                  readOnly: true
+                  subPath: entrypoint.sh
+          restartPolicy: Never
+          serviceAccountName: k8s-ces-setup-finisher
+          volumes:
+            - name: cleanup-script
+              configMap:
+                defaultMode: 0550
+                name: k8s-ces-setup-cleanup-script

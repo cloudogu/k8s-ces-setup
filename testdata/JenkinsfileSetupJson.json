@@ -1,0 +1,43 @@
+{
+  "naming":{
+    "fqdn":"${externalIP}",
+    "hostname":"ces",
+    "domain":"ces.local",
+    "certificateType":"selfsigned",
+    "relayHost":"mail.ces.local",
+    "completed":true
+  },
+  "dogus":{
+    "defaultDogu":"cockpit",
+    "install":[
+      "official/ldap",
+      "official/cas",
+      "k8s/nginx-ingress",
+      "official/postfix",
+      "official/usermgt"
+    ],
+    "completed":true
+  },
+  "admin":{
+    "username":"ces-admin",
+    "mail":"ces-admin@cloudogu.com",
+    "password":"ecosystem2016",
+    "adminGroup":"CesAdministrators",
+    "adminMember":true,
+    "completed":true
+  },
+  "userBackend":{
+    "port":"389",
+    "useUserConnectionToFetchAttributes":true,
+    "dsType":"embedded",
+    "attributeID":"uid",
+    "attributeFullname":"cn",
+    "attributeMail":"mail",
+    "attributeGroup":"memberOf",
+    "searchFilter":"(objectClass=person)",
+    "host":"ldap",
+    "completed":true
+  },
+  "registryConfig":{},
+"registryConfigEncrypted":{},
+}

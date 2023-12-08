@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@1.66.1')
+@Library('github.com/cloudogu/ces-build-lib@2.0.0')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -11,6 +11,7 @@ github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
 goVersion = "1.21.1"
+Makefile makefile = new Makefile(this)
 
 // Configuration of repository
 repositoryOwner = "cloudogu"
@@ -24,6 +25,9 @@ currentBranch = "${env.BRANCH_NAME}"
 
 registry = "registry.cloudogu.com"
 registry_namespace = "k8s"
+
+helmTargetDir = "target/k8s"
+helmChartDir = "${helmTargetDir}/helm"
 
 node('docker') {
     timestamps {
@@ -41,10 +45,6 @@ node('docker') {
 
         stage('Lint - Dockerfile') {
             lintDockerfile()
-        }
-
-        stage("Lint - k8s Resources") {
-            stageLintK8SResources()
         }
 
         stage('Check Markdown Links') {
@@ -69,6 +69,15 @@ node('docker') {
                             stage("Review dog analysis") {
                                 stageStaticAnalysisReviewDog()
                             }
+
+                            stage('Generate k8s Resources') {
+                                make 'helm-generate'
+                                archiveArtifacts "${helmTargetDir}/**/*"
+                            }
+
+                            stage("Lint helm") {
+                                make 'helm-lint'
+                            }
                         }
 
         stage('SonarQube') {
@@ -84,48 +93,33 @@ node('docker') {
 
             def cessetupImageName
             stage('Build & Push Image') {
-                def makefile = new Makefile(this)
                 String setupVersion = makefile.getVersion()
                 cessetupImageName = k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
 
-            def sourceDeploymentYaml = "k8s/k8s-ces-setup.yaml"
-
-            stage('Patch setup YAML to use local image') {
-                docker.image('mikefarah/yq:4.22.1')
-                        .mountJenkinsUser()
-                        .inside("--volume ${WORKSPACE}:/workdir -w /workdir") {
-                            sh "yq -i '(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${cessetupImageName}\"' ${sourceDeploymentYaml}"
-                            // avoid RBAC errors during installing the CRD because of empty ns vs default ns in the ClusterRoleBinding
-                            sh "sed -i 's/{{ .Namespace }}/default/g' ${sourceDeploymentYaml}"
-                        }
-            }
-
-            stage('Configure Setup') {
+            stage('Configure setup') {
                 k3d.assignExternalIP()
-                def commitSha = getCurrentCommit()
-                k3d.configureSetup(commitSha, [
-                        dependencies: ["k8s/nginx-ingress"],
-                        defaultDogu : ""
+                k3d.configureSetupJson()
+                k3d.configureSetupImage(cessetupImageName)
+                k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-etcd"             : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                 ])
+                k3d.configureComponentOperatorVersion("latest")
             }
 
             stage('Install and Trigger Setup (trigger warning: setup)') {
-                k3d.kubectl("apply -f ${sourceDeploymentYaml}")
+                k3d.helm("install -f k3d_values.yaml ${repositoryName} ${helmChartDir}")
             }
 
             stage("wait for k8s-specific dogu (it has special needs)") {
                 k3d.waitForDeploymentRollout("nginx-ingress", 300, 10)
             }
 
-            stage('Restore development resources') {
-                sh "git restore ${sourceDeploymentYaml}"
-            }
-
             stageAutomaticRelease()
-        } catch(Exception e) {
+        } catch (Exception e) {
             k3d.collectAndArchiveLogs()
-            throw e
+            throw e as java.lang.Throwable
         } finally {
             stage('Remove k3d cluster') {
                 k3d.deleteK3d()
@@ -134,22 +128,12 @@ node('docker') {
     }
 }
 
-void stageLintK8SResources() {
-    String kubevalImage = "cytopia/kubeval:0.13"
-    docker
-            .image(kubevalImage)
-            .inside("-v ${WORKSPACE}/k8s:/data -t --entrypoint=")
-                    {
-                        sh "kubeval /data/k8s-ces-setup.yaml --ignore-missing-schemas"
-                    }
-}
-
 String getCurrentCommit() {
     return sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 }
 
 void stageStaticAnalysisReviewDog() {
-    def commitSha=getCurrentCommit()
+    def commitSha = getCurrentCommit()
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
         withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
             make 'static-analysis'
@@ -201,44 +185,28 @@ void stageAutomaticRelease() {
             }
         }
 
-        stage('Finish Release') {
-            gitflow.finishRelease(releaseVersion, productionReleaseBranch)
-        }
-
-        stage('Add Github-Release') {
-            releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
-        }
-
-        stage('Regenerate resources for release') {
-            new Docker(this)
-                    .image("golang:${goVersion}")
-                    .mountJenkinsUser()
-                    .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
-                            {
-                                make 'k8s-create-temporary-resource'
-                            }
-        }
-
-        stage('Push to Registry') {
-            GString targetSetupResourceYaml = "target/make/k8s/${repositoryName}_${setupVersion}.yaml"
-
-            DoguRegistry registry = new DoguRegistry(this)
-            registry.pushK8sYaml(targetSetupResourceYaml, repositoryName, "k8s", "${setupVersion}")
-        }
-
         stage('Push Helm chart to Harbor') {
             new Docker(this)
                     .image("golang:${goVersion}")
                     .mountJenkinsUser()
                     .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                             {
-                                make 'helm-package-release'
+                                make 'helm-package'
+                                archiveArtifacts "${helmTargetDir}/**/*"
 
                                 withCredentials([usernamePassword(credentialsId: 'harborhelmchartpush', usernameVariable: 'HARBOR_USERNAME', passwordVariable: 'HARBOR_PASSWORD')]) {
                                     sh ".bin/helm registry login ${registry} --username '${HARBOR_USERNAME}' --password '${HARBOR_PASSWORD}'"
-                                    sh ".bin/helm push target/make/k8s/helm/${repositoryName}-${setupVersion}.tgz oci://${registry}/${registry_namespace}/"
+                                    sh ".bin/helm push ${helmChartDir}/${repositoryName}-${setupVersion}.tgz oci://${registry}/${registry_namespace}/"
                                 }
                             }
+        }
+
+        stage('Finish Release') {
+            gitflow.finishRelease(releaseVersion, productionReleaseBranch)
+        }
+
+        stage('Add Github-Release') {
+            releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
         }
     }
 }

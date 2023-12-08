@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-ces-setup-config
+  name: {{ include "k8s-ces-setup.name" . }}-config
   labels:
-    {{- include "labels" . | nindent 4}}
+    {{- include "k8s-ces-setup.labels" .| nindent 4 }}
 data:
   k8s-ces-setup.yaml: |
     component_operator_chart: "{{ .Values.component_operator_chart }}"
