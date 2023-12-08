@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.20.0] - 2023-12-08
+### Added
+- [#80] Add component patch template file for mirroring this chart in offline environments.
+
 ## [v0.19.1] - 2023-11-22
 ### Fixed
 - [#78] Remove timeout and wait indefinitely for components to get "ready".

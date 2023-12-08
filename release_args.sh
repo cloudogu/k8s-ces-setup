@@ -4,18 +4,24 @@ set -o nounset
 set -o pipefail
 # This script is automatically called by the automatic git flow release process. It is responsible to change the
 # version of the image in the K8s deployment resource `k8s/k8s-ces-setup.yaml` to the newest one.
-K8S_CES_SETUP_YAML=k8s/k8s-ces-setup.yaml
+valuesYaml=k8s/helm/values.yaml
+patchTplYaml=k8s/helm/component-patch-tpl.yaml
 
 update_versions_modify_files() {
   newReleaseVersion="${1}"
-  newImage="cloudogu/k8s-ces-setup:${newReleaseVersion}"
 
-  yq e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.name == \"k8s-ces-setup\")).image=\"${newImage}\"" \
-    ${K8S_CES_SETUP_YAML} > tmpfile
+  yq -i ".setup.image.tag=\"${newReleaseVersion}\"" "${valuesYaml}"
 
-  mv tmpfile "${K8S_CES_SETUP_YAML}"
+  setupImage="cloudogu/k8s-ces-setup:${newReleaseVersion}"
+  yq -i ".values.images.k8sCesSetup=\"${setupImage}\"" "${patchTplYaml}"
+
+  kubectlImage=$(yq ".kubectl_image" "${valuesYaml}")
+  yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
+
+  etcdClientImage=$(yq ".etcd_client_image_repo" "${valuesYaml}")
+  yq -i ".values.images.etcdClient=\"${etcdClientImage}\"" "${patchTplYaml}"
 }
 
 update_versions_stage_modified_files() {
-  git add "${K8S_CES_SETUP_YAML}"
+  git add "${valuesYaml}" "${patchTplYaml}"
 }

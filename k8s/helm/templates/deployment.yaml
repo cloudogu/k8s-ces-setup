@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}
+  labels:
+    {{- include "k8s-ces-setup.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-ces-setup
+  template:
+    metadata:
+      labels:
+        {{- include "k8s-ces-setup.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "k8s-ces-setup.name" . }}
+          image: {{ .Values.setup.image.repository }}:{{ .Values.setup.image.tag }}
+          imagePullPolicy: {{ .Values.setup.imagePullPolicy | default "IfNotPresent" }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.setup.env.logLevel | default "info" }}
+            - name: STAGE
+              value: {{ .Values.setup.env.stage | default "production" }}
+            - name: GIN_MODE
+              value: release
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+            failureThreshold: 60
+            periodSeconds: 10
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: setup-webui
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          ports:
+            - name: setup-webui
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /k8s-ces-setup.yaml
+              name: k8s-ces-setup-config
+              subPath: k8s-ces-setup.yaml
+            - mountPath: /setup.json
+              name: k8s-ces-setup-json
+              subPath: setup.json
+            - name: dogu-registry-cert
+              mountPath: /etc/ssl/certs/dogu-registry-cert.pem
+              subPath: dogu-registry-cert.pem
+            - mountPath: "/tmp/.helmregistry"
+              name: component-operator-helm-registry
+              readOnly: true
+      volumes:
+        - configMap:
+            name: {{ include "k8s-ces-setup.name" . }}-config
+          name: k8s-ces-setup-config
+        - configMap:
+            name: {{ include "k8s-ces-setup.name" . }}-json
+            optional: true
+          name: k8s-ces-setup-json
+        - name: dogu-registry-cert
+          secret:
+            secretName: dogu-registry-cert
+            optional: true
+        - name: component-operator-helm-registry
+          secret:
+            secretName: component-operator-helm-registry
+      serviceAccountName: {{ include "k8s-ces-setup.name" . }}
+      nodeSelector:
+        kubernetes.io/os: linux
