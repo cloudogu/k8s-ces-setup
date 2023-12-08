@@ -4,7 +4,7 @@ setup:
     logLevel: info
   image:
     repository: cloudogu/k8s-ces-setup
-    tag: 0.19.1
+    tag: 0.20.0
   imagePullPolicy: IfNotPresent
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
@@ -17,10 +17,10 @@ component_operator_chart: "k8s/k8s-component-operator:latest"
 # Format: <namespace>/<name>: <version>
 components:
   # Use longhorn if your cluster has no storage provisioner.
-#  k8s-longhorn:
-#    version: latest
-#    helmRepositoryNamespace: k8s
-#    deployNamespace: longhorn-system
+  #  k8s-longhorn:
+  #    version: latest
+  #    helmRepositoryNamespace: k8s
+  #    deployNamespace: longhorn-system
   k8s-etcd:
     version: latest
     helmRepositoryNamespace: k8s
@@ -82,7 +82,6 @@ helm_registry_secret:
   plainHttp: "false"
   #  username:
   #  password:
-
 # Configuration for the Cloudogu EcoSystem. If all sections are completed k8s-ces-setup will start the process immediately.
 # Example:
 #setup_json:
