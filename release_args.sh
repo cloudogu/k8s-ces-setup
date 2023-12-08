@@ -15,10 +15,10 @@ update_versions_modify_files() {
   setupImage="cloudogu/k8s-ces-setup:${newReleaseVersion}"
   yq -i ".values.images.k8sCesSetup=\"${setupImage}\"" "${patchTplYaml}"
 
-  kubectlImage=$(yq ".etcd_client_image_repo" "${valuesYaml}")
+  kubectlImage=$(yq ".kubectl_image" "${valuesYaml}")
   yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
 
-  etcdClientImage=$(yq ".kubectl_image" "${valuesYaml}")
+  etcdClientImage=$(yq ".etcd_client_image_repo" "${valuesYaml}")
   yq -i ".values.images.etcdClient=\"${etcdClientImage}\"" "${patchTplYaml}"
 }
 
