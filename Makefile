@@ -41,24 +41,17 @@ include build/make/digital-signature.mk
 include build/make/mocks.mk
 include build/make/release.mk
 
-K8S_PRE_GENERATE_TARGETS=k8s-create-temporary-resource template-dev-only-image-pull-policy
-
-HELM_DOGU_REGISTRY_ARGS=--set=dogu_registry_secret.url='${DOGU_REGISTRY_URL}' --set=dogu_registry_secret.username='${DOGU_REGISTRY_USERNAME}' --set=dogu_registry_secret.password='${DOGU_REGISTRY_PASSWORD}'
-HELM_DOCKER_REGISTRY_ARGS=--set=docker_registry_secret.url='${DOCKER_REGISTRY_URL}' --set=docker_registry_secret.username='${DOCKER_REGISTRY_USERNAME}' --set=docker_registry_secret.password='${DOCKER_REGISTRY_PASSWORD}'
-HELM_HELM_REGISTRY_ARGS=--set=helm_registry_secret.host='${HELM_REGISTRY_HOST}' --set=helm_registry_secret.schema='${HELM_REGISTRY_SCHEMA}' --set=helm_registry_secret.plainHttp='${HELM_REGISTRY_PLAIN_HTTP}' --set=helm_registry_secret.username='${HELM_REGISTRY_USERNAME}' --set=helm_registry_secret.password='${HELM_REGISTRY_PASSWORD}'
-HELM_SETUP_JSON_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
-BINARY_HELM_ADDITIONAL_UPGR_ARGS=${HELM_DOGU_REGISTRY_ARGS} ${HELM_DOCKER_REGISTRY_ARGS} ${HELM_HELM_REGISTRY_ARGS} ${HELM_SETUP_JSON_ARGS}
+BINARY_HELM_ADDITIONAL_UPGR_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
 
 K8S_COMPONENT_SOURCE_VALUES = ${HELM_SOURCE_DIR}/values.yaml
 K8S_COMPONENT_TARGET_VALUES = ${HELM_TARGET_DIR}/values.yaml
-HELM_PRE_APPLY_TARGETS=template-stage template-log-level template-image-pull-policy
+HELM_PRE_APPLY_TARGETS=template-stage template-log-level template-image-pull-policy template-dogu-registry template-docker-registry template-helm-registry
 HELM_PRE_GENERATE_TARGETS = helm-values-update-image-version
 HELM_POST_GENERATE_TARGETS = helm-values-replace-image-repo
 CHECK_VAR_TARGETS=check-all-vars
 IMAGE_IMPORT_TARGET=image-import
 
 include build/make/k8s-component.mk
-
 
 ##@ EcoSystem
 
@@ -143,9 +136,14 @@ serve-local-yaml:
 k8s-clean: ## Cleans all resources deployed by the setup
 	@echo "Cleaning in namespace $(NAMESPACE)"
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
+		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]]; then \
+		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
+		fi; \
+	done;
+	@helm uninstall k8s-longhorn --namespace=$(NAMESPACE) || true
 	@kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@kubectl delete --all components --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
@@ -164,16 +162,3 @@ setup-etcd-port-forward:
 .PHONY: run
 run: ## Run a setup from your host.
 	go run ./main.go
-
-.PHONY: create-temporary-dev-resource
-create-temporary-dev-resource: $(K8S_RESOURCE_TEMP_FOLDER) k8s-create-temporary-resource template-dev-only-image-pull-policy
-	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
-	@kubectl create configmap k8s-ces-setup-json --from-file=k8s/dev-resources/setup.json --dry-run=client -o yaml >> $(K8S_RESOURCE_TEMP_YAML)
-	@echo "---" >> $(K8S_RESOURCE_TEMP_YAML)
-	@cat $(K8S_SETUP_CONFIG_RESOURCE_YAML) >> $(K8S_RESOURCE_TEMP_YAML)
-
-.PHONY: template-dev-only-image-pull-policy
-template-dev-only-image-pull-policy: $(BINARY_YQ)
-	@if [[ ${STAGE}"X" == "development""X" ]]; \
-		then echo "Setting pull policy to always for development stage!" && $(BINARY_YQ) -i e "(select(.kind == \"Deployment\").spec.template.spec.containers[]|select(.image == \"*$(ARTIFACT_ID)*\").imagePullPolicy)=\"Always\"" $(K8S_RESOURCE_TEMP_YAML); \
-	fi
