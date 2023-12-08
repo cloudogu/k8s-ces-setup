@@ -8,6 +8,6 @@ values:
 
 patches:
   values.yaml:
-    k8s_ces_setup_image: "{{ registryFrom .images.k8sCesSetup }}/{{ repositoryFrom .images.k8sCesSetup }}:{{ tagFrom .images.k8sCesSetup }}"
-    kubectl_image: "{{ registryFrom .images.kubectl }}/{{ repositoryFrom .images.kubectl }}:{{ tagFrom .images.kubectl }}"
-    etcd_client_image_repo: "{{ registryFrom .images.etcdClient }}/{{ repositoryFrom .images.etcdClient }}:{{ tagFrom .images.etcdClient }}"
+    k8s_ces_setup_image: "{{ .images.k8sCesSetup }}"
+    kubectl_image: "{{ .images.kubectl }}"
+    etcd_client_image_repo: "{{ .images.etcdClient }}"
