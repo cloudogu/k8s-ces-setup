@@ -9,9 +9,9 @@ gitWrapper.committerEmail = 'cesmarvin@cloudogu.com'
 gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
-docker = new Docker(this)
+Docker docker = new Docker(this)
 goVersion = "1.21.1"
-makefile = new Makefile(this)
+Makefile makefile = new Makefile(this)
 
 // Configuration of repository
 repositoryOwner = "cloudogu"
@@ -174,6 +174,7 @@ void stageStaticAnalysisSonarQube() {
 void stageAutomaticRelease() {
     if (gitflow.isReleaseBranch()) {
         String releaseVersion = gitWrapper.getSimpleBranchName()
+        Makefile makefile = new Makefile(this)
         String setupVersion = makefile.getVersion()
 
         stage('Build & Push Image') {
@@ -185,7 +186,7 @@ void stageAutomaticRelease() {
         }
 
         stage('Push Helm chart to Harbor') {
-            docker
+            new Docker(this)
                     .image("golang:${goVersion}")
                     .mountJenkinsUser()
                     .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
