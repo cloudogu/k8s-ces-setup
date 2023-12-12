@@ -91,7 +91,7 @@ roleRef:
   name: k8s-ces-setup-finisher
 subjects:
   - kind: ServiceAccount
-    name: k8s-ces-setup-finisher
+    name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
 ---
 apiVersion: batch/v1
 kind: CronJob
