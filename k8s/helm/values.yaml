@@ -73,6 +73,7 @@ dogu_registry_secret:
   url: https://dogu.cloudogu.com/api/v2/dogus
 #  username:
 #  password:
+#  urlschema: index
 
 # Credentials for the helm registry used by the components.
 # It is mandatory to set username and password.
@@ -80,11 +81,12 @@ helm_registry_secret:
   host: registry.cloudogu.com
   schema: oci
   plainHttp: "false"
+  insecureTls: "false"
   #  username:
   #  password:
 # Configuration for the Cloudogu EcoSystem. If all sections are completed k8s-ces-setup will start the process immediately.
 # Example:
-#setup_json:
+#setup_json: |-
 #  {
 #    "naming": {
 #      "fqdn": "",
@@ -92,8 +94,8 @@ helm_registry_secret:
 #      "certificateType": "selfsigned",
 #      "relayHost": "yourrelayhost.com",
 #      "useInternalIp": false,
-#      "internalIp": ""
-#      "completed": true,
+#      "internalIp": "",
+#      "completed": true
 #    },
 #    "dogus": {
 #      "defaultDogu": "ldap",
@@ -104,7 +106,7 @@ helm_registry_secret:
 #        "k8s/nginx-ingress",
 #        "official/cas",
 #        "official/postgresql",
-#        "official/redmine",
+#        "official/redmine"
 #      ],
 #      "completed": false
 #    },

@@ -119,7 +119,7 @@ spec:
                   readOnly: true
                   subPath: entrypoint.sh
           restartPolicy: Never
-          serviceAccountName: k8s-ces-setup-finisher
+          serviceAccountName: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
           volumes:
             - name: cleanup-script
               configMap:

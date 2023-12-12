@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#82] Update component-operator dependency to 0.7.0.
+
+### Fixed
+- [#82] Fix issues with helm template.
 
 ## [v0.20.0] - 2023-12-08
 ### Added

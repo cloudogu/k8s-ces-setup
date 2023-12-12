@@ -113,11 +113,12 @@ template-docker-registry: $(BINARY_YQ)
 template-helm-registry: $(BINARY_YQ)
 	@if [[ "${STAGE}" == "development" ]]; then \
           echo "Template helm registry!" ; \
-          $(BINARY_YQ) -i e ".helm_registry_secret.url=\"${HELM_REGISTRY_HOST}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.host=\"${HELM_REGISTRY_HOST}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.username=\"${HELM_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.password=\"${HELM_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.schema=\"${HELM_REGISTRY_SCHEMA}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.plainHttp=\"${HELM_REGISTRY_PLAIN_HTTP}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.insecureTls=\"${HELM_REGISTRY_INSECURE_TLS}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
     fi
 
 
