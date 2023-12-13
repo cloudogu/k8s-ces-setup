@@ -12,8 +12,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
   labels:
-    app: ces
-    app.kubernetes.io/name: k8s-ces-setup-finisher
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
 rules:
   - apiGroups:
       - "*"
@@ -96,7 +95,7 @@ subjects:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: k8s-ces-setup-finisher
+  name: {{ include "k8s-ces-setup-finisher.name" . }}
   labels:
     {{- include "k8s-ces-setup.labels" .| nindent 4 }}
 spec:
