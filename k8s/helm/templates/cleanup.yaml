@@ -88,7 +88,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: k8s-ces-setup-finisher
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
 subjects:
   - kind: ServiceAccount
     name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher

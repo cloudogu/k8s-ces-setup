@@ -137,6 +137,8 @@ serve-local-yaml:
 k8s-clean: ## Cleans all resources deployed by the setup
 	@echo "Cleaning in namespace $(NAMESPACE)"
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
 	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
 		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]]; then \
 		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
@@ -147,8 +149,6 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
