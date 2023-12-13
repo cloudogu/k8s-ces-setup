@@ -113,11 +113,12 @@ template-docker-registry: $(BINARY_YQ)
 template-helm-registry: $(BINARY_YQ)
 	@if [[ "${STAGE}" == "development" ]]; then \
           echo "Template helm registry!" ; \
-          $(BINARY_YQ) -i e ".helm_registry_secret.url=\"${HELM_REGISTRY_HOST}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.host=\"${HELM_REGISTRY_HOST}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.username=\"${HELM_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.password=\"${HELM_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.schema=\"${HELM_REGISTRY_SCHEMA}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".helm_registry_secret.plainHttp=\"${HELM_REGISTRY_PLAIN_HTTP}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".helm_registry_secret.insecureTls=\"${HELM_REGISTRY_INSECURE_TLS}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
     fi
 
 
@@ -136,6 +137,8 @@ serve-local-yaml:
 k8s-clean: ## Cleans all resources deployed by the setup
 	@echo "Cleaning in namespace $(NAMESPACE)"
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
 	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
 		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]]; then \
 		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
@@ -146,8 +149,6 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)

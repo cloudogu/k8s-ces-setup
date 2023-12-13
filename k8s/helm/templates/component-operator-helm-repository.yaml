@@ -9,4 +9,5 @@ data:
   endpoint: "{{ .Values.helm_registry_secret.host }}"
   schema: "{{ .Values.helm_registry_secret.schema }}"
   plainHttp: "{{ .Values.helm_registry_secret.plainHttp }}"
+  insecureTls: "{{ .Values.helm_registry_secret.insecureTls }}"
   {{- end }}

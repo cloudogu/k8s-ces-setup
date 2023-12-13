@@ -6,6 +6,9 @@ values:
     etcdClient: bitnami/etcd:3.5.2-debian-10-r0
 patches:
   values.yaml:
-    k8s_ces_setup_image: "{{ .images.k8sCesSetup }}"
+    setup:
+      image:
+        repository: "{{ registryFrom .images.k8sCesSetup }}/{{ repositoryFrom .images.k8sCesSetup }}"
+        tag: "{{ tagFrom .images.k8sCesSetup }}"
     kubectl_image: "{{ .images.kubectl }}"
     etcd_client_image_repo: "{{ .images.etcdClient }}"
