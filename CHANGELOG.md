@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.20.1] - 2023-12-13
+### Changed
+- [#82] Update component-operator dependency to 0.7.0.
+
+### Fixed
+- [#82] Fix issues with helm template.
+
 ## [v0.20.0] - 2023-12-08
 ### Added
 - [#80] Add component patch template file for mirroring this chart in offline environments.

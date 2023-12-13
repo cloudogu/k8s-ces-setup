@@ -12,8 +12,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
   labels:
-    app: ces
-    app.kubernetes.io/name: k8s-ces-setup-finisher
+    {{- include "k8s-ces-setup-finisher.labels" .| nindent 4 }}
 rules:
   - apiGroups:
       - "*"
@@ -88,15 +87,15 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: k8s-ces-setup-finisher
+  name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
 subjects:
   - kind: ServiceAccount
-    name: k8s-ces-setup-finisher
+    name: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: k8s-ces-setup-finisher
+  name: {{ include "k8s-ces-setup-finisher.name" . }}
   labels:
     {{- include "k8s-ces-setup.labels" .| nindent 4 }}
 spec:
@@ -119,7 +118,7 @@ spec:
                   readOnly: true
                   subPath: entrypoint.sh
           restartPolicy: Never
-          serviceAccountName: k8s-ces-setup-finisher
+          serviceAccountName: {{ include "k8s-ces-setup.name" . }}-cleanup-script-finisher
           volumes:
             - name: cleanup-script
               configMap:
