@@ -98,6 +98,7 @@ template-dogu-registry: $(BINARY_YQ)
           $(BINARY_YQ) -i e ".dogu_registry_secret.url=\"${DOGU_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".dogu_registry_secret.username=\"${DOGU_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
           $(BINARY_YQ) -i e ".dogu_registry_secret.password=\"${DOGU_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".dogu_registry_secret.urlschema=\"${DOGU_REGISTRY_URL_SCHEMA}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
     fi
 
 .PHONY: template-docker-registry
