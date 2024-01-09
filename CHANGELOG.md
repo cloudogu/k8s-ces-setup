@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.20.2] - 2024-01-09
+### Fixed
+- [#84] Use default value for the urlschema in the dogu registry secret.
+
 ## [v0.20.1] - 2023-12-13
 ### Changed
 - [#82] Update component-operator dependency to 0.7.0.
