@@ -39,14 +39,14 @@ Creates the docker config json string used as a docker secret.
 {{- define "docker_config_json" }}
   {{- $url := index . 0 }}
   {{- $username := index . 1 }}
-  {{- $password := index . 2 }}
+  {{- $password := index . 2 | b64dec }}
   {"auths":{"{{ $url }}":{"username":"{{ $username }}","password":"{{ $password }}","email":"test@mtest.de","auth":"{{ printf "%s%s%s" $username ":" $password | b64enc}}"}}}
 {{- end }}
 
 {{- define "helm_config_json" }}
   {{- $host := index . 0 }}
   {{- $username := index . 1 }}
-  {{- $password := index . 2 }}
+  {{- $password := index . 2 | b64dec }}
 {{/*  Helm auth does not work with protocols in config file. Remove them to be sure.*/}}
   {"auths": {"{{ $host | replace "oci://" "" | replace "http://" "" | replace "https://" "" }}": {"auth": "{{ printf "%s%s%s" $username ":" $password | b64enc}}"}}}
 {{- end }}
