@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#86] **Breaking Change ahead!** Passwords (Docker-, Dogu- & Helmregistry) has to be encoded in Base64 
+(see [here](docs/operations/installation_guide_en.md) or [here](docs/operations/configuration_guide_en.md)) #64
 
 ## [v0.20.2] - 2024-01-09
 ### Fixed

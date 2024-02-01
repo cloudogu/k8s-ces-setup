@@ -25,19 +25,19 @@ A minimal example would be:
 docker_registry_secret:
   url: https://registry.cloudogu.com
   username: "your-ces-instance-id"
-  password: "your-ces-instance-password"
+  password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64 encoded password
 
 dogu_registry_secret:
   url: https://dogu.cloudogu.com/api/v2/dogus
   username: "your-ces-instance-id"
-  password: "your-ces-instance-password"
+  password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64 encoded password
 
 helm_registry_secret:
   host: https://registry.cloudogu.com
   schema: oci
   plainHttp: "false"
   username: "your-ces-instance-id"
-  password: "your-ces-instance-password"
+  password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64 encoded password
 
 component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
 component_operator_chart: "k8s/k8s-component-operator:latest"
