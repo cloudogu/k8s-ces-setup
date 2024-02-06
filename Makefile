@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=0.20.2
+VERSION=0.21.0
 
 GOTAG?=1.21.1
 MAKEFILES_VERSION=9.0.1
@@ -145,7 +145,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
 		fi; \
 	done;
-	@helm uninstall k8s-longhorn --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-longhorn --namespace=$(NAMESPACE) || true
 	@kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
