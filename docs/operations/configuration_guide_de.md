@@ -25,17 +25,17 @@ data:
     docker_registry_secret:
       url: https://registry.cloudogu.com
       username: "your-ces-instance-id"
-      password: "your-ces-instance-password"
+      password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64-kodiertes Passwort
     dogu_registry_secret:
       url: https://dogu.cloudogu.com/api/v2/dogus
       username: "your-ces-instance-id"
-      password: "your-ces-instance-password"
+      password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64-kodiertes Passwort
     helm_registry_secret:
       host: https://registry.cloudogu.com
       schema: oci
       plainHttp: "false"
       username: "your-ces-instance-id"
-      password: "your-ces-instance-password"
+      password: "eW91ci1jZXMtaW5zdGFuY2UtcGFzc3dvcmQ=" # Base64-kodiertes Passwort
     log_level: "DEBUG"
     component_operator_crd_chart: "k8s/k8s-component-operator-crd:0.5.1"
     component_operator_chart: "k8s/k8s-component-operator:0.5.1"
