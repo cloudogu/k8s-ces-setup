@@ -7,7 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
-- **Breaking:** [#86] Passwords (Docker-, Dogu- & Helmregistry) has to be encoded in Base64 
+- **Breaking:** [#86] Passwords (Docker-, Dogu- & Helmregistry) have to be encoded in Base64 
 (see [here](docs/operations/installation_guide_en.md) or [here](docs/operations/configuration_guide_en.md))
 
 ## [v0.20.2] - 2024-01-09
