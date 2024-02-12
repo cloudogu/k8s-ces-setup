@@ -18,7 +18,9 @@ Cluster eingebracht werden kann, ist in ["Ausbringung einer Setup-Konfiguration"
 
 ### Setup ausbringen
 
-Die Installation mit Helm erfordert die Konfiguration der `values.yaml`. Ein minimales Beispiel sieht folgendermaßen aus:
+Die Installation mit Helm erfordert die Konfiguration der `values.yaml`. Passwörter für die Registries müssen in Base64 
+kodiert werden ([siehe hier](configuration_guide_de.md#tipps-zur-base64-kodierung)).
+Ein minimales Beispiel sieht folgendermaßen aus:
 
 ```yaml
 docker_registry_secret:

@@ -85,6 +85,7 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * YAML key: `docker_registry_secret`
 * Typ: `Map`, enthält `url`, `username` und `password` von der Docker-Registry
 * Notwendige Konfiguration
+* `password` muss in Base64 kodiert sein ([siehe hier](#tipps-zur-base64-kodierung))
 * Beschreibung: Anmeldeinformationen für die von den Komponenten verwendete Docker-Registry.
 
 ### dogu_registry_secret
@@ -92,6 +93,7 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * YAML key: `dogu_registry_secret`
 * Typ: `Map` enthält `url`, `username` und `password` von der Dogu-Registry
 * Notwendige Konfiguration
+* `password` muss in Base64 kodiert sein ([siehe hier](#tipps-zur-base64-kodierung))
 * Beschreibung: Anmeldeinformationen für die von den Komponenten verwendete Dogu-Registry.
 
 ### helm_registry_secret
@@ -99,6 +101,7 @@ Der Eintrag `namespace` muss dem Namespace im Cluster entsprechen, in den das CE
 * YAML key: `docker_registry_secret`
 * Typ: `Map` enthält `host`, `schema`, `username` und `password` von der Helm-Registry, sowie das `plain_http`-Flag
 * Notwendige Konfiguration
+* `password` muss in Base64 kodiert sein ([siehe hier](#tipps-zur-base64-kodierung))
 * Beschreibung: Anmeldeinformationen für die von den Komponenten verwendete Helm-Registry.
 
 ### log_level
@@ -300,3 +303,17 @@ im Cluster-Secret `k8s-dogu-operator-dogu-registry` hinterlegt werden. Dieses Se
 angelegt, siehe https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_de.md.
 Das Secret muss den Key `urlschema` enthalten, welcher auf `index` gesetzt sein muss. Ist dieser Key nicht vorhanden
 oder nicht auf `index` gesetzt, wird das `default`-URL-Schema benutzt.
+
+## Tipps zur Base64-kodierung
+
+Die Passwörter für die Dogu-, Docker- und Helm-registry müssen in Base64 kodiert werden.
+
+Nutzen Sie den folgenden Befehl, um sicher zu gehen, dass keine Sonderzeichen vor dem Kodierungsvorgang interpretiert 
+werden:
+```
+printf '%s' 'password' | base64 -w0
+```
+
+Sollte ihr Passwort einfache Anführungszeichen (') enthalten, müssen diese für den printf-Befehl mit ('/'') escaped werden:
+
+pass'word -> `printf '%s' 'pass'/''word' | base64 -w0` 

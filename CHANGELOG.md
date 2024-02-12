@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#88] Improve clarity of Base64 encoding documentation
 
 ## [v0.21.0] - 2024-02-06
 ### Changed
