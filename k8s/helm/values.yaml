@@ -4,7 +4,7 @@ setup:
     logLevel: info
   image:
     repository: cloudogu/k8s-ces-setup
-    tag: 0.21.0
+    tag: 1.0.0
   imagePullPolicy: IfNotPresent
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
@@ -31,6 +31,12 @@ components:
     version: latest
     helmRepositoryNamespace: k8s
   k8s-service-discovery:
+    version: latest
+    helmRepositoryNamespace: k8s
+  k8s-blueprint-operator:
+    version: latest
+    helmRepositoryNamespace: k8s
+  k8s-blueprint-operator-crd:
     version: latest
     helmRepositoryNamespace: k8s
 #  k8s-snapshot-controller:

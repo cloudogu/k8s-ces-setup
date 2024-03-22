@@ -18,7 +18,8 @@ inserted into the cluster is described in ["Deployment of a setup configuration"
 
 ### Deploy setup
 
-The installation with helm requires the configuration of the `values.yaml`.
+The installation with helm requires the configuration of the `values.yaml`. Passwords for the registries need to be 
+base64-encoded ([see here](configuration_guide_en.md#base64-encoding-tips)).
 A minimal example would be:
 
 ```yaml

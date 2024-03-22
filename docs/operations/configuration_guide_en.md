@@ -85,6 +85,7 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * YAML key: `docker_registry_secret`
 * Type: `Map` containing `url`, `username` and `password` of the docker registry
 * Necessary configuration
+* `password` needs to be encoded in base64 ([see here](#base64-encoding-tips))
 * Description: Credentials for the docker registry used by the components.
 
 ### dogu_registry_secret
@@ -92,6 +93,7 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * YAML key: `dogu_registry_secret`
 * Type: `Map` containing `url`, `username` and `password` of the dogu registry
 * Necessary configuration
+* `password` needs to be encoded in base64 ([see here](#base64-encoding-tips))
 * Description: Credentials for the dogu registry used by the components.
 
 ### helm_registry_secret
@@ -99,6 +101,7 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * YAML key: `docker_registry_secret`
 * Type: `Map` containing `host`, `schema`, `username` and `password` of the helm registry, aswell as the `plain_http`-flag
 * Necessary configuration
+* `password` needs to be encoded in base64 ([see here](#base64-encoding-tips))
 * Description: Credentials for the helm registry used by the components.
 
 ### log_level
@@ -300,3 +303,16 @@ cluster secret `k8s-dogu-operator-dogu-registry`. This secret is created during 
 see https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md.
 The secret has to contain the key `urlschema`, which should be set to `index`. If this key is not present
 or not set to `index`, the `default` URL scheme is used.
+
+## Base64 encoding Tips
+
+The dogu-, docker- and helm-registry passwords need to be in base64 encoded.
+
+Use the following command to make sure no special characters will be interpreted before the encoding: 
+```
+printf '%s' 'password' | base64 -w0
+```
+
+If your password contains any single quotes (') escape them for the printf-command with ('/''):
+
+pass'word -> `printf '%s' 'pass'/''word' | base64 -w0` 

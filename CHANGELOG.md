@@ -7,6 +7,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v1.0.0] - 2024-03-22
+### Added
+- [#90] Add blueprint-operator to default helm values.
+
+### Changed
+- [#88] Improve clarity of Base64 encoding documentation
+
 ## [v0.21.0] - 2024-02-06
 ### Changed
 - **Breaking:** [#86] Passwords (Docker-, Dogu- & Helmregistry) have to be encoded in Base64 
