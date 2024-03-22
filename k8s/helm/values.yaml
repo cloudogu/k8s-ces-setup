@@ -4,7 +4,7 @@ setup:
     logLevel: info
   image:
     repository: cloudogu/k8s-ces-setup
-    tag: 0.21.0
+    tag: 1.0.0
   imagePullPolicy: IfNotPresent
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
