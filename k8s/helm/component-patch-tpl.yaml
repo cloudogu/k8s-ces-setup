@@ -1,7 +1,7 @@
 apiVersion: v1
 values:
   images:
-    k8sCesSetup: cloudogu/k8s-ces-setup:0.21.0
+    k8sCesSetup: cloudogu/k8s-ces-setup:1.0.0
     kubectl: bitnami/kubectl:1.27.4
     etcdClient: bitnami/etcd:3.5.2-debian-10-r0
 patches:
