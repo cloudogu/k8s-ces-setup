@@ -2,7 +2,7 @@
 ARTIFACT_ID=k8s-ces-setup
 VERSION=1.0.0
 
-GOTAG?=1.21.1
+GOTAG?=1.22
 MAKEFILES_VERSION=9.0.5
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
@@ -27,7 +27,7 @@ include build/make/variables.mk
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
 # remove DWARF symbol table and strip other symbols to shave ~13 MB from binary
 ADDITIONAL_LDFLAGS=-extldflags -static -w -s
-LINT_VERSION?=v1.52.1
+LINT_VERSION?=v1.59.1
 
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk
