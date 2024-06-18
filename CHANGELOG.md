@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#92] The setup doesn't delete its own helm secret anymore. With this behaviour terraform state mechanism is able to recognize if a setup was already applied in a cluster.
 
 ## [v1.0.0] - 2024-03-22
 ### Added
