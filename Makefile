@@ -1,9 +1,9 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=1.0.0
+VERSION=1.0.1
 
-GOTAG?=1.21.1
-MAKEFILES_VERSION=9.0.1
+GOTAG?=1.22
+MAKEFILES_VERSION=9.0.5
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -27,7 +27,7 @@ include build/make/variables.mk
 GO_BUILD_FLAGS=-mod=vendor -a -tags netgo,osusergo $(LDFLAGS) -o $(BINARY)
 # remove DWARF symbol table and strip other symbols to shave ~13 MB from binary
 ADDITIONAL_LDFLAGS=-extldflags -static -w -s
-LINT_VERSION?=v1.52.1
+LINT_VERSION?=v1.59.1
 
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk
@@ -153,6 +153,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
+	@kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE)
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.

@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v1.0.1] - 2024-06-18
+### Changed
+- [#92] The setup doesn't delete its own helm secret anymore. With this behaviour terraform state mechanism is able to recognize if a setup was already applied in a cluster.
+
 ## [v1.0.0] - 2024-03-22
 ### Added
 - [#90] Add blueprint-operator to default helm values.
