@@ -8,12 +8,13 @@ import (
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+
+	k8sreg "github.com/cloudogu/k8s-registry-lib/registry"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -288,8 +289,8 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 }
 
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
-func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
-	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
+func (e *Executor) RegisterDataSetupSteps(globalConfig k8sreg.ConfigurationWriter, doguConfigProvider k8sreg.DoguConfigRegistryProvider) error {
+	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
 
 	// register steps
 	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))

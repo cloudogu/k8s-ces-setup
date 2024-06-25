@@ -3,13 +3,11 @@ package setup
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/cesregistry"
-
+	k8sreg "github.com/cloudogu/k8s-registry-lib/registry"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
@@ -24,7 +22,7 @@ type SetupExecutor interface {
 	// RegisterComponentSetupSteps adds all setup steps responsible to install vital components into the ecosystem.
 	RegisterComponentSetupSteps() error
 	// RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
-	RegisterDataSetupSteps(registry.Registry) error
+	RegisterDataSetupSteps(globalConfig k8sreg.ConfigurationWriter, doguConfigProvider k8sreg.DoguConfigRegistryProvider) error
 	// RegisterDoguInstallationSteps creates install steps for the dogu install list
 	RegisterDoguInstallationSteps() error
 	// PerformSetup starts the setup and executes all registered setup steps
@@ -33,12 +31,13 @@ type SetupExecutor interface {
 
 // Starter is used to init and start the setup process
 type Starter struct {
-	EtcdRegistry  registry.Registry
-	ClientSet     kubernetes.Interface
-	ClusterConfig *rest.Config
-	SetupContext  *appcontext.SetupContext
-	Namespace     string
-	SetupExecutor SetupExecutor
+	globalRegistry k8sreg.ConfigurationWriter
+	doguReg        k8sreg.DoguConfigRegistryProvider
+	ClientSet      kubernetes.Interface
+	ClusterConfig  *rest.Config
+	SetupContext   *appcontext.SetupContext
+	Namespace      string
+	SetupExecutor  SetupExecutor
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
@@ -49,9 +48,11 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 	}
 
 	namespace := setupContext.AppConfig.TargetNamespace
-	etcdRegistry, err := cesregistry.CreateEtcd(namespace)
+	cmClient := k8sClient.CoreV1().ConfigMaps(namespace)
+	doguReg := k8sreg.NewDoguConfigRegistryProvider(cmClient)
+	globalReg, err := k8sreg.NewGlobalConfigRegistry(ctx, cmClient)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create registry: %w", err)
+		return nil, fmt.Errorf("failed to setup global registry: %w", err)
 	}
 
 	setupExecutor, err := NewExecutor(clusterConfig, k8sClient, setupContext)
@@ -60,12 +61,13 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 	}
 
 	return &Starter{
-		EtcdRegistry:  etcdRegistry,
-		ClientSet:     k8sClient,
-		ClusterConfig: clusterConfig,
-		SetupContext:  setupContext,
-		Namespace:     namespace,
-		SetupExecutor: setupExecutor,
+		globalRegistry: globalReg,
+		doguReg:        doguReg,
+		ClientSet:      k8sClient,
+		ClusterConfig:  clusterConfig,
+		SetupContext:   setupContext,
+		Namespace:      namespace,
+		SetupExecutor:  setupExecutor,
 	}, nil
 }
 
@@ -76,7 +78,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 		return err
 	}
 
-	err = registerSteps(s.SetupExecutor, s.EtcdRegistry, s.SetupContext)
+	err = registerSteps(s.SetupExecutor, s.globalRegistry, s.doguReg, s.SetupContext)
 	if err != nil {
 		return err
 	}
@@ -94,7 +96,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 	return nil
 }
 
-func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, setupContext *appcontext.SetupContext) error {
+func registerSteps(setupExecutor SetupExecutor, globalConfig k8sreg.ConfigurationWriter, doguConfigProvider k8sreg.DoguConfigRegistryProvider, setupContext *appcontext.SetupContext) error {
 	err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
 	if err != nil {
 		return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
@@ -117,7 +119,7 @@ func registerSteps(setupExecutor SetupExecutor, etcdRegistry registry.Registry, 
 		return fmt.Errorf("failed to register component setup steps: %w", err)
 	}
 
-	err = setupExecutor.RegisterDataSetupSteps(etcdRegistry)
+	err = setupExecutor.RegisterDataSetupSteps(globalConfig, doguConfigProvider)
 	if err != nil {
 		return fmt.Errorf("failed to register data setup steps: %w", err)
 	}

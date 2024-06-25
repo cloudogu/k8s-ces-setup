@@ -1,10 +1,13 @@
 package data
 
 import (
+	"context"
+	"fmt"
 	"reflect"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+
+	k8sreg "github.com/cloudogu/k8s-registry-lib/registry"
 
 	"github.com/sirupsen/logrus"
 
@@ -18,12 +21,16 @@ type RegistryWriter interface {
 
 // RegistryConfigurationWriter writes a configuration into the registry.
 type RegistryConfigurationWriter struct {
-	Registry registry.Registry
+	globalConfig       k8sreg.ConfigurationWriter
+	doguConfigProvider k8sreg.DoguConfigRegistryProvider
 }
 
 // NewRegistryConfigurationWriter creates a new configuration writer.
-func NewRegistryConfigurationWriter(registry registry.Registry) *RegistryConfigurationWriter {
-	return &RegistryConfigurationWriter{Registry: registry}
+func NewRegistryConfigurationWriter(globalConfig k8sreg.ConfigurationWriter, doguConfigProvider k8sreg.DoguConfigRegistryProvider) *RegistryConfigurationWriter {
+	return &RegistryConfigurationWriter{
+		globalConfig:       globalConfig,
+		doguConfigProvider: doguConfigProvider,
+	}
 }
 
 // WriteConfigToRegistry write the given registry config to the registry
@@ -38,17 +45,21 @@ func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig app
 }
 
 func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string]interface{}, config string) error {
-	var configCtx registry.ConfigurationContext
+	var configCtx k8sreg.ConfigurationWriter
 
 	logrus.Infof("write in %s configuration", config)
 	if config == "_global" {
-		configCtx = gcw.Registry.GlobalConfig()
+		configCtx = gcw.globalConfig
 	} else {
-		configCtx = gcw.Registry.DoguConfig(config)
+		var err error
+		configCtx, err = gcw.doguConfigProvider.GetDoguConfig(context.Background(), config)
+		if err != nil {
+			return fmt.Errorf("failed to create dogu config: %w", err)
+		}
 	}
 
 	contextWriter := gcw.newConfigWriter(func(field string, value string) error {
-		return configCtx.Set(field, value)
+		return configCtx.Set(context.Background(), field, value)
 	})
 	for fieldName, fieldEntry := range entries {
 		err := contextWriter.handleEntry(fieldName, fieldEntry)
@@ -73,7 +84,7 @@ type configWriter struct {
 	delimiter string
 }
 
-// handleEntry writes values into the appcontext implemented in the write.
+// handleEntry writes values into the appcontext implemented in the write process.
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:
