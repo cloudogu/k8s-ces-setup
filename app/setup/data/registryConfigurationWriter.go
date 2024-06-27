@@ -19,14 +19,44 @@ type RegistryWriter interface {
 	WriteConfigToRegistry(registryConfig appcontext.CustomKeyValue) error
 }
 
+type ConfigurationRegistry interface {
+	k8sreg.ConfigurationRegistry
+}
+
+type ConfigMapClient interface {
+	k8sreg.ConfigMapClient
+}
+
+type DoguConfigurationRegistryProvider[T k8sreg.ConfigurationRegistry] func(ctx context.Context, name string) (T, error)
+
+func (crp DoguConfigurationRegistryProvider[T]) GetConfig(ctx context.Context, name string) (T, error) {
+	return crp(ctx, name)
+}
+
+func NewDoguConfigRegistryProvider[T k8sreg.ConfigurationRegistry](k8sClient ConfigMapClient) DoguConfigurationRegistryProvider[T] {
+	return func(ctx context.Context, doguName string) (T, error) {
+		reg, _ := k8sreg.NewDoguConfigRegistry(ctx, doguName, k8sClient)
+
+		v, ok := interface{}(reg).(T)
+		if !ok {
+			panic("Used unsupported interface")
+		}
+
+		return v, nil
+	}
+}
+
 // RegistryConfigurationWriter writes a configuration into the registry.
 type RegistryConfigurationWriter struct {
-	globalConfig       k8sreg.ConfigurationWriter
-	doguConfigProvider k8sreg.DoguConfigRegistryProvider
+	globalConfig       ConfigurationRegistry
+	doguConfigProvider DoguConfigurationRegistryProvider[ConfigurationRegistry]
+}
+
+type InternalConfigRegistryProvider interface {
 }
 
 // NewRegistryConfigurationWriter creates a new configuration writer.
-func NewRegistryConfigurationWriter(globalConfig k8sreg.ConfigurationWriter, doguConfigProvider k8sreg.DoguConfigRegistryProvider) *RegistryConfigurationWriter {
+func NewRegistryConfigurationWriter(globalConfig ConfigurationRegistry, doguConfigProvider DoguConfigurationRegistryProvider[ConfigurationRegistry]) *RegistryConfigurationWriter {
 	return &RegistryConfigurationWriter{
 		globalConfig:       globalConfig,
 		doguConfigProvider: doguConfigProvider,
@@ -45,14 +75,14 @@ func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig app
 }
 
 func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string]interface{}, config string) error {
-	var configCtx k8sreg.ConfigurationWriter
+	var configCtx ConfigurationRegistry
 
 	logrus.Infof("write in %s configuration", config)
 	if config == "_global" {
 		configCtx = gcw.globalConfig
 	} else {
 		var err error
-		configCtx, err = gcw.doguConfigProvider.GetDoguConfig(context.Background(), config)
+		configCtx, err = gcw.doguConfigProvider.GetConfig(context.Background(), config)
 		if err != nil {
 			return fmt.Errorf("failed to create dogu config: %w", err)
 		}

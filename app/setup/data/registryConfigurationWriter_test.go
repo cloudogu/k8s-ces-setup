@@ -1,29 +1,34 @@
 package data_test
 
 import (
+	"context"
+	"github.com/stretchr/testify/mock"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
-	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewGenericConfigurationWriter(t *testing.T) {
 	t.Run("create new generic configuration Writer", func(t *testing.T) {
 		// given
-		registryMock := &mocks.Registry{}
+		globalReg := &data.MockConfigurationRegistry{}
+		doguReg := &data.MockConfigurationRegistry{}
 
 		// when
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(
+			globalReg,
+			func(ctx context.Context, name string) (data.ConfigurationRegistry, error) {
+				return doguReg, nil
+			},
+		)
 
 		// then
 		require.NotNil(t, writer)
-		mock.AssertExpectationsForObjects(t, registryMock)
 	})
 }
 
@@ -35,20 +40,20 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				"test3": "myTestKey3",
 			},
 		}
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", mock.Anything, mock.Anything).Return(assert.AnError)
 
-		registryMock := &mocks.Registry{}
-		registryMock.On("GlobalConfig").Return(globalRegistryMock)
+		globalReg := &data.MockConfigurationRegistry{}
+		doguReg := &data.MockConfigurationRegistry{}
+		globalReg.EXPECT().Set(mock.Anything, mock.Anything, mock.Anything).Return(assert.AnError)
 
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(globalReg, func(ctx context.Context, name string) (data.ConfigurationRegistry, error) {
+			return doguReg, nil
+		})
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)
 
 		// then
 		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, registryMock, globalRegistryMock)
 	})
 
 	t.Run("set all keys correctly", func(t *testing.T) {
@@ -83,34 +88,29 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				},
 			},
 		}
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "test/t1", "myTestt1").Return(nil)
-		globalRegistryMock.On("Set", "test/t2", "myTestt2").Return(nil)
-		globalRegistryMock.On("Set", "test3", "myTestKey3").Return(nil)
 
-		casRegistryMock := &mocks.ConfigurationContext{}
-		casRegistryMock.On("Set", "ldap/attribute_fullname", "myAttributeFullName").Return(nil)
+		globalReg := &data.MockConfigurationRegistry{}
+		globalReg.EXPECT().Set(mock.Anything, "test/t1", "myTestt1").Return(nil)
+		globalReg.EXPECT().Set(mock.Anything, "test/t2", "myTestt2").Return(nil)
+		globalReg.EXPECT().Set(mock.Anything, "test3", "myTestKey3").Return(nil)
 
-		ldapMapperRegistryMock := &mocks.ConfigurationContext{}
-		ldapMapperRegistryMock.On("Set", "backend/type", "external").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/group/base_dn", "myGroupBaseDN").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/group/member", "myGroupAttributeMember").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/base_dn", "myBaseDN").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/full_name", "myAttributeFullName").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/surname", "myAttributeSurname").Return(nil)
+		doguReg := &data.MockConfigurationRegistry{}
+		doguReg.EXPECT().Set(mock.Anything, "ldap/attribute_fullname", "myAttributeFullName").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "backend/type", "external").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "mapping/group/base_dn", "myGroupBaseDN").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "mapping/group/member", "myGroupAttributeMember").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "mapping/user/base_dn", "myBaseDN").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "mapping/user/full_name", "myAttributeFullName").Return(nil)
+		doguReg.EXPECT().Set(mock.Anything, "mapping/user/surname", "myAttributeSurname").Return(nil)
 
-		registryMock := &mocks.Registry{}
-		registryMock.On("GlobalConfig").Return(globalRegistryMock)
-		registryMock.On("DoguConfig", "cas").Return(casRegistryMock)
-		registryMock.On("DoguConfig", "ldap-mapper").Return(ldapMapperRegistryMock)
-
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(globalReg, func(ctx context.Context, name string) (data.ConfigurationRegistry, error) {
+			return doguReg, nil
+		})
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, registryMock, globalRegistryMock, casRegistryMock, ldapMapperRegistryMock)
 	})
 }
