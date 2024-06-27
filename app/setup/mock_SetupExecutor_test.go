@@ -4,6 +4,7 @@ package setup
 
 import (
 	context "context"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/registry"
 
 	data "github.com/cloudogu/k8s-ces-setup/app/setup/data"
 	mock "github.com/stretchr/testify/mock"
@@ -124,7 +125,7 @@ func (_c *MockSetupExecutor_RegisterComponentSetupSteps_Call) RunAndReturn(run f
 }
 
 // RegisterDataSetupSteps provides a mock function with given fields: globalConfig, doguConfigProvider
-func (_m *MockSetupExecutor) RegisterDataSetupSteps(globalConfig data.ConfigurationRegistry, doguConfigProvider data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry]) error {
+func (_m *MockSetupExecutor) RegisterDataSetupSteps(globalConfig data.ConfigurationRegistry, doguConfigProvider k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]) error {
 	ret := _m.Called(globalConfig, doguConfigProvider)
 
 	if len(ret) == 0 {
@@ -132,7 +133,7 @@ func (_m *MockSetupExecutor) RegisterDataSetupSteps(globalConfig data.Configurat
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(data.ConfigurationRegistry, data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry]) error); ok {
+	if rf, ok := ret.Get(0).(func(data.ConfigurationRegistry, k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]) error); ok {
 		r0 = rf(globalConfig, doguConfigProvider)
 	} else {
 		r0 = ret.Error(0)
@@ -148,14 +149,14 @@ type MockSetupExecutor_RegisterDataSetupSteps_Call struct {
 
 // RegisterDataSetupSteps is a helper method to define mock.On call
 //   - globalConfig data.ConfigurationRegistry
-//   - doguConfigProvider data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry]
+//   - doguConfigProvider k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]
 func (_e *MockSetupExecutor_Expecter) RegisterDataSetupSteps(globalConfig interface{}, doguConfigProvider interface{}) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	return &MockSetupExecutor_RegisterDataSetupSteps_Call{Call: _e.mock.On("RegisterDataSetupSteps", globalConfig, doguConfigProvider)}
 }
 
-func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) Run(run func(globalConfig data.ConfigurationRegistry, doguConfigProvider data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry])) *MockSetupExecutor_RegisterDataSetupSteps_Call {
+func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) Run(run func(globalConfig data.ConfigurationRegistry, doguConfigProvider k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry])) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(data.ConfigurationRegistry), args[1].(data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry]))
+		run(args[0].(data.ConfigurationRegistry), args[1].(k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]))
 	})
 	return _c
 }
@@ -165,7 +166,7 @@ func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) Return(_a0 error) *Mock
 	return _c
 }
 
-func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) RunAndReturn(run func(data.ConfigurationRegistry, data.DoguConfigurationRegistryProvider[data.ConfigurationRegistry]) error) *MockSetupExecutor_RegisterDataSetupSteps_Call {
+func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) RunAndReturn(run func(data.ConfigurationRegistry, k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]) error) *MockSetupExecutor_RegisterDataSetupSteps_Call {
 	_c.Call.Return(run)
 	return _c
 }

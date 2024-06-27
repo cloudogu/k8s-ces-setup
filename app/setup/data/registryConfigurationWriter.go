@@ -27,36 +27,14 @@ type ConfigMapClient interface {
 	k8sreg.ConfigMapClient
 }
 
-type DoguConfigurationRegistryProvider[T k8sreg.ConfigurationRegistry] func(ctx context.Context, name string) (T, error)
-
-func (crp DoguConfigurationRegistryProvider[T]) GetConfig(ctx context.Context, name string) (T, error) {
-	return crp(ctx, name)
-}
-
-func NewDoguConfigRegistryProvider[T k8sreg.ConfigurationRegistry](k8sClient ConfigMapClient) DoguConfigurationRegistryProvider[T] {
-	return func(ctx context.Context, doguName string) (T, error) {
-		reg, _ := k8sreg.NewDoguConfigRegistry(ctx, doguName, k8sClient)
-
-		v, ok := interface{}(reg).(T)
-		if !ok {
-			panic("Used unsupported interface")
-		}
-
-		return v, nil
-	}
-}
-
 // RegistryConfigurationWriter writes a configuration into the registry.
 type RegistryConfigurationWriter struct {
 	globalConfig       ConfigurationRegistry
-	doguConfigProvider DoguConfigurationRegistryProvider[ConfigurationRegistry]
-}
-
-type InternalConfigRegistryProvider interface {
+	doguConfigProvider k8sreg.ConfigRegistryProvider[ConfigurationRegistry]
 }
 
 // NewRegistryConfigurationWriter creates a new configuration writer.
-func NewRegistryConfigurationWriter(globalConfig ConfigurationRegistry, doguConfigProvider DoguConfigurationRegistryProvider[ConfigurationRegistry]) *RegistryConfigurationWriter {
+func NewRegistryConfigurationWriter(globalConfig ConfigurationRegistry, doguConfigProvider k8sreg.ConfigRegistryProvider[ConfigurationRegistry]) *RegistryConfigurationWriter {
 	return &RegistryConfigurationWriter{
 		globalConfig:       globalConfig,
 		doguConfigProvider: doguConfigProvider,

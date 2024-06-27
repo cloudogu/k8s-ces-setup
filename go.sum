@@ -68,8 +68,8 @@ github.com/cloudogu/k8s-component-operator v1.0.1 h1:rFmyWA0BAybcuocjMUzsTkVFR9+
 github.com/cloudogu/k8s-component-operator v1.0.1/go.mod h1:MSXlNSxuZKq5wuVYx0SKeOZnszcAK9tOXVsK0siJ5/w=
 github.com/cloudogu/k8s-dogu-operator v1.2.0 h1:TZ7pkQ2EBinwZMWY7H0/Bs4xVSHIWnQEbA3sWg2CMyc=
 github.com/cloudogu/k8s-dogu-operator v1.2.0/go.mod h1:GnYsLM82oVlf4szJtJ2XQuOf/B5IcRVj8Wk+7jPPNa0=
-github.com/cloudogu/k8s-registry-lib v0.0.0-20240621115501-ef9dfeea39cf h1:DBevpArJE1ZA+0pK6E6LGN/sc4Bzqtw1oJKfgAD4C2A=
-github.com/cloudogu/k8s-registry-lib v0.0.0-20240621115501-ef9dfeea39cf/go.mod h1:YV7Cws6Qfgk3sE9q2qDLltXGg1+6HmEDy6VPJHRODi4=
+github.com/cloudogu/k8s-registry-lib v0.0.0-20240627075229-cdbb759e2029 h1:Bzcl6LywibRavMbXzCd1Ptt23ZLE3/5Nj0clGpHF5U8=
+github.com/cloudogu/k8s-registry-lib v0.0.0-20240627075229-cdbb759e2029/go.mod h1:YV7Cws6Qfgk3sE9q2qDLltXGg1+6HmEDy6VPJHRODi4=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/containerd/cgroups v1.1.0 h1:v8rEWFl6EoqHB+swVNjVoCJE8o3jX7e8nqBGPLaDFBM=
 github.com/containerd/cgroups/v3 v3.0.3 h1:S5ByHZ/h9PMe5IOQoN7E+nMc2UcLEM/V48DGDJ9kip0=
