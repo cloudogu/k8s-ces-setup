@@ -30,14 +30,18 @@ const (
 	// HelmRepositoryDevPath is the path to the config containing the endpoint of the HelmRepository. This is used for development.
 	HelmRepositoryDevPath = "k8s/dev-resources/helm-repository.yaml"
 	// SetupConfigConfigmap is the name of the config map containing the setup config.
+	// FIXME: the name of the configmap should not be hardcoded, as it can be changed via helm chart
 	SetupConfigConfigmap = "k8s-ces-setup-config"
 	// SetupConfigConfigmapDevPath is the path to the config map containing the setup config. This is used for development.
 	SetupConfigConfigmapDevPath = "k8s/dev-resources/k8s-ces-setup.yaml"
 	// SetupStartUpConfigMap is the name of the config map containing the setup.json.
+	// FIXME: the name of the configmap should not be hardcoded, as it can be changed via helm chart
 	SetupStartUpConfigMap = "k8s-ces-setup-json"
 	// SetupStartUpConfigMapDevPath is the path to the config map containing the setup.json. This is used for development.
 	SetupStartUpConfigMapDevPath = "k8s/dev-resources/setup.json"
 	// SetupStateConfigMap is the name of the config map containing the setup state.
+	// TODO: do we really need this? We only use this to forbid concurrent setups
+	//  but this leads to more bad than good because the installing state blocks the re-execution of the setup, although it should be idempotent (it is not because of this)
 	SetupStateConfigMap = "k8s-setup-config"
 	// SetupStateKey is the key by which the setup state can be referenced.
 	SetupStateKey = "state"
