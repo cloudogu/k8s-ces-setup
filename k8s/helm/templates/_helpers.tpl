@@ -1,11 +1,14 @@
 {{- define "k8s-ces-setup.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "k8s-ces-setup-finisher.name" -}}
-{{- "k8s-ces-setup-finisher"}}
+{{ include "k8s-ces-setup.name" . }}{{- "k8s-ces-setup-finisher"}}
 {{- end }}
 
+{{- define "k8s-ces-loadbalancer.name" -}}
+{{ include "k8s-ces-setup.name" . }}-ces-loadbalancer
+{{- end }}
 
 
 {{/* All-in-one labels */}}

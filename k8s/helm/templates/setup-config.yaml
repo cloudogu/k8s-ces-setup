@@ -1,13 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "k8s-ces-setup.name" . }}-config
+  name: k8s-ces-setup-config
   labels:
     {{- include "k8s-ces-setup.labels" .| nindent 4 }}
 data:
   k8s-ces-setup.yaml: |
     component_operator_chart: "{{ .Values.component_operator_chart }}"
     component_operator_crd_chart: "{{ .Values.component_operator_crd_chart }}"
+    loadbalancer_name: "{{ include "k8s-ces-loadbalancer.name" . }}"
     {{- if .Values.components }}
     components:
     {{- toYaml .Values.components | nindent 6}}
