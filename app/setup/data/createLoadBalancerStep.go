@@ -23,14 +23,19 @@ const (
 )
 
 type createLoadBalancerStep struct {
-	config    *appcontext.SetupJsonConfiguration
-	clientSet kubernetes.Interface
-	namespace string
+	config           *appcontext.SetupJsonConfiguration
+	clientSet        kubernetes.Interface
+	namespace        string
+	loadbalancerName string
 }
 
 // NewCreateLoadBalancerStep creates the external loadbalancer service for the Cloudogu EcoSystem
-func NewCreateLoadBalancerStep(config *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *createLoadBalancerStep {
-	return &createLoadBalancerStep{config: config, clientSet: clientSet, namespace: namespace}
+func NewCreateLoadBalancerStep(
+	config *appcontext.SetupJsonConfiguration,
+	clientSet kubernetes.Interface,
+	namespace, loadbalancerName string,
+) *createLoadBalancerStep {
+	return &createLoadBalancerStep{config: config, clientSet: clientSet, namespace: namespace, loadbalancerName: loadbalancerName}
 }
 
 // GetStepDescription return the human-readable description of the step
@@ -61,7 +66,7 @@ func (fcs *createLoadBalancerStep) createServiceResource(ctx context.Context) er
 	ipSingleStackPolicy := corev1.IPFamilyPolicySingleStack
 	serviceResource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cesLoadbalancerName,
+			Name:      fcs.loadbalancerName,
 			Namespace: fcs.namespace,
 			Labels:    map[string]string{"app": "ces"},
 		},

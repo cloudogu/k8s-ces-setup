@@ -35,6 +35,8 @@ type Config struct {
 	LogLevel *logrus.Level `json:"log_level" yaml:"log_level"`
 	// TargetNamespace represents the namespace that is created for the ecosystem
 	TargetNamespace string `json:"target_namespace" yaml:"target_namespace"`
+	// LoadbalancerName represents the name of the loadbalancer for this ecosystem
+	LoadbalancerName string `json:"loadbalancer_name" yaml:"loadbalancer_name"`
 	// ComponentOperatorCrdChart sets the Helm-Chart which controls the installation of the component-operator CRD into the current cluster.
 	ComponentOperatorCrdChart string `json:"component_operator_crd_chart" yaml:"component_operator_crd_chart"`
 	// ComponentOperatorChart sets the Helm-Chart which controls the installation of the component-operator into the current cluster.

@@ -18,14 +18,14 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		// given
 		fakeClient := fake.NewSimpleClientset()
 		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
-		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
+		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace, testLoadbalancerName)
 
 		// when
 		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
-		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, "ces-loadbalancer", metav1.GetOptions{})
+		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, testLoadbalancerName, metav1.GetOptions{})
 		require.NoError(t, err)
 		assert.NotNil(t, actual)
 		expected := map[string]string{"app": "ces"}
@@ -36,21 +36,21 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		serviceResource := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 
-				Name:   cesLoadbalancerName,
+				Name:   testLoadbalancerName,
 				Labels: map[string]string{"delete": "me"},
 			},
 			Spec: corev1.ServiceSpec{Type: corev1.ServiceTypeClusterIP},
 		}
 		fakeClient := fake.NewSimpleClientset(serviceResource)
 		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
-		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
+		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace, testLoadbalancerName)
 
 		// when
 		err := sut.PerformSetupStep(testCtx)
 
 		// then
 		require.NoError(t, err)
-		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, "ces-loadbalancer", metav1.GetOptions{})
+		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, testLoadbalancerName, metav1.GetOptions{})
 		require.NoError(t, err)
 		assert.NotNil(t, actual)
 		expected := map[string]string{"app": "ces"}

@@ -332,8 +332,9 @@ func (e *Executor) RegisterDoguInstallationSteps() error {
 // RegisterLoadBalancerFQDNRetrieverSteps registers the steps for creating a loadbalancer retrieving the fqdn
 func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	namespace := e.SetupContext.AppConfig.TargetNamespace
+	loadbalancerName := e.SetupContext.AppConfig.LoadbalancerName
 	config := e.SetupContext.SetupJsonConfiguration
-	e.RegisterSetupSteps(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace))
+	e.RegisterSetupSteps(data.NewCreateLoadBalancerStep(config, e.ClientSet, namespace, loadbalancerName))
 
 	loadbalancerResourcePatchStep, err := createResourcePatchStep(
 		patch.LoadbalancerPhase,
@@ -352,7 +353,7 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 	if wantsLoadbalancerIpAddressAsFqdn {
 		// Here we wait for an external IP address automagically or (after introducing the above patch) an internal IP address.
 		// We ignore the case where the public IP address was already assigned but the patch should lead to another.
-		e.RegisterSetupSteps(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace))
+		e.RegisterSetupSteps(data.NewFQDNRetrieverStep(config, e.ClientSet, namespace, loadbalancerName))
 	}
 
 	return nil

@@ -24,41 +24,42 @@ var backoff = wait.Backoff{
 }
 
 type fqdnRetrieverStep struct {
-	config    *appcontext.SetupJsonConfiguration
-	clientSet kubernetes.Interface
-	namespace string
+	config           *appcontext.SetupJsonConfiguration
+	clientSet        kubernetes.Interface
+	namespace        string
+	loadbalancerName string
 }
 
 // NewFQDNRetrieverStep creates a new setup step sets the FQDN
-func NewFQDNRetrieverStep(config *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *fqdnRetrieverStep {
-	return &fqdnRetrieverStep{config: config, clientSet: clientSet, namespace: namespace}
+func NewFQDNRetrieverStep(config *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace, loadbalancerName string) *fqdnRetrieverStep {
+	return &fqdnRetrieverStep{config: config, clientSet: clientSet, namespace: namespace, loadbalancerName: loadbalancerName}
 }
 
 // GetStepDescription return the human-readable description of the step
-func (fcs *fqdnRetrieverStep) GetStepDescription() string {
+func (frs *fqdnRetrieverStep) GetStepDescription() string {
 	return "Retrieving a new FQDN from the IP of a loadbalancer service"
 }
 
 // PerformSetupStep creates a loadbalancer service and sets the loadbalancer IP as the new FQDN.
-func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
-	return fcs.setFQDNFromLoadbalancerIP(ctx)
+func (frs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
+	return frs.setFQDNFromLoadbalancerIP(ctx)
 }
 
-func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
+func (frs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
 	return retry.OnError(backoff, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
-		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
+		service, err := frs.clientSet.CoreV1().Services(frs.namespace).Get(ctx, frs.loadbalancerName, metav1.GetOptions{})
 
 		if errors.IsNotFound(err) || len(service.Status.LoadBalancer.Ingress) <= 0 {
-			logrus.Debugf("wait for service %s to be instantiated", cesLoadbalancerName)
-			return fmt.Errorf("service not yet ready %s: %w", cesLoadbalancerName, err)
+			logrus.Debugf("wait for service %s to be instantiated", frs.loadbalancerName)
+			return fmt.Errorf("service not yet ready %s: %w", frs.loadbalancerName, err)
 		}
 		if err != nil {
 			return err
 		}
 
 		loadbalancerIP := service.Status.LoadBalancer.Ingress[0].IP
-		fcs.config.Naming.Fqdn = loadbalancerIP
+		frs.config.Naming.Fqdn = loadbalancerIP
 		logrus.Infof("Loadbalancer IP succesfully retrieved and set as new FQDN")
 		return nil
 	})

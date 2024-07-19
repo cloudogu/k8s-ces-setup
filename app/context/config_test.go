@@ -2,6 +2,7 @@ package context
 
 import (
 	"context"
+	"fmt"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -57,9 +58,14 @@ func TestReadConfig(t *testing.T) {
 
 func TestReadConfigFromCluster(t *testing.T) {
 	const testNamespace = "test-namespace"
+	const testLoadbalancer = "test-loadbalancer"
 	t.Run("should return marshalled config", func(t *testing.T) {
 		// given
-		myFileMap := map[string]string{"k8s-ces-setup.yaml": "component_operator_crd_chart: https://crd.chart\ncomponent_operator_chart: https://url.com"}
+		myFileMap := map[string]string{"k8s-ces-setup.yaml": fmt.Sprintf(`
+component_operator_crd_chart: https://crd.chart
+component_operator_chart: https://url.com
+loadbalancer_name: %s
+`, testLoadbalancer)}
 		mockedConfig := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      SetupConfigConfigmap,
@@ -74,7 +80,11 @@ func TestReadConfigFromCluster(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		extected := &Config{ComponentOperatorCrdChart: "https://crd.chart", ComponentOperatorChart: "https://url.com"}
+		extected := &Config{
+			ComponentOperatorCrdChart: "https://crd.chart",
+			ComponentOperatorChart:    "https://url.com",
+			LoadbalancerName:          testLoadbalancer,
+		}
 		assert.Equal(t, extected, actual)
 	})
 	t.Run("should fail during marshalling config", func(t *testing.T) {

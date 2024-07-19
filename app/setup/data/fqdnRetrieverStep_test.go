@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	testNamespace = "ecosystem"
+	testNamespace        = "ecosystem"
+	testLoadbalancerName = "ces-test-loadbalancer"
 )
 
 func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
@@ -22,7 +23,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 		// given
 		mockedLoadBalancerResource := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      cesLoadbalancerName,
+				Name:      testLoadbalancerName,
 				Namespace: testNamespace,
 			},
 			Spec: corev1.ServiceSpec{
@@ -32,7 +33,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 		fakeClient := fake.NewSimpleClientset(mockedLoadBalancerResource)
 		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
 
-		sut := NewFQDNRetrieverStep(config, fakeClient, testNamespace)
+		sut := NewFQDNRetrieverStep(config, fakeClient, testNamespace, testLoadbalancerName)
 
 		// simulate asynchronous IP setting by cluster provider
 		timer := time.NewTimer(time.Second * 2)
@@ -41,7 +42,7 @@ func Test_fqdnRetrieverStep_PerformSetupStep(t *testing.T) {
 			patch := []byte(`{"status":{"loadBalancer":{"ingress":[{"ip": "111.222.111.222"}]}}}`)
 			service, err := fakeClient.CoreV1().Services(testNamespace).Patch(
 				context.Background(),
-				cesLoadbalancerName,
+				testLoadbalancerName,
 				types.MergePatchType,
 				patch,
 				metav1.PatchOptions{},
@@ -63,7 +64,7 @@ func TestCreateLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		// given
 		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: ""}}
 
-		step := NewCreateLoadBalancerStep(config, nil, testNamespace)
+		step := NewCreateLoadBalancerStep(config, nil, testNamespace, testLoadbalancerName)
 
 		// when
 		err := step.PerformSetupStep(testCtx)
@@ -76,7 +77,7 @@ func TestCreateLoadBalancerStep_PerformSetupStep(t *testing.T) {
 
 func TestNewFQDNRetrieverStep(t *testing.T) {
 	// when
-	step := NewFQDNRetrieverStep(nil, nil, "")
+	step := NewFQDNRetrieverStep(nil, nil, "", "")
 
 	// then
 	require.NotNil(t, step)
@@ -84,7 +85,7 @@ func TestNewFQDNRetrieverStep(t *testing.T) {
 
 func Test_fqdnRetrieverStep_GetStepDescription(t *testing.T) {
 	// given
-	step := NewFQDNRetrieverStep(nil, nil, "")
+	step := NewFQDNRetrieverStep(nil, nil, "", "")
 
 	// when
 	description := step.GetStepDescription()
