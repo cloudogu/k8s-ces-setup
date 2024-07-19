@@ -162,7 +162,8 @@ func (e *Executor) createComponentOperatorSteps(helmClient *componentHelm.Client
 	var result []ExecutorStep
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
+	//TODO: only add component-CRD step if CRD does not exist yet
+	//result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorCrdChart, helmClient))
 	result = append(result, component.NewInstallHelmChartStep(namespace, e.SetupContext.AppConfig.ComponentOperatorChart, helmClient))
 	operatorComponentSteps, err := e.appendComponentStepsForComponentOperator(componentClient)
 	if err != nil {
@@ -177,17 +178,18 @@ func (e *Executor) appendComponentStepsForComponentOperator(componentClient comp
 	var result []ExecutorStep
 	namespace := e.SetupContext.AppConfig.TargetNamespace
 
-	stepsCrdChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorCrdChart, namespace)
-	if err != nil {
-		return nil, err
-	}
+	//TODO: only add component-CRD step if CRD does not exist yet
+	//stepsCrdChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorCrdChart, namespace)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	stepsChart, err := e.createComponentStepsByString(componentClient, e.SetupContext.AppConfig.ComponentOperatorChart, namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	result = append(result, stepsCrdChart...)
+	//result = append(result, stepsCrdChart...)
 	result = append(result, stepsChart...)
 
 	return result, nil
