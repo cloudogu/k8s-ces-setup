@@ -27,16 +27,10 @@ components:
   k8s-dogu-operator:
     version: latest
     helmRepositoryNamespace: k8s
-  k8s-dogu-operator-crd:
-    version: latest
-    helmRepositoryNamespace: k8s
   k8s-service-discovery:
     version: latest
     helmRepositoryNamespace: k8s
   k8s-blueprint-operator:
-    version: latest
-    helmRepositoryNamespace: k8s
-  k8s-blueprint-operator-crd:
     version: latest
     helmRepositoryNamespace: k8s
 #  k8s-snapshot-controller:
