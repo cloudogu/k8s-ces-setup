@@ -7,7 +7,7 @@
 {{- end }}
 
 {{- define "k8s-ces-loadbalancer.name" -}}
-{{ include "k8s-ces-setup.name" . }}-ces-loadbalancer
+ces-loadbalancer
 {{- end }}
 
 
