@@ -5,7 +5,7 @@ import (
 	"fmt"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	componentHelm "github.com/cloudogu/k8s-component-operator/pkg/helm"
-	k8sreg "github.com/cloudogu/k8s-registry-lib/registry"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -288,9 +288,8 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 }
 
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
-func (e *Executor) RegisterDataSetupSteps(globalConfig data.ConfigurationRegistry, doguConfigProvider k8sreg.ConfigRegistryProvider[data.ConfigurationRegistry]) error {
+func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error {
 	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
-
 	// register steps
 	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))

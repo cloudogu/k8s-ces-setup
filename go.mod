@@ -24,8 +24,6 @@ require (
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.0
 
-replace github.com/cloudogu/k8s-registry-lib => github.com/cloudogu/k8s-registry-lib v0.0.0-20240627075229-cdbb759e2029
-
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
