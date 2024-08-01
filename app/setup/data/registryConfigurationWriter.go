@@ -75,7 +75,7 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 			if err != nil && k8sconf.IsNotFoundError(err) {
 				c, err = gcw.doguConfig.Create(ctx, k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(config), make(k8sconf.Entries)))
 				if err != nil {
-					return fmt.Errorf("failed to create dogu registry '%s': %w", config, err)
+					return fmt.Errorf("failed to create dogu config for '%s': %w", config, err)
 				}
 			} else if err != nil {
 				return fmt.Errorf("failed to get global config: %w", err)
