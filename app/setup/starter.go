@@ -49,8 +49,8 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 
 	namespace := setupContext.AppConfig.TargetNamespace
 	cmClient := k8sClient.CoreV1().ConfigMaps(namespace)
-	doguReg := k8sreg.NewDoguConfigRepository(cmClient)
-	globalReg := k8sreg.NewGlobalConfigRepository(cmClient)
+	doguConfigRepo := k8sreg.NewDoguConfigRepository(cmClient)
+	globalConfigRepo := k8sreg.NewGlobalConfigRepository(cmClient)
 
 	setupExecutor, err := NewExecutor(clusterConfig, k8sClient, setupContext)
 	if err != nil {
