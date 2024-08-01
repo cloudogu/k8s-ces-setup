@@ -31,8 +31,8 @@ type SetupExecutor interface {
 
 // Starter is used to init and start the setup process
 type Starter struct {
-	globalRegistry *k8sreg.GlobalConfigRepository
-	doguReg        *k8sreg.DoguConfigRepository
+	globalConfigRepo *k8sreg.GlobalConfigRepository
+	doguConfigRepo    *k8sreg.DoguConfigRepository
 	ClientSet      kubernetes.Interface
 	ClusterConfig  *rest.Config
 	SetupContext   *appcontext.SetupContext
@@ -49,8 +49,8 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 
 	namespace := setupContext.AppConfig.TargetNamespace
 	cmClient := k8sClient.CoreV1().ConfigMaps(namespace)
-	doguReg := k8sreg.NewDoguConfigRepository(cmClient)
-	globalReg := k8sreg.NewGlobalConfigRepository(cmClient)
+	doguConfigRepo := k8sreg.NewDoguConfigRepository(cmClient)
+	globalConfigRepo := k8sreg.NewGlobalConfigRepository(cmClient)
 
 	setupExecutor, err := NewExecutor(clusterConfig, k8sClient, setupContext)
 	if err != nil {
@@ -58,13 +58,13 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 	}
 
 	return &Starter{
-		globalRegistry: globalReg,
-		doguReg:        doguReg,
-		ClientSet:      k8sClient,
-		ClusterConfig:  clusterConfig,
-		SetupContext:   setupContext,
-		Namespace:      namespace,
-		SetupExecutor:  setupExecutor,
+		globalConfigRepo: globalConfigRepo,
+		doguConfigRepo:   doguConfigRepo,
+		ClientSet:        k8sClient,
+		ClusterConfig:    clusterConfig,
+		SetupContext:     setupContext,
+		Namespace:        namespace,
+		SetupExecutor:    setupExecutor,
 	}, nil
 }
 
@@ -75,7 +75,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 		return err
 	}
 
-	err = registerSteps(s.SetupExecutor, s.globalRegistry, s.doguReg, s.SetupContext)
+	err = registerSteps(s.SetupExecutor, s.globalConfigRepo, s.doguConfigRepo, s.SetupContext)
 	if err != nil {
 		return err
 	}

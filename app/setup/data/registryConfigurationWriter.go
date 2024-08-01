@@ -55,7 +55,7 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 			if err != nil && k8sconf.IsNotFoundError(err) {
 				c, err = gcw.globalConfig.Create(ctx, k8sconf.CreateGlobalConfig(make(k8sconf.Entries)))
 				if err != nil {
-					return fmt.Errorf("failed to create global registry: %w", err)
+					return fmt.Errorf("failed to create global config: %w", err)
 				}
 			} else if err != nil {
 				return fmt.Errorf("failed to get global config: %w", err)
@@ -75,15 +75,15 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 			if err != nil && k8sconf.IsNotFoundError(err) {
 				c, err = gcw.doguConfig.Create(ctx, k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(config), make(k8sconf.Entries)))
 				if err != nil {
-					return fmt.Errorf("failed to create dogu registry '%s': %w", config, err)
+					return fmt.Errorf("failed to create dogu config for '%s': %w", config, err)
 				}
 			} else if err != nil {
-				return fmt.Errorf("failed to get global config: %w", err)
+				return fmt.Errorf("failed to get dogu config for '%s': %w", config, err)
 			}
 
 			c.Config, err = c.Set(k8sconf.Key(field), k8sconf.Value(value))
 			if err != nil {
-				return fmt.Errorf("failed to set key '%s' in global config to '%s': %w", field, value, err)
+				return fmt.Errorf("failed to set key '%s' in dogu config for '%s' to '%s': %w", config, field, value, err)
 			}
 
 			_, err = gcw.doguConfig.SaveOrMerge(ctx, c)
