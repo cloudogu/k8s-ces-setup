@@ -55,7 +55,7 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 			if err != nil && k8sconf.IsNotFoundError(err) {
 				c, err = gcw.globalConfig.Create(ctx, k8sconf.CreateGlobalConfig(make(k8sconf.Entries)))
 				if err != nil {
-					return fmt.Errorf("failed to create global registry: %w", err)
+					return fmt.Errorf("failed to create global config: %w", err)
 				}
 			} else if err != nil {
 				return fmt.Errorf("failed to get global config: %w", err)
