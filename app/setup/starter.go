@@ -75,7 +75,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 		return err
 	}
 
-	err = registerSteps(s.SetupExecutor, s.globalRegistry, s.doguReg, s.SetupContext)
+	err = registerSteps(s.SetupExecutor, s.globalConfigRepo, s.doguConfigRepo, s.SetupContext)
 	if err != nil {
 		return err
 	}
