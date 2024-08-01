@@ -78,7 +78,7 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 					return fmt.Errorf("failed to create dogu config for '%s': %w", config, err)
 				}
 			} else if err != nil {
-				return fmt.Errorf("failed to get global config: %w", err)
+				return fmt.Errorf("failed to get dogu config for '%s': %w", config, err)
 			}
 
 			c.Config, err = c.Set(k8sconf.Key(field), k8sconf.Value(value))
