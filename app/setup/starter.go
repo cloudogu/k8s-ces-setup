@@ -58,13 +58,13 @@ func NewStarter(ctx context.Context, clusterConfig *rest.Config, k8sClient kuber
 	}
 
 	return &Starter{
-		globalRegistry: globalReg,
-		doguReg:        doguReg,
-		ClientSet:      k8sClient,
-		ClusterConfig:  clusterConfig,
-		SetupContext:   setupContext,
-		Namespace:      namespace,
-		SetupExecutor:  setupExecutor,
+		globalConfigRepo: globalConfigRepo,
+		doguConfigRepo:   doguConfigRepo,
+		ClientSet:        k8sClient,
+		ClusterConfig:    clusterConfig,
+		SetupContext:     setupContext,
+		Namespace:        namespace,
+		SetupExecutor:    setupExecutor,
 	}, nil
 }
 
