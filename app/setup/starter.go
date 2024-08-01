@@ -31,8 +31,8 @@ type SetupExecutor interface {
 
 // Starter is used to init and start the setup process
 type Starter struct {
-	globalRegistry *k8sreg.GlobalConfigRepository
-	doguReg        *k8sreg.DoguConfigRepository
+	globalConfigRepo *k8sreg.GlobalConfigRepository
+	doguConfigRepo    *k8sreg.DoguConfigRepository
 	ClientSet      kubernetes.Interface
 	ClusterConfig  *rest.Config
 	SetupContext   *appcontext.SetupContext
