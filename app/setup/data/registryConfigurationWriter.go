@@ -83,7 +83,7 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 
 			c.Config, err = c.Set(k8sconf.Key(field), k8sconf.Value(value))
 			if err != nil {
-				return fmt.Errorf("failed to set key '%s' in global config to '%s': %w", field, value, err)
+				return fmt.Errorf("failed to set key '%s' in dogu config for '%s' to '%s': %w", config, field, value, err)
 			}
 
 			_, err = gcw.doguConfig.SaveOrMerge(ctx, c)
