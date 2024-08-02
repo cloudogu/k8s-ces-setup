@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"context"
 	"testing"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
@@ -47,6 +48,7 @@ func Test_writeAdminDataStep_GetStepDescription(t *testing.T) {
 
 func Test_writeAdminDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
+	var testCtx = context.Background()
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given

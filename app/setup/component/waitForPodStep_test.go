@@ -2,6 +2,7 @@ package component
 
 import (
 	"bytes"
+	"context"
 	"testing"
 	"time"
 
@@ -44,6 +45,7 @@ func Test_waitForPodStep_GetStepDescription(t *testing.T) {
 
 func Test_waitForPodStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
+	var testCtx = context.Background()
 
 	selector := "app=test"
 	labels := make(map[string]string)

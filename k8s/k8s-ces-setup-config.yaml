@@ -17,17 +17,12 @@ data:
       k8s-dogu-operator-crd:
         version: "latest"
         helmRepositoryNamespace: k8s
-      k8s-etcd:
-        version: "latest"
-        helmRepositoryNamespace: k8s
       k8s-dogu-operator:
         version: "latest"
         helmRepositoryNamespace: k8s
       k8s-service-discovery:
         version: "latest"
         helmRepositoryNamespace: k8s
-    etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
-    key_provider: pkcs1v15
     resource_patches:
       - phase: dogu
         resource:

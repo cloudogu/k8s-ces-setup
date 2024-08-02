@@ -81,8 +81,6 @@ func TestSetupContextBuilder_NewSetupContext(t *testing.T) {
 		assert.Equal(t, "1.2.3", actual.AppVersion)
 		assert.Equal(t, "myTestNamespace", actual.AppConfig.TargetNamespace)
 		assert.Equal(t, "k8s/k8s-component-operator:0.0.2", actual.AppConfig.ComponentOperatorChart)
-		assert.Equal(t, "https://etcdc.yaml", actual.AppConfig.EtcdClientImageRepo)
-		assert.Equal(t, "pkcs1v15", actual.AppConfig.KeyProvider)
 		assert.Equal(t, "user", actual.DoguRegistryConfiguration.Username)
 		assert.Equal(t, "pw", actual.DoguRegistryConfiguration.Password)
 		assert.Equal(t, "endpoint", actual.DoguRegistryConfiguration.Endpoint)

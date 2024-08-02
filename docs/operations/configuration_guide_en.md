@@ -48,9 +48,6 @@ data:
           longhorn:
             defaultSettings:
               backupTargetCredentialSecret: my-longhorn-backup-target
-      k8s-etcd:
-        version: "3.5.7-4"
-        helmRepositoryNamespace: k8s
       k8s-dogu-operator-crd:
         version: "0.35.0"
         helmRepositoryNamespace: k8s
@@ -60,8 +57,6 @@ data:
       k8s-service-discovery:
         version: "0.13.0"
         helmRepositoryNamespace: k8s
-    etcd_client_image_repo: bitnami/etcd:3.5.2-debian-10-r0
-    key_provider: pkcs1v15
     resource_patches:
     - phase: dogu
       resource:
@@ -136,13 +131,10 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * YAML key: `components`
 * Type: `Map` of CES components to be installed and the respective version. Each component is a `Map` in itself.
 * Necessary configuration
-* Description: Setup installs all specified CES components using the [component operator](http://github.com/cloudogu/k8s-component-operator). The following components are required, among others: [Dogu crd](http://github.com/cloudogu/k8s-dogu-operator), [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery), [Etcd](http://github.com/cloudogu/k8s-etcd)
+* Description: Setup installs all specified CES components using the [component operator](http://github.com/cloudogu/k8s-component-operator). The following components are required, among others: [Dogu crd](http://github.com/cloudogu/k8s-dogu-operator), [Dogu Operator](http://github.com/cloudogu/k8s-dogu-operator), [Service Discovery](http://github.com/cloudogu/k8s-service-discovery)
 * Example:
   ```yaml
   components:
-    k8s-etcd:
-      version: "3.5.7-4"
-      helmRepositoryNamespace: k8s
     k8s-dogu-operator:
       version: "0.35.0"
       helmRepositoryNamespace: k8s
@@ -190,22 +182,6 @@ The `namespace` entry must correspond to the namespace in the cluster where the 
 * YAML key: `valuesYamlOverwrite`
 * Type: `string`
 * Description: Helm-Values to overwrite configurations of the default values.yaml file. Should be written as a [multiline-yaml](https://yaml-multiline.info/) string for readability.
-
-### etcd_client_image_repo
-
-* YAML key: `etcd_client_image_repo`
-* Type: `String` as name to desired [Etcd-Client](https://artifacthub.io/packages/helm/bitnami/etcd) image.
-* Necessary configuration
-* Description: The Etcd-Client is a component in the EcoSystem which simplifies the communication with the Etcd-Server. The entry must be on a valid image of `bitnami/etcd`.
-* Example: `bitnami/etcd:3.5.2-debian-10-r0`
-
-### key_provider
-
-* YAML key: `key_provider`
-* Type: one of the following values `pkcs1v15, oaesp`
-* Required configuration
-* Description: Sets the used key provider of the ecosystem and thus influences the registry values to be encrypted.
-* Example: `pkcs1v15`
 
 ### resource_patches
 

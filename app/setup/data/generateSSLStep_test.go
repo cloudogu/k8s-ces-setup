@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"context"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 
@@ -30,6 +31,7 @@ func Test_generateSSLStep_GetStepDescription(t *testing.T) {
 }
 
 func Test_generateSSLStep_PerformSetupStep(t *testing.T) {
+	var testCtx = context.Background()
 	fqdn := "192.168.56.2"
 	t.Run("success", func(t *testing.T) {
 		// given

@@ -1,9 +1,12 @@
 package data
 
 import (
+	"context"
+	"fmt"
+	k8sconf "github.com/cloudogu/k8s-registry-lib/config"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"reflect"
 
-	"github.com/cloudogu/cesapp-lib/registry"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
 	"github.com/sirupsen/logrus"
@@ -18,12 +21,16 @@ type RegistryWriter interface {
 
 // RegistryConfigurationWriter writes a configuration into the registry.
 type RegistryConfigurationWriter struct {
-	Registry registry.Registry
+	globalConfig *k8sreg.GlobalConfigRepository
+	doguConfig   *k8sreg.DoguConfigRepository
 }
 
 // NewRegistryConfigurationWriter creates a new configuration writer.
-func NewRegistryConfigurationWriter(registry registry.Registry) *RegistryConfigurationWriter {
-	return &RegistryConfigurationWriter{Registry: registry}
+func NewRegistryConfigurationWriter(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) *RegistryConfigurationWriter {
+	return &RegistryConfigurationWriter{
+		globalConfig: globalConfig,
+		doguConfig:   doguConfigProvider,
+	}
 }
 
 // WriteConfigToRegistry write the given registry config to the registry
@@ -38,18 +45,52 @@ func (gcw *RegistryConfigurationWriter) WriteConfigToRegistry(registryConfig app
 }
 
 func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string]interface{}, config string) error {
-	var configCtx registry.ConfigurationContext
+	var contextWriter *configWriter
+	ctx := context.TODO()
 
 	logrus.Infof("write in %s configuration", config)
 	if config == "_global" {
-		configCtx = gcw.Registry.GlobalConfig()
+		contextWriter = gcw.newConfigWriter(func(field string, value string) error {
+			c, err := gcw.globalConfig.Get(ctx)
+			if err != nil && k8sconf.IsNotFoundError(err) {
+				c, err = gcw.globalConfig.Create(ctx, k8sconf.CreateGlobalConfig(make(k8sconf.Entries)))
+				if err != nil {
+					return fmt.Errorf("failed to create global config: %w", err)
+				}
+			} else if err != nil {
+				return fmt.Errorf("failed to get global config: %w", err)
+			}
+
+			c.Config, err = c.Set(k8sconf.Key(field), k8sconf.Value(value))
+			if err != nil {
+				return fmt.Errorf("failed to set key '%s' in global config to '%s': %w", field, value, err)
+			}
+
+			c, err = gcw.globalConfig.SaveOrMerge(ctx, c)
+			return err
+		})
 	} else {
-		configCtx = gcw.Registry.DoguConfig(config)
+		contextWriter = gcw.newConfigWriter(func(field string, value string) error {
+			c, err := gcw.doguConfig.Get(ctx, k8sconf.SimpleDoguName(config))
+			if err != nil && k8sconf.IsNotFoundError(err) {
+				c, err = gcw.doguConfig.Create(ctx, k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(config), make(k8sconf.Entries)))
+				if err != nil {
+					return fmt.Errorf("failed to create dogu config for '%s': %w", config, err)
+				}
+			} else if err != nil {
+				return fmt.Errorf("failed to get dogu config for '%s': %w", config, err)
+			}
+
+			c.Config, err = c.Set(k8sconf.Key(field), k8sconf.Value(value))
+			if err != nil {
+				return fmt.Errorf("failed to set key '%s' in dogu config for '%s' to '%s': %w", config, field, value, err)
+			}
+
+			_, err = gcw.doguConfig.SaveOrMerge(ctx, c)
+			return err
+		})
 	}
 
-	contextWriter := gcw.newConfigWriter(func(field string, value string) error {
-		return configCtx.Set(field, value)
-	})
 	for fieldName, fieldEntry := range entries {
 		err := contextWriter.handleEntry(fieldName, fieldEntry)
 		if err != nil {
@@ -73,7 +114,7 @@ type configWriter struct {
 	delimiter string
 }
 
-// handleEntry writes values into the appcontext implemented in the write.
+// handleEntry writes values into the appcontext implemented in the write process.
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
 	switch value.(type) {
 	case string:

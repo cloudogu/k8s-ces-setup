@@ -1,57 +1,67 @@
 package data_test
 
 import (
-	"testing"
-
+	k8sconf "github.com/cloudogu/k8s-registry-lib/config"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
+	"testing"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 
-	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewGenericConfigurationWriter(t *testing.T) {
 	t.Run("create new generic configuration Writer", func(t *testing.T) {
+		cm := &data.MockConfigMapClient{}
 		// given
-		registryMock := &mocks.Registry{}
+		globalReg := k8sreg.NewGlobalConfigRepository(cm)
+		doguReg := k8sreg.NewDoguConfigRepository(cm)
 
 		// when
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		writer := data.NewRegistryConfigurationWriter(
+			globalReg,
+			doguReg,
+		)
 
 		// then
 		require.NotNil(t, writer)
-		mock.AssertExpectationsForObjects(t, registryMock)
 	})
 }
 
 func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 	t.Run("failed to write to config", func(t *testing.T) {
+		cm := &data.MockConfigMapClient{}
+
 		// given
 		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
 				"test3": "myTestKey3",
 			},
 		}
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", mock.Anything, mock.Anything).Return(assert.AnError)
 
-		registryMock := &mocks.Registry{}
-		registryMock.On("GlobalConfig").Return(globalRegistryMock)
+		globalReg := k8sreg.NewGlobalConfigRepository(cm)
+		doguReg := k8sreg.NewDoguConfigRepository(cm)
 
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		cm.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).Return(nil, assert.AnError)
+
+		writer := data.NewRegistryConfigurationWriter(globalReg, doguReg)
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)
 
 		// then
-		require.ErrorIs(t, err, assert.AnError)
-		mock.AssertExpectationsForObjects(t, registryMock, globalRegistryMock)
+		require.Contains(t, err.Error(), assert.AnError.Error())
 	})
 
 	t.Run("set all keys correctly", func(t *testing.T) {
+		cm := &data.MockConfigMapClient{}
+
 		// given
 		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
@@ -83,34 +93,94 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				},
 			},
 		}
-		globalRegistryMock := &mocks.ConfigurationContext{}
-		globalRegistryMock.On("Set", "test/t1", "myTestt1").Return(nil)
-		globalRegistryMock.On("Set", "test/t2", "myTestt2").Return(nil)
-		globalRegistryMock.On("Set", "test3", "myTestKey3").Return(nil)
 
-		casRegistryMock := &mocks.ConfigurationContext{}
-		casRegistryMock.On("Set", "ldap/attribute_fullname", "myAttributeFullName").Return(nil)
+		globalReg := k8sreg.NewGlobalConfigRepository(cm)
+		doguReg := k8sreg.NewDoguConfigRepository(cm)
 
-		ldapMapperRegistryMock := &mocks.ConfigurationContext{}
-		ldapMapperRegistryMock.On("Set", "backend/type", "external").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/group/base_dn", "myGroupBaseDN").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/group/member", "myGroupAttributeMember").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/base_dn", "myBaseDN").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/full_name", "myAttributeFullName").Return(nil)
-		ldapMapperRegistryMock.On("Set", "mapping/user/surname", "myAttributeSurname").Return(nil)
+		emptyCm := &v1.ConfigMap{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Immutable:  nil,
+			Data: map[string]string{
+				"config.yaml": "{}",
+			},
+			BinaryData: nil,
+		}
 
-		registryMock := &mocks.Registry{}
-		registryMock.On("GlobalConfig").Return(globalRegistryMock)
-		registryMock.On("DoguConfig", "cas").Return(casRegistryMock)
-		registryMock.On("DoguConfig", "ldap-mapper").Return(ldapMapperRegistryMock)
+		cm.EXPECT().Get(mock.Anything, "global-config", mock.Anything).Return(&v1.ConfigMap{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "global-config",
+			},
+			Immutable: nil,
+			Data: map[string]string{
+				"config.yaml": "{}",
+			},
+			BinaryData: nil,
+		}, nil)
 
-		writer := data.NewRegistryConfigurationWriter(registryMock)
+		cm.EXPECT().Get(mock.Anything, "cas-config", mock.Anything).Return(&v1.ConfigMap{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "ldap-mapper-config",
+			},
+			Immutable: nil,
+			Data: map[string]string{
+				"config.yaml": "{}",
+			},
+			BinaryData: nil,
+		}, nil)
+
+		cm.EXPECT().Get(mock.Anything, "ldap-mapper-config", mock.Anything).Return(&v1.ConfigMap{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "ldap-mapper-config",
+			},
+			Immutable: nil,
+			Data: map[string]string{
+				"config.yaml": "{}",
+			},
+			BinaryData: nil,
+		}, nil)
+
+		cm.EXPECT().Update(mock.Anything, mock.MatchedBy(func(inputCm *v1.ConfigMap) bool {
+			ldapMapperReader, err := (&k8sconf.YamlConverter{}).Read(strings.NewReader("backend:\n    type: external\nldap:\n    attribute_fullname: myAttributeFullName\nmapping:\n    group:\n        base_dn: myGroupBaseDN\n        member: myGroupAttributeMember\n    user:\n        base_dn: myBaseDN\n        full_name: myAttributeFullName\n        surname: myAttributeSurname\ntest:\n    t1: myTestt1\n    t2: myTestt2\ntest3: myTestKey3\n"))
+			require.NoError(t, err)
+			casReader, err := (&k8sconf.YamlConverter{}).Read(strings.NewReader("ldap:\n    attribute_fullname: myAttributeFullName\ntest:\n    t1: myTestt1\n    t2: myTestt2\ntest3: myTestKey3\n"))
+			require.NoError(t, err)
+			globalReader, err := (&k8sconf.YamlConverter{}).Read(strings.NewReader("test:\n    t1: myTestt1\n    t2: myTestt2\ntest3: myTestKey3\n"))
+			require.NoError(t, err)
+
+			result, err := (&k8sconf.YamlConverter{}).Read(strings.NewReader(inputCm.Data["config.yaml"]))
+			require.NoError(t, err)
+
+			for key, value := range result {
+				if inputCm.ObjectMeta.Name == "ldap-mapper-config" {
+					if !(ldapMapperReader[key] == value) {
+						return false
+					}
+				} else if inputCm.ObjectMeta.Name == "cas-config" {
+					if !(casReader[key] == value) {
+						return false
+					}
+				} else if inputCm.ObjectMeta.Name == "global-config" {
+					if !(globalReader[key] == value) {
+						return false
+					}
+				} else {
+					return false
+				}
+			}
+
+			return true
+		}), mock.Anything).Return(emptyCm, nil)
+
+		writer := data.NewRegistryConfigurationWriter(globalReg, doguReg)
 
 		// when
 		err := writer.WriteConfigToRegistry(registryConfig)
 
 		// then
 		require.NoError(t, err)
-		mock.AssertExpectationsForObjects(t, registryMock, globalRegistryMock, casRegistryMock, ldapMapperRegistryMock)
 	})
 }

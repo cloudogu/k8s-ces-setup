@@ -41,9 +41,8 @@ Preparation (deployment of the setup):
    - in development mode this can also be read from local cube configs
 3. read dogu and image credentials
 4. install component-operator in the new namespace.
-5. install components (etcd, dogu-operator, service-discovery, ...) as component CRs in the new namespace
-5. install etcd-client into the new namespace
-7. install dogus (according to `setup.json`) as dogu-CRs into the new namespace
+5. install components (dogu-operator, service-discovery, ...) as component CRs in the new namespace
+6. install dogus (according to `setup.json`) as dogu-CRs into the new namespace
 
 ## Necessary permissions to run the setup
 

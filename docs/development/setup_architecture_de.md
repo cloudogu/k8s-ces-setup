@@ -41,9 +41,8 @@ Vorbereitung (Deployment des Setups):
    - im Entwicklungsbetrieb kann diese auch von lokalen Kube-Configs ausgelesen werden
 3. Dogu- und Image-Credentials auslesen
 4. Komponenten-Operator im neuen Namespace installieren
-5. Komponenten (etcd, dogu-operator, service-discovery, ...) als Komponenten-CRs in den neuen Namespace installieren
-5. etcd-Client in den neuen Namespace installieren
-7. Dogus (gemäß `setup.json`) als Dogu-CRs in den neuen Namespace installieren
+5. Komponenten (dogu-operator, service-discovery, ...) als Komponenten-CRs in den neuen Namespace installieren
+6. Dogus (gemäß `setup.json`) als Dogu-CRs in den neuen Namespace installieren
 
 ## Benötigte Berechtigungen zur Ausführung des Setups
 

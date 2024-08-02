@@ -2,6 +2,7 @@ package data_test
 
 import (
 	gocontext "context"
+	"oras.land/oras-go/pkg/context"
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
@@ -54,6 +55,7 @@ func Test_writeNamingDataStep_GetStepDescription(t *testing.T) {
 
 func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
+	var testCtx = context.Background()
 
 	t.Run("fail to write anything in the registry", func(t *testing.T) {
 		// given

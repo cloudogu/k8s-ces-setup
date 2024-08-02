@@ -17,9 +17,6 @@ update_versions_modify_files() {
 
   kubectlImage=$(yq ".kubectl_image" "${valuesYaml}")
   yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
-
-  etcdClientImage=$(yq ".etcd_client_image_repo" "${valuesYaml}")
-  yq -i ".values.images.etcdClient=\"${etcdClientImage}\"" "${patchTplYaml}"
 }
 
 update_versions_stage_modified_files() {
