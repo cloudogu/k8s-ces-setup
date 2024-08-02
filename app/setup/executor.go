@@ -5,10 +5,10 @@ import (
 	"fmt"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	componentHelm "github.com/cloudogu/k8s-component-operator/pkg/helm"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/cloudogu/cesapp-lib/remote"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
@@ -133,25 +133,18 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	componentSteps, componentWaitSteps := e.createComponentSteps(componentsClient)
 
-	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
-	if err != nil {
-		return fmt.Errorf("failed to create node master file creation step: %w", err)
-	}
-
 	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, namespace)
 	if err != nil {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
-	e.RegisterSetupSteps(createNodeMasterStep)
 	e.RegisterSetupSteps(certManagerInstallerSteps...)
 	e.RegisterSetupSteps(componentOpInstallerSteps...)
-	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
+	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and other components.
 	// These steps may be empty if longhorn is not part of the component list.
 	e.RegisterSetupSteps(longhornComponentSteps...)
 	e.RegisterSetupSteps(componentSteps...)
 	e.RegisterSetupSteps(componentWaitSteps...)
-	e.RegisterSetupSteps(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	// Since this step should patch resources created in this phase, it should be executed last.
 	e.RegisterSetupSteps(componentResourcePatchStep)
 
@@ -288,11 +281,9 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 }
 
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
-func (e *Executor) RegisterDataSetupSteps(etcdRegistry registry.Registry) error {
-	configWriter := data.NewRegistryConfigurationWriter(etcdRegistry)
-
+func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error {
+	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
 	// register steps
-	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))

@@ -3,9 +3,8 @@ package data
 import (
 	"context"
 	"fmt"
-
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sconf "github.com/cloudogu/k8s-registry-lib/config"
+	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"k8s.io/client-go/kubernetes"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
@@ -13,20 +12,16 @@ import (
 )
 
 type writeRegistryConfigEncryptedStep struct {
-	configuration *appcontext.SetupJsonConfiguration
-	clientSet     kubernetes.Interface
-	namespace     string
-	Writer        MapWriter
-}
-
-// MapWriter is responsible to write entries into a map[string]map[string]string{}.
-type MapWriter interface {
-	WriteConfigToStringDataMap(registryConfig appcontext.CustomKeyValue) (map[string]map[string]string, error)
+	configuration           *appcontext.SetupJsonConfiguration
+	sensitiveDoguConfigRepo *k8sreg.DoguConfigRepository
 }
 
 // NewWriteRegistryConfigEncryptedStep create a new setup step which writes the registry config encrypted configuration into the cluster.
 func NewWriteRegistryConfigEncryptedStep(configuration *appcontext.SetupJsonConfiguration, clientSet kubernetes.Interface, namespace string) *writeRegistryConfigEncryptedStep {
-	return &writeRegistryConfigEncryptedStep{configuration: configuration, clientSet: clientSet, namespace: namespace, Writer: &stringDataConfigurationWriter{}}
+	return &writeRegistryConfigEncryptedStep{
+		configuration:           configuration,
+		sensitiveDoguConfigRepo: k8sreg.NewSensitiveDoguConfigRepository(clientSet.CoreV1().Secrets(namespace)),
+	}
 }
 
 // GetStepDescription return the human-readable description of the step.
@@ -36,107 +31,90 @@ func (wrces *writeRegistryConfigEncryptedStep) GetStepDescription() string {
 
 // PerformSetupStep writes the registry config data into the registry
 func (wrces *writeRegistryConfigEncryptedStep) PerformSetupStep(ctx context.Context) error {
-	resultConfigs, err := wrces.Writer.WriteConfigToStringDataMap(wrces.configuration.RegistryConfigEncrypted)
-	if err != nil {
-		return fmt.Errorf("failed to write registry config encrypted: %w", err)
+	if wrces.configuration.RegistryConfigEncrypted == nil {
+		wrces.configuration.RegistryConfigEncrypted = make(appcontext.CustomKeyValue)
+	}
+	// Add keys to make sure the sensitive configs are created
+	if wrces.configuration.RegistryConfigEncrypted["ldap"] == nil {
+		wrces.configuration.RegistryConfigEncrypted["ldap"] = map[string]any{}
+	}
+	if wrces.configuration.RegistryConfigEncrypted["cas"] == nil {
+		wrces.configuration.RegistryConfigEncrypted["cas"] = map[string]any{}
+	}
+	if wrces.configuration.RegistryConfigEncrypted["ldap-mapper"] == nil {
+		wrces.configuration.RegistryConfigEncrypted["ldap-mapper"] = map[string]any{}
 	}
 
-	// append edge cases
-	wrces.appendLdapConfig(resultConfigs)
-	wrces.appendCasConfig(resultConfigs)
-	wrces.appendLdapMapperConfig(resultConfigs)
-
-	// write secrets
-	for dogu, resultConfig := range resultConfigs {
-		err := wrces.createRegistryConfigEncryptedSecret(ctx, dogu, resultConfig)
+	for dogu, resultConfig := range wrces.configuration.RegistryConfigEncrypted {
+		entries, err := k8sconf.MapToEntries(resultConfig)
 		if err != nil {
-			return fmt.Errorf("failed create %s-secrets: %w", dogu, err)
+			return fmt.Errorf("faild to map config for dogu '%s' to entries: %w", dogu, err)
 		}
-	}
+		doguConfig := k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(dogu), entries)
 
-	return nil
-}
-
-func (wrces *writeRegistryConfigEncryptedStep) appendLdapMapperConfig(resultConfigs map[string]map[string]string) {
-	if wrces.configuration.UserBackend.DsType == validation.DsTypeEmbedded {
-		return
-	}
-
-	const ldapMapperDoguName = "ldap-mapper"
-	if isDoguInstalled(wrces.configuration.Dogus.Install, ldapMapperDoguName) {
-		if resultConfigs[ldapMapperDoguName] == nil {
-			resultConfigs[ldapMapperDoguName] = map[string]string{"backend.password": wrces.configuration.UserBackend.Password,
-				"backend.connection_dn": wrces.configuration.UserBackend.ConnectionDN}
-		} else {
-			resultConfigs[ldapMapperDoguName]["backend.password"] = wrces.configuration.UserBackend.Password
-			resultConfigs[ldapMapperDoguName]["backend.connection_dn"] = wrces.configuration.UserBackend.ConnectionDN
-		}
-	}
-}
-
-func (wrces *writeRegistryConfigEncryptedStep) appendCasConfig(resultConfigs map[string]map[string]string) {
-	if wrces.configuration.UserBackend.DsType == validation.DsTypeExternal {
-		if resultConfigs["cas"] == nil {
-			resultConfigs["cas"] = map[string]string{"password": wrces.configuration.UserBackend.Password}
-		} else {
-			resultConfigs["cas"]["password"] = wrces.configuration.UserBackend.Password
-		}
-	}
-}
-
-func (wrces *writeRegistryConfigEncryptedStep) appendLdapConfig(resultConfigs map[string]map[string]string) {
-	if wrces.configuration.UserBackend.DsType != validation.DsTypeEmbedded {
-		return
-	}
-
-	if resultConfigs["ldap"] == nil {
-		resultConfigs["ldap"] = map[string]string{"admin_password": wrces.configuration.Admin.Password}
-	} else {
-		resultConfigs["ldap"]["admin_password"] = wrces.configuration.Admin.Password
-	}
-}
-
-func (wrces *writeRegistryConfigEncryptedStep) createRegistryConfigEncryptedSecret(ctx context.Context, dogu string, stringData map[string]string) error {
-	secretName := dogu + "-secrets"
-	secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: wrces.namespace}, StringData: stringData}
-
-	_, err := wrces.clientSet.CoreV1().Secrets(wrces.namespace).Create(ctx, secret, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to create secret %s: %w", secretName, err)
-	}
-
-	return nil
-}
-
-// stringDataConfigurationWriter writes a configuration into a map used to set in secrets.
-type stringDataConfigurationWriter struct{}
-
-// NewStringDataConfigurationWriter creates a new instance of a map string data configuration write used for
-// registry config encrypted
-func NewStringDataConfigurationWriter() *stringDataConfigurationWriter {
-	return &stringDataConfigurationWriter{}
-}
-
-// WriteConfigToStringDataMap write the given registry config to a map. It uses the delimiter '.' because the keys
-// from the secret do not allow '/' in their data keys
-func (mcw *stringDataConfigurationWriter) WriteConfigToStringDataMap(registryConfig appcontext.CustomKeyValue) (map[string]map[string]string, error) {
-	resultConfigs := map[string]map[string]string{}
-
-	// build a string map for every key in registry config encrypted
-	for config, entryMap := range registryConfig {
-		resultConfig := map[string]string{}
-		for key, value := range entryMap {
-			contextWriter := &configWriter{delimiter: ".", write: func(field string, value string) error {
-				resultConfig[field] = value
-				return nil
-			}}
-			err := contextWriter.handleEntry(key, value)
+		switch dogu {
+		case "cas":
+			doguConfig, err = wrces.appendCasConfig(doguConfig)
 			if err != nil {
-				return nil, fmt.Errorf("failed to write %s config to map: %w", config, err)
+				return fmt.Errorf("failed to append default config to cas: %w", err)
+			}
+		case "ldap":
+			doguConfig, err = wrces.appendLdapConfig(doguConfig)
+			if err != nil {
+				return fmt.Errorf("failed to append default config to ldap: %w", err)
+			}
+		case "ldap-mapper":
+			doguConfig, err = wrces.appendLdapMapperConfig(doguConfig)
+			if err != nil {
+				return fmt.Errorf("failed to append default config to ldap-mapper: %w", err)
 			}
 		}
-		resultConfigs[config] = resultConfig
+
+		_, err = wrces.sensitiveDoguConfigRepo.Create(ctx, doguConfig)
+		if err != nil {
+			return fmt.Errorf("failed to create dogu config for '%s': %w", dogu, err)
+		}
 	}
 
-	return resultConfigs, nil
+	return nil
+}
+
+func (wrces *writeRegistryConfigEncryptedStep) appendLdapMapperConfig(doguConfig k8sconf.DoguConfig) (k8sconf.DoguConfig, error) {
+	if wrces.configuration.UserBackend.DsType == validation.DsTypeEmbedded {
+		return doguConfig, nil
+	}
+
+	var err error
+	const ldapMapperDoguName = "ldap-mapper"
+	if isDoguInstalled(wrces.configuration.Dogus.Install, ldapMapperDoguName) {
+		doguConfig.Config, err = doguConfig.Set("backend/password", k8sconf.Value(wrces.configuration.UserBackend.Password))
+		if err != nil {
+			return doguConfig, err
+		}
+		doguConfig.Config, err = doguConfig.Set("backend/connection_dn", k8sconf.Value(wrces.configuration.UserBackend.ConnectionDN))
+
+	}
+
+	return doguConfig, err
+}
+
+func (wrces *writeRegistryConfigEncryptedStep) appendCasConfig(doguConfig k8sconf.DoguConfig) (k8sconf.DoguConfig, error) {
+	var err error
+
+	if wrces.configuration.UserBackend.DsType == validation.DsTypeExternal {
+		doguConfig.Config, err = doguConfig.Set("password", k8sconf.Value(wrces.configuration.UserBackend.Password))
+	}
+
+	return doguConfig, err
+}
+
+func (wrces *writeRegistryConfigEncryptedStep) appendLdapConfig(doguConfig k8sconf.DoguConfig) (k8sconf.DoguConfig, error) {
+	if wrces.configuration.UserBackend.DsType != validation.DsTypeEmbedded {
+		return doguConfig, nil
+	}
+
+	var err error
+	doguConfig.Config, err = doguConfig.Set("admin_password", k8sconf.Value(wrces.configuration.Admin.Password))
+
+	return doguConfig, err
 }

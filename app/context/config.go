@@ -41,10 +41,6 @@ type Config struct {
 	ComponentOperatorChart string `json:"component_operator_chart" yaml:"component_operator_chart"`
 	// Components sets the List of Components that should be installed by the setup
 	Components map[string]ComponentAttributes `json:"components" yaml:"components"`
-	// EtcdServerResourceURL sets the K8s resource URL which controls the installation of the etcd server into the current cluster.
-	EtcdClientImageRepo string `json:"etcd_client_image_repo" yaml:"etcd_client_image_repo"`
-	// KeyProvider sets the key provider used to encrypt etcd values
-	KeyProvider string `json:"key_provider" yaml:"key_provider"`
 	// ResourcePatches contains json patches for kubernetes resources to be applied on certain phases of the setup process.
 	ResourcePatches []patch.ResourcePatch `json:"resource_patches" yaml:"resource_patches"`
 }

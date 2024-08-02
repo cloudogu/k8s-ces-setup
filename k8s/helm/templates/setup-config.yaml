@@ -13,8 +13,6 @@ data:
     {{- toYaml .Values.components | nindent 6}}
     {{- end }}
     log_level: {{ or .Values.log_level "INFO"}}
-    etcd_client_image_repo: {{ or .Values.etcd_client_image_repo "bitnami/etcd:3.5.2-debian-10-r0"}}
-    key_provider: {{ or .Values.key_provider "pkcs1v15"}}
     {{- if .Values.resource_patches }}
     resource_patches:
     {{- toYaml .Values.resource_patches | nindent 6}}

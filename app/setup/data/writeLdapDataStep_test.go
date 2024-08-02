@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	ctx "context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,6 +49,7 @@ func Test_writeLdapDataStep_GetStepDescription(t *testing.T) {
 
 func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
+	var testCtx = ctx.Background()
 
 	t.Run("failed to write to the registry", func(t *testing.T) {
 		// given

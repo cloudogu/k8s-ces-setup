@@ -16,8 +16,8 @@ The setup configuration is divided by content into several sections, also called
 * **UserBackend**: Contains configurations for the user connection.
 * **AdminUser**: Contains configurations for the initial admin user in the EcoSystem.
 * **Dogus**: Contains configurations for the dogus to be installed.
-* **RegistryConfig**: Contains configurations which are written to the internal etcd during setup.
-* **RegistryConfigEncrypted**: Contains configurations which are written encrypted to the internal Etcd during setup.
+* **RegistryConfig**: Contains configurations which are written to the dogu-configuration during setup.
+* **RegistryConfigEncrypted**: Contains configurations which are written to the sensitive dogu-configuration during setup.
 
 For a completely automatic setup all necessary regions must be defined in the `setup.json`.
 A complete description of the individual regions and their configuration values follows in a later chapter.

@@ -46,6 +46,7 @@ func TestWaitForComponentStep_GetStepDescription(t *testing.T) {
 
 func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
+	var testCtx = context.Background()
 
 	namespace := "testNS"
 	selector := "app=test"

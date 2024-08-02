@@ -103,7 +103,6 @@ node('docker') {
                 k3d.configureSetupImage(cessetupImageName)
                 k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                                          "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
-                                         "k8s-etcd"             : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                 ])
                 k3d.configureComponentOperatorVersion("latest")
             }

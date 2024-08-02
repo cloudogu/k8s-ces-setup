@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=1.0.1
+VERSION=2.0.0
 
 GOTAG?=1.22
 MAKEFILES_VERSION=9.0.5
@@ -157,10 +157,6 @@ k8s-clean: ## Cleans all resources deployed by the setup
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
-
-.PHONY: setup-etcd-port-forward
-setup-etcd-port-forward:
-	kubectl port-forward etcd-0 4001:2379 &
 
 .PHONY: run
 run: ## Run a setup from your host.
