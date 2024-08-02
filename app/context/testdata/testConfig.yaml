@@ -9,4 +9,3 @@ components:
   k8s-service-discovery:
     version: "latest"
     helmRepositoryNamespace: k8s
-key_provider: pkcs1v15

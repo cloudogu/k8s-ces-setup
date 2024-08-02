@@ -17,8 +17,8 @@ Die Setup-Konfiguration wird inhaltlich in mehrere Bereiche, auch Regionen genan
 * **UserBackend**: Enthält Konfigurationen für die Benutzer-Anbindung.
 * **AdminUser**: Enthält Konfigurationen für den initialen Admin-Benutzer im EcoSystem.
 * **Dogus**: Enthält Konfigurationen für die zu installierenden Dogus.
-* **RegistryConfig**: Enthält Konfigurationen, welche beim Setup in den internen Etcd geschrieben werden. 
-* **RegistryConfigEncrypted**: Enthält Konfigurationen, welche beim Setup verschlüsselt in den internen Etcd geschrieben werden.
+* **RegistryConfig**: Enthält Konfigurationen, welche beim Setup als Dogu-Config erstellt wird. 
+* **RegistryConfigEncrypted**: Enthält Konfigurationen, welche beim Setup als sensible Dogu-Config werden.
 
 Für ein komplett automatisches Setup müssen alle notwendigen Regionen in der `setup.json` definiert sein. 
 Eine komplette Beschreibung der einzelnen Regionen und ihrer Konfigurationswerte folgt in einem späteren Kapitel. 

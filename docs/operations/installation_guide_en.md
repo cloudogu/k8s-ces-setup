@@ -44,9 +44,6 @@ component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
 component_operator_chart: "k8s/k8s-component-operator:latest"
 
 components:
-  k8s-etcd:
-    version: latest
-    helmRepositoryNamespace: k8s
   k8s-dogu-operator:
     version: latest
     helmRepositoryNamespace: k8s
