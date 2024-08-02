@@ -136,7 +136,7 @@ type Dogus struct {
 }
 
 // CustomKeyValue is a map of string -> map pairs.
-type CustomKeyValue map[string]map[string]interface{}
+type CustomKeyValue map[string]map[string]any
 
 // SetupJsonConfiguration is the main struct for the configuration of the setup.
 type SetupJsonConfiguration struct {

@@ -8,10 +8,8 @@ import (
 	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
@@ -33,7 +31,7 @@ func Test_writeRegistryConfigEncryptedStep_GetStepDescription(t *testing.T) {
 
 	t.Run("successfully get registry config data step description", func(t *testing.T) {
 		// given
-		myStep := data.NewWriteRegistryConfigEncryptedStep(nil, nil, "test")
+		myStep := data.NewWriteRegistryConfigEncryptedStep(nil, fake.NewSimpleClientset(), "test")
 
 		// when
 		description := myStep.GetStepDescription()
@@ -51,58 +49,55 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		embeddedUserBackend := appcontext.UserBackend{DsType: "embedded"}
 		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
 		fakeClient := fake.NewSimpleClientset()
-		emptyMap := map[string]map[string]string{}
-		writerMock := data.NewMockMapWriter(t)
-		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(emptyMap, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
-		step.Writer = writerMock
 
 		// when
 		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
+		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-config", metav1.GetOptions{})
 		require.NoError(t, err)
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-config", metav1.GetOptions{})
+		require.NoError(t, err)
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-config", metav1.GetOptions{})
+		require.NoError(t, err)
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
 		assert.Equal(t, 1, len(secret.StringData))
-		assert.Equal(t, "adminPw", secret.StringData["admin_password"])
+		assert.Equal(t, "admin_password: adminPw\n", secret.StringData["config.yaml"])
 	})
 
 	t.Run("should override embedded admin pw and append user defined config", func(t *testing.T) {
 		// given
 		admin := appcontext.User{Password: "adminPw"}
 		embeddedUserBackend := appcontext.UserBackend{DsType: "embedded"}
-		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin}
+		setupConfig := &appcontext.SetupJsonConfiguration{
+			UserBackend: embeddedUserBackend,
+			Admin:       admin,
+			RegistryConfigEncrypted: map[string]map[string]any{
+				"ldap": {"admin_password": "overrideThis", "fromUser": "user"},
+			},
+		}
 		fakeClient := fake.NewSimpleClientset()
-		registryConfigEncrypted := map[string]map[string]string{}
-		registryConfigEncrypted["ldap"] = map[string]string{"admin_password": "overrideThis", "fromUser": "user"}
-		writerMock := data.NewMockMapWriter(t)
-		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(registryConfigEncrypted, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
-		step.Writer = writerMock
 
 		// when
 		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
+		secret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-config", metav1.GetOptions{})
 		require.NoError(t, err)
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-config", metav1.GetOptions{})
+		require.NoError(t, err)
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-config", metav1.GetOptions{})
+		require.NoError(t, err)
+
 		require.NotNil(t, secret)
 		assert.NotNil(t, secret.StringData)
-		assert.Equal(t, 2, len(secret.StringData))
-		assert.Equal(t, "adminPw", secret.StringData["admin_password"])
-		assert.Equal(t, "user", secret.StringData["fromUser"])
+		assert.Equal(t, 1, len(secret.StringData))
+		assert.Equal(t, "admin_password: adminPw\nfromUser: user\n", secret.StringData["config.yaml"])
 	})
 
 	t.Run("success external", func(t *testing.T) {
@@ -110,38 +105,37 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		admin := appcontext.User{Password: "adminPw"}
 		embeddedUserBackend := appcontext.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
 		dogus := appcontext.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		setupConfig := &appcontext.SetupJsonConfiguration{
+			UserBackend: embeddedUserBackend,
+			Admin:       admin,
+			Dogus:       dogus,
+			RegistryConfigEncrypted: map[string]map[string]any{
+				"ldap-mapper": {"backend.password": "overrideThis", "backend.connection_dn": "overrideThis", "fromUser": "user"},
+				"cas":         {"password": "overrideThis", "fromUser": "user"},
+			},
+		}
 		fakeClient := fake.NewSimpleClientset()
-		registryConfigEncrypted := map[string]map[string]string{}
-		registryConfigEncrypted["ldap-mapper"] = map[string]string{"backend.password": "overrideThis", "backend.connection_dn": "overrideThis", "fromUser": "user"}
-		registryConfigEncrypted["cas"] = map[string]string{"password": "overrideThis", "fromUser": "user"}
-		writerMock := data.NewMockMapWriter(t)
-		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(registryConfigEncrypted, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
-		step.Writer = writerMock
 
 		// when
 		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
-		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-config", metav1.GetOptions{})
 		require.NoError(t, err)
-		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
+		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-config", metav1.GetOptions{})
+		require.NoError(t, err)
+		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-config", metav1.GetOptions{})
 		require.NoError(t, err)
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
-		assert.Equal(t, 2, len(casSecret.StringData))
-		assert.Equal(t, "ldapPw", casSecret.StringData["password"])
-		assert.Equal(t, "user", casSecret.StringData["fromUser"])
+		assert.Equal(t, 1, len(casSecret.StringData))
+		assert.Equal(t, "fromUser: user\npassword: ldapPw\n", casSecret.StringData["config.yaml"])
 		require.NotNil(t, ldapMapperSecret)
 		assert.NotNil(t, ldapMapperSecret.StringData)
-		assert.Equal(t, 3, len(ldapMapperSecret.StringData))
-		assert.Equal(t, "ldapPw", ldapMapperSecret.StringData["backend.password"])
-		assert.Equal(t, "connection", ldapMapperSecret.StringData["backend.connection_dn"])
-		assert.Equal(t, "user", ldapMapperSecret.StringData["fromUser"])
+		assert.Equal(t, 1, len(ldapMapperSecret.StringData))
+		assert.Equal(t, "backend:\n    connection_dn: connection\n    password: ldapPw\nbackend.connection_dn: overrideThis\nbackend.password: overrideThis\nfromUser: user\n", ldapMapperSecret.StringData["config.yaml"])
 	})
 
 	t.Run("should override external backend pw, connection_dn and append user defined config", func(t *testing.T) {
@@ -149,83 +143,33 @@ func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
 		admin := appcontext.User{Password: "adminPw"}
 		embeddedUserBackend := appcontext.UserBackend{DsType: "external", ConnectionDN: "connection", Password: "ldapPw"}
 		dogus := appcontext.Dogus{Install: []string{"ldap-mapper"}}
-		setupConfig := &appcontext.SetupJsonConfiguration{UserBackend: embeddedUserBackend, Admin: admin, Dogus: dogus}
+		setupConfig := &appcontext.SetupJsonConfiguration{
+			UserBackend:             embeddedUserBackend,
+			Admin:                   admin,
+			Dogus:                   dogus,
+			RegistryConfigEncrypted: map[string]map[string]any{},
+		}
 		fakeClient := fake.NewSimpleClientset()
-		emptyMap := map[string]map[string]string{}
-		writerMock := data.NewMockMapWriter(t)
-		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(emptyMap, nil)
 		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, fakeClient, "test")
-		step.Writer = writerMock
 
 		// when
 		err := step.PerformSetupStep(testCtx)
 		require.NoError(t, err)
 
 		// then
-		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-secrets", metav1.GetOptions{})
-		require.True(t, errors.IsNotFound(err))
-		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-secrets", metav1.GetOptions{})
+		_, err = fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-config", metav1.GetOptions{})
 		require.NoError(t, err)
-		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-secrets", metav1.GetOptions{})
+		casSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "cas-config", metav1.GetOptions{})
+		require.NoError(t, err)
+		ldapMapperSecret, err := fakeClient.CoreV1().Secrets("test").Get(testCtx, "ldap-mapper-config", metav1.GetOptions{})
 		require.NoError(t, err)
 		require.NotNil(t, casSecret)
 		assert.NotNil(t, casSecret.StringData)
 		assert.Equal(t, 1, len(casSecret.StringData))
-		assert.Equal(t, "ldapPw", casSecret.StringData["password"])
+		assert.Equal(t, "password: ldapPw\n", casSecret.StringData["config.yaml"])
 		require.NotNil(t, ldapMapperSecret)
 		assert.NotNil(t, ldapMapperSecret.StringData)
-		assert.Equal(t, 2, len(ldapMapperSecret.StringData))
-		assert.Equal(t, "ldapPw", ldapMapperSecret.StringData["backend.password"])
-		assert.Equal(t, "connection", ldapMapperSecret.StringData["backend.connection_dn"])
+		assert.Equal(t, 1, len(ldapMapperSecret.StringData))
+		assert.Equal(t, "backend:\n    connection_dn: connection\n    password: ldapPw\n", ldapMapperSecret.StringData["config.yaml"])
 	})
-
-	t.Run("fail to write config to map", func(t *testing.T) {
-		// given
-		setupConfig := &appcontext.SetupJsonConfiguration{}
-		writerMock := data.NewMockMapWriter(t)
-		writerMock.EXPECT().WriteConfigToStringDataMap(mock.Anything).Return(nil, assert.AnError)
-		step := data.NewWriteRegistryConfigEncryptedStep(setupConfig, nil, "test")
-		step.Writer = writerMock
-
-		// when
-		err := step.PerformSetupStep(testCtx)
-
-		// then
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to write registry config encrypted")
-	})
-}
-
-func Test_mapConfigurationWriter_WriteConfigToMap(t *testing.T) {
-	// given
-	ldapMapperRegistryConfig := map[string]interface{}{
-		"user": map[string]string{
-			"base_dn": "userBase",
-		},
-		"group": map[string]string{
-			"base_dn": "groupBase",
-			"test":    "test",
-		},
-	}
-	ldapRegistryConfig := map[string]interface{}{
-		"admin_password": "password",
-	}
-
-	registryConfig := appcontext.CustomKeyValue{}
-	registryConfig["ldap-mapper"] = ldapMapperRegistryConfig
-	registryConfig["ldap"] = ldapRegistryConfig
-	mapWriter := data.NewStringDataConfigurationWriter()
-
-	// when
-	result, err := mapWriter.WriteConfigToStringDataMap(registryConfig)
-
-	// then
-	require.NoError(t, err)
-	assert.Equal(t, 2, len(result))
-	assert.Equal(t, 3, len(result["ldap-mapper"]))
-	assert.Equal(t, "userBase", result["ldap-mapper"]["user.base_dn"])
-	assert.Equal(t, "groupBase", result["ldap-mapper"]["group.base_dn"])
-	assert.Equal(t, "test", result["ldap-mapper"]["group.test"])
-	assert.Equal(t, 1, len(result["ldap"]))
-	assert.Equal(t, "password", result["ldap"]["admin_password"])
 }

@@ -9,7 +9,7 @@ require (
 	github.com/cloudogu/k8s-apply-lib v0.4.2
 	github.com/cloudogu/k8s-component-operator v1.0.1
 	github.com/cloudogu/k8s-dogu-operator v1.2.0
-	github.com/cloudogu/k8s-registry-lib v0.2.1
+	github.com/cloudogu/k8s-registry-lib v0.2.2-0.20240802074644-c8d40c386094
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -18,6 +18,7 @@ require (
 	k8s.io/api v0.30.0
 	k8s.io/apimachinery v0.30.0
 	k8s.io/client-go v0.30.0
+	oras.land/oras-go v1.2.5
 	sigs.k8s.io/controller-runtime v0.18.2
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -173,7 +174,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20240430033511-f0e62f92d13f // indirect
 	k8s.io/kubectl v0.29.3 // indirect
 	k8s.io/utils v0.0.0-20240502163921-fe8a2dddb1d0 // indirect
-	oras.land/oras-go v1.2.5 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.16.0 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.16.0 // indirect
