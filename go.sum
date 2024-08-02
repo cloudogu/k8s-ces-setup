@@ -70,6 +70,8 @@ github.com/cloudogu/k8s-dogu-operator v1.2.0 h1:TZ7pkQ2EBinwZMWY7H0/Bs4xVSHIWnQE
 github.com/cloudogu/k8s-dogu-operator v1.2.0/go.mod h1:GnYsLM82oVlf4szJtJ2XQuOf/B5IcRVj8Wk+7jPPNa0=
 github.com/cloudogu/k8s-registry-lib v0.2.2-0.20240802074644-c8d40c386094 h1:ugcLZF9WjwADCZJJwq7uEGjRwRhwRZNMTvV1C+v5OEk=
 github.com/cloudogu/k8s-registry-lib v0.2.2-0.20240802074644-c8d40c386094/go.mod h1:LQxxzN+4hrulxPbSXl/Srw8ADP4mxS8DXFxZSI5X/f0=
+github.com/cloudogu/k8s-registry-lib v0.2.2 h1:+6xqsddQxurHtMf3sCXjWPrU+vwRHfoibRnJ1iN7UbY=
+github.com/cloudogu/k8s-registry-lib v0.2.2/go.mod h1:LQxxzN+4hrulxPbSXl/Srw8ADP4mxS8DXFxZSI5X/f0=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/containerd/cgroups v1.1.0 h1:v8rEWFl6EoqHB+swVNjVoCJE8o3jX7e8nqBGPLaDFBM=
 github.com/containerd/cgroups/v3 v3.0.3 h1:S5ByHZ/h9PMe5IOQoN7E+nMc2UcLEM/V48DGDJ9kip0=
