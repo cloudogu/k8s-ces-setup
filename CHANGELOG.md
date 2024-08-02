@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+**Breaking Change ahead**
+### Removed
+- [#94] Remove internal ETCD
 
 ### Changed
 - [#94] Add k8s-registry lib in version 0.2.0 to use config maps for configuration instead of the etcd.
