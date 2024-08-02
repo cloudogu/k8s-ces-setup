@@ -133,20 +133,14 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 
 	componentSteps, componentWaitSteps := e.createComponentSteps(componentsClient)
 
-	createNodeMasterStep, err := component.NewNodeMasterCreationStep(e.ClusterConfig, namespace)
-	if err != nil {
-		return fmt.Errorf("failed to create node master file creation step: %w", err)
-	}
-
 	componentResourcePatchStep, err := createResourcePatchStep(patch.ComponentPhase, e.SetupContext.AppConfig.ResourcePatches, e.ClusterConfig, namespace)
 	if err != nil {
 		return fmt.Errorf("error while creating resource patch step for phase %s: %w", patch.ComponentPhase, err)
 	}
 
-	e.RegisterSetupSteps(createNodeMasterStep)
 	e.RegisterSetupSteps(certManagerInstallerSteps...)
 	e.RegisterSetupSteps(componentOpInstallerSteps...)
-	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and e.g. etcd.
+	// Install and wait for longhorn before other component installation steps because the component operator can't handle the optional relation between longhorn and other components.
 	// These steps may be empty if longhorn is not part of the component list.
 	e.RegisterSetupSteps(longhornComponentSteps...)
 	e.RegisterSetupSteps(componentSteps...)
@@ -290,7 +284,6 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error {
 	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
 	// register steps
-	e.RegisterSetupSteps(data.NewKeyProviderStep(configWriter, e.SetupContext.AppConfig.KeyProvider))
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))

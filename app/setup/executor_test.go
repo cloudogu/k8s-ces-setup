@@ -232,7 +232,7 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 	t.Run("should register install/wait longhorn always as first component", func(t *testing.T) {
 		// given
-		components := map[string]appcontext.ComponentAttributes{"k8s-dogu-operator": {}, "k8s-etcd": {}, "k8s-longhorn": {Version: "1.0.0", HelmRepositoryNamespace: "k8s", DeployNamespace: "longhorn-system"}}
+		components := map[string]appcontext.ComponentAttributes{"k8s-dogu-operator": {}, "k8s-longhorn": {Version: "1.0.0", HelmRepositoryNamespace: "k8s", DeployNamespace: "longhorn-system"}}
 
 		testContext := &appcontext.SetupContext{
 			AppConfig:          &appcontext.Config{TargetNamespace: "test", Components: components, ComponentOperatorChart: "k8s/k8s-component-operator:2.0.0", ComponentOperatorCrdChart: "k8s/k8s-component-operator-crd:2.0.0"},
@@ -248,15 +248,14 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[1].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Installing component 'k8s/k8s-component-operator-crd:2.0.0'", executor.Steps[3].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator-crd to be installed", executor.Steps[4].GetStepDescription())
-		assert.Equal(t, "Installing component 'k8s/k8s-component-operator:2.0.0'", executor.Steps[5].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator to be installed", executor.Steps[6].GetStepDescription())
-		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[7].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[8].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-component-operator-crd:2.0.0'", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator-crd to be installed", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-component-operator:2.0.0'", executor.Steps[4].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator to be installed", executor.Steps[5].GetStepDescription())
+		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[6].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[7].GetStepDescription())
 	})
 
 	t.Run("should install cert-manager always before the component-operator", func(t *testing.T) {
@@ -277,11 +276,10 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace test", executor.Steps[1].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace test", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[4].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace test", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace test", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
 	})
 
 	t.Run("should install component chart in defined deployNamespace", func(t *testing.T) {
@@ -302,11 +300,10 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		assert.Equal(t, "Setup node master file", executor.Steps[0].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace security", executor.Steps[1].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace security", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
-		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[4].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager-crd:1.0.0 in namespace security", executor.Steps[0].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-cert-manager:1.0.0 in namespace security", executor.Steps[1].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[2].GetStepDescription())
+		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[3].GetStepDescription())
 	})
 
 	t.Run("failed to create ecosystem-client", func(t *testing.T) {

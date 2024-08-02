@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"context"
 	"testing"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
@@ -43,6 +44,7 @@ func Test_writeRegistryConfigEncryptedStep_GetStepDescription(t *testing.T) {
 }
 
 func Test_writeRegistryConfigEncryptedStep_PerformSetupStep(t *testing.T) {
+	var testCtx = context.Background()
 	t.Run("success embedded", func(t *testing.T) {
 		// given
 		admin := appcontext.User{Password: "adminPw"}

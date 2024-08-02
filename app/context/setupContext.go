@@ -101,11 +101,6 @@ func (scb *SetupContextBuilder) NewSetupContext(ctx context.Context, clientSet k
 
 	config.TargetNamespace = targetNamespace
 
-	keyProvider := config.KeyProvider
-	if keyProvider != "pkcs1v15" && config.KeyProvider != "oaesp" {
-		return nil, fmt.Errorf("invalid key provider: %s", keyProvider)
-	}
-
 	configureLogger(config)
 
 	return &SetupContext{
