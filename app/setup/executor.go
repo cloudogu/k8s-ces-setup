@@ -151,7 +151,6 @@ func (e *Executor) RegisterComponentSetupSteps() error {
 	e.RegisterSetupSteps(longhornComponentSteps...)
 	e.RegisterSetupSteps(componentSteps...)
 	e.RegisterSetupSteps(componentWaitSteps...)
-	e.RegisterSetupSteps(component.NewEtcdClientInstallerStep(e.ClientSet, e.SetupContext))
 	// Since this step should patch resources created in this phase, it should be executed last.
 	e.RegisterSetupSteps(componentResourcePatchStep)
 
