@@ -149,6 +149,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
+		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
 		expect.RegisterComponentSetupSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
@@ -167,7 +168,6 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
-		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
