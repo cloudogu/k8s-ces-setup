@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v2.0.1] - 2024-08-08
+### Fixed
+- [#97] create config before components
+
 ## [v2.0.0] - 2024-08-02
 **Breaking Change ahead**
 ### Removed
