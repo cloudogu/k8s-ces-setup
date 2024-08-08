@@ -32,12 +32,12 @@ type SetupExecutor interface {
 // Starter is used to init and start the setup process
 type Starter struct {
 	globalConfigRepo *k8sreg.GlobalConfigRepository
-	doguConfigRepo    *k8sreg.DoguConfigRepository
-	ClientSet      kubernetes.Interface
-	ClusterConfig  *rest.Config
-	SetupContext   *appcontext.SetupContext
-	Namespace      string
-	SetupExecutor  SetupExecutor
+	doguConfigRepo   *k8sreg.DoguConfigRepository
+	ClientSet        kubernetes.Interface
+	ClusterConfig    *rest.Config
+	SetupContext     *appcontext.SetupContext
+	Namespace        string
+	SetupExecutor    SetupExecutor
 }
 
 // NewStarter creates a new setup starter struct which one inits registries and starts the setup process
@@ -111,14 +111,14 @@ func registerSteps(setupExecutor SetupExecutor, globalConfig *k8sreg.GlobalConfi
 		return fmt.Errorf("failed to register validation setup steps: %w", err)
 	}
 
-	err = setupExecutor.RegisterComponentSetupSteps()
-	if err != nil {
-		return fmt.Errorf("failed to register component setup steps: %w", err)
-	}
-
 	err = setupExecutor.RegisterDataSetupSteps(globalConfig, doguConfig)
 	if err != nil {
 		return fmt.Errorf("failed to register data setup steps: %w", err)
+	}
+
+	err = setupExecutor.RegisterComponentSetupSteps()
+	if err != nil {
+		return fmt.Errorf("failed to register component setup steps: %w", err)
 	}
 
 	err = setupExecutor.RegisterDoguInstallationSteps()
