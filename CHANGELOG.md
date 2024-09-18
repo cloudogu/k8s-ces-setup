@@ -7,7 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
-- Relicense to AGPL-3.0-only
+- [#100] Relicense to AGPL-3.0-only
 
 ## [v2.0.1] - 2024-08-08
 ### Fixed
