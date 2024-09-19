@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v2.1.0] - 2024-09-18
+### Changed
+- [#99] Relicense to AGPL-3.0-only
+
 ## [v2.0.1] - 2024-08-08
 ### Fixed
 - [#97] create config before components
