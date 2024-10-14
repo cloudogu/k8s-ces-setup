@@ -2,6 +2,9 @@ package setup
 
 import (
 	"fmt"
+	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
+	"github.com/sirupsen/logrus"
+	"k8s.io/utils/strings/slices"
 	"strings"
 
 	"k8s.io/client-go/kubernetes"
@@ -9,15 +12,15 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/remote"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	setupcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
 	"github.com/cloudogu/k8s-dogu-operator/api/ecoSystem"
 )
 
 const (
-	serviceAccountKindDogu = "dogu"
-	serviceAccountKindK8s  = "k8s"
+	serviceAccountKindDogu      = "dogu"
+	serviceAccountKindComponent = "component"
 )
 
 const (
@@ -33,13 +36,19 @@ type doguStepGenerator struct {
 	Dogus           *[]*core.Dogu
 	Registry        remote.Registry
 	namespace       string
+	components      []string
+	componentClient componentEcoSystem.ComponentInterface
 }
 
 // NewDoguStepGenerator creates a new generator capable of generating dogu installation steps.
-func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Config, dogus context.Dogus, registry remote.Registry, namespace string) (*doguStepGenerator, error) {
+func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Config, dogus setupcontext.Dogus, registry remote.Registry, namespace string, components []string) (*doguStepGenerator, error) {
 	ecoSystemClient, err := ecoSystem.NewForConfig(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create K8s EcoSystem client: %w", err)
+	}
+	componentClient, err := componentEcoSystem.NewForConfig(clusterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create component client: %w", err)
 	}
 
 	var doguList []*core.Dogu
@@ -52,7 +61,7 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 		doguList = append(doguList, dogu)
 	}
 
-	return &doguStepGenerator{Client: client, EcoSystemClient: ecoSystemClient, Dogus: &doguList, Registry: registry, namespace: namespace}, nil
+	return &doguStepGenerator{Client: client, EcoSystemClient: ecoSystemClient, Dogus: &doguList, Registry: registry, namespace: namespace, components: components, componentClient: componentClient.Components(namespace)}, nil
 }
 
 // GenerateSteps generates dogu installation steps for all configured dogus.
@@ -61,21 +70,10 @@ func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
 
 	installedDogus := core.SortDogusByDependency(*dsg.Dogus)
 	waitList := map[string]bool{}
+
 	for _, dogu := range installedDogus {
 		// create wait step if needing a service account from a certain dogu
-		for _, serviceAccountDepedency := range dogu.ServiceAccounts {
-			switch serviceAccountDepedency.Kind {
-			case "":
-				fallthrough
-			case serviceAccountKindDogu:
-				steps = dsg.createWaitStepForDogu(serviceAccountDepedency, waitList, steps)
-			case serviceAccountKindK8s:
-				steps = dsg.createWaitStepForK8sComponent(serviceAccountDepedency, waitList, steps)
-			default:
-				return nil, fmt.Errorf("unexpected service account kind %s occurred for service account %s in dogu %s", serviceAccountDepedency.Kind, serviceAccountDepedency.Type, dogu.Name)
-			}
-		}
-
+		steps = dsg.appendDoguWaitStepsIfNeeded(dogu, installedDogus, steps, waitList)
 		installStep := dogus.NewInstallDogusStep(dsg.EcoSystemClient, dogu, dsg.namespace)
 		steps = append(steps, installStep)
 	}
@@ -83,24 +81,81 @@ func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
 	return steps, nil
 }
 
+func (dsg *doguStepGenerator) appendDoguWaitStepsIfNeeded(dogu *core.Dogu, installedDogus []*core.Dogu, steps []ExecutorStep, waitList map[string]bool) []ExecutorStep {
+	for _, serviceAccountDependency := range dogu.ServiceAccounts {
+		switch serviceAccountDependency.Kind {
+		case "":
+			fallthrough
+		case serviceAccountKindDogu:
+			if !shouldDoguWaitForSADogu(dogu, serviceAccountDependency, installedDogus) {
+				logrus.Infof("skipping wait step for optional dogu %s service account creation", serviceAccountDependency.Type)
+				continue
+			}
+			steps = dsg.createWaitStepForDogu(serviceAccountDependency, waitList, steps)
+		case serviceAccountKindComponent:
+			if !shouldDoguWaitForSAComponent(dogu, serviceAccountDependency, dsg.components) {
+				logrus.Infof("skipping wait step for optional component %s service account creation", serviceAccountDependency.Type)
+				continue
+			}
+			steps = dsg.createWaitStepForK8sComponent(serviceAccountDependency, waitList, steps)
+		default:
+			logrus.Errorf("unknown service account kind %s from dogu %s. skipping wait step creation for service account creation", serviceAccountDependency.Kind, dogu.GetSimpleName())
+			continue
+		}
+	}
+
+	return steps
+}
+
+func shouldDoguWaitForSAComponent(dogu *core.Dogu, serviceAccount core.ServiceAccount, configureComponents []string) bool {
+	return !(isOptionalServiceAccount(dogu, serviceAccount) && !slices.Contains(configureComponents, serviceAccount.Type))
+}
+
+func shouldDoguWaitForSADogu(dogu *core.Dogu, serviceAccount core.ServiceAccount, configuredDogus []*core.Dogu) bool {
+	return !(isOptionalServiceAccount(dogu, serviceAccount) && !isDoguConfigured(configuredDogus, serviceAccount.Type))
+}
+
+func isDoguConfigured(dogus []*core.Dogu, simpleName string) bool {
+	for _, dogu := range dogus {
+		if dogu.GetSimpleName() == simpleName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isOptionalServiceAccount(dogu *core.Dogu, serviceAccount core.ServiceAccount) bool {
+	for _, optionalDependency := range dogu.OptionalDependencies {
+		if optionalDependency.Name == serviceAccount.Type {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
 	labelSelector := fmt.Sprintf("%s=%s", v1LabelDogu, serviceAccountDependency.Type)
 
-	return dsg.createWaitStep(waitList, labelSelector, steps)
-}
-
-func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
-	labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, serviceAccountDependency.Type)
-
-	return dsg.createWaitStep(waitList, labelSelector, steps)
-}
-
-func (dsg *doguStepGenerator) createWaitStep(waitList map[string]bool, labelSelector string, steps []ExecutorStep) []ExecutorStep {
 	if waitList[labelSelector] {
 		return steps
 	}
 
-	waitForDependencyStep := component.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, component.PodTimeoutInSeconds())
+	waitForDependencyStep := dogus.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, dogus.PodTimeoutInSeconds())
+	steps = append(steps, waitForDependencyStep)
+	waitList[labelSelector] = true
+
+	return steps
+}
+
+func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
+	labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, serviceAccountDependency.Type)
+	if waitList[labelSelector] {
+		return steps
+	}
+
+	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, labelSelector, dsg.namespace)
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 

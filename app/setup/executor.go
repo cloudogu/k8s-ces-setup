@@ -6,6 +6,8 @@ import (
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	componentHelm "github.com/cloudogu/k8s-component-operator/pkg/helm"
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -297,7 +299,7 @@ func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepos
 
 // RegisterDoguInstallationSteps creates install steps for the dogu install list
 func (e *Executor) RegisterDoguInstallationSteps() error {
-	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace)
+	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace, slices.Collect(maps.Keys(e.SetupContext.AppConfig.Components)))
 	if err != nil {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
