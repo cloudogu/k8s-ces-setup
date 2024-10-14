@@ -40,7 +40,7 @@ func TestWaitForComponentStep_GetStepDescription(t *testing.T) {
 		desc := step.GetStepDescription()
 
 		// then
-		assert.Equal(t, "Wait for component with selector app=test to be installed", desc)
+		assert.Equal(t, "Wait for component with selector app=test to be ready", desc)
 	})
 }
 
@@ -51,7 +51,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 	namespace := "testNS"
 	selector := "app=test"
 
-	installedComponent := &v1.Component{Status: v1.ComponentStatus{Status: v1.ComponentStatusInstalled}}
+	installedComponent := &v1.Component{Status: v1.ComponentStatus{Status: v1.ComponentStatusInstalled, Health: v1.AvailableHealthStatus}}
 
 	t.Run("should successfully perform setup", func(t *testing.T) {
 		// given

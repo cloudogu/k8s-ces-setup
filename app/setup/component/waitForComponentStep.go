@@ -24,16 +24,16 @@ func NewWaitForComponentStep(client componentsClient, labelSelector string, name
 
 // GetStepDescription return the human-readable description of the step
 func (wfcs *waitForComponentStep) GetStepDescription() string {
-	return fmt.Sprintf("Wait for component with selector %s to be installed", wfcs.labelSelector)
+	return fmt.Sprintf("Wait for component with selector %s to be ready", wfcs.labelSelector)
 }
 
 // PerformSetupStep implements all actions in this step
 func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
-	return wfcs.isComponentInstalled(ctx)
+	return wfcs.isComponentReady(ctx)
 }
 
-// isComponentInstalled does a watch on a component and returns nil if the component is installed
-func (wfcs *waitForComponentStep) isComponentInstalled(ctx context.Context) error {
+// isComponentReady does a watch on a component and returns nil if the component is installed
+func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 	watch, err := wfcs.client.Watch(ctx, metav1.ListOptions{LabelSelector: wfcs.labelSelector})
 	if err != nil {
 		return fmt.Errorf("failed to create watch on component: %w", err)
@@ -47,7 +47,7 @@ func (wfcs *waitForComponentStep) isComponentInstalled(ctx context.Context) erro
 				wfcs.labelSelector, event.Type, event.Object)
 		}
 
-		if component.Status.Status == v1.ComponentStatusInstalled {
+		if component.Status.Status == v1.ComponentStatusInstalled && component.Status.Health == v1.AvailableHealthStatus {
 			watch.Stop()
 			return nil
 		}
