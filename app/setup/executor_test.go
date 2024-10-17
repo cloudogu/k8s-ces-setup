@@ -251,11 +251,11 @@ func TestExecutor_RegisterComponentSetupSteps(t *testing.T) {
 		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator-crd:2.0.0 in namespace test", executor.Steps[0].GetStepDescription())
 		assert.Equal(t, "Install component-chart from k8s/k8s-component-operator:2.0.0 in namespace test", executor.Steps[1].GetStepDescription())
 		assert.Equal(t, "Installing component 'k8s/k8s-component-operator-crd:2.0.0'", executor.Steps[2].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator-crd to be installed", executor.Steps[3].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator-crd to be ready", executor.Steps[3].GetStepDescription())
 		assert.Equal(t, "Installing component 'k8s/k8s-component-operator:2.0.0'", executor.Steps[4].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator to be installed", executor.Steps[5].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-component-operator to be ready", executor.Steps[5].GetStepDescription())
 		assert.Equal(t, "Installing component 'k8s/k8s-longhorn:1.0.0'", executor.Steps[6].GetStepDescription())
-		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be installed", executor.Steps[7].GetStepDescription())
+		assert.Equal(t, "Wait for component with selector app.kubernetes.io/name=k8s-longhorn to be ready", executor.Steps[7].GetStepDescription())
 	})
 
 	t.Run("should install cert-manager always before the component-operator", func(t *testing.T) {

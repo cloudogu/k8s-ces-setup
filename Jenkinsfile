@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@2.2.1')
+@Library('github.com/cloudogu/ces-build-lib@2.4.0')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -10,7 +10,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
-goVersion = "1.22"
+goVersion = "1.23"
 Makefile makefile = new Makefile(this)
 
 // Configuration of repository
@@ -103,6 +103,9 @@ node('docker') {
                 k3d.configureSetupImage(cessetupImageName)
                 k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
                                          "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                                         // TODO Delete blueprint-operator and crd null values if the component runs in multinode.
+                                         "k8s-blueprint-operator": null,
+                                         "k8s-blueprint-operator-crd": null,
                 ])
                 k3d.configureComponentOperatorVersion("latest")
             }
