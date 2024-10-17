@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#103] upgrade dogu-operator to v2
+- [#103] upgrade go to 1.23.2
+- [#103] 
 
 ## [v2.1.1] - 2024-10-17
 ### Fixed

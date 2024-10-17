@@ -15,7 +15,7 @@ import (
 	setupcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
-	"github.com/cloudogu/k8s-dogu-operator/api/ecoSystem"
+	"github.com/cloudogu/k8s-dogu-operator/v2/api/ecoSystem"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 // and waiting for the dependencies before doing so.
 type doguStepGenerator struct {
 	Client          kubernetes.Interface
-	EcoSystemClient ecoSystem.EcoSystemV1Alpha1Interface
+	EcoSystemClient ecoSystem.EcoSystemV2Interface
 	Dogus           *[]*core.Dogu
 	Registry        remote.Registry
 	namespace       string
@@ -68,7 +68,10 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 func (dsg *doguStepGenerator) GenerateSteps() ([]ExecutorStep, error) {
 	steps := []ExecutorStep{}
 
-	installedDogus := core.SortDogusByDependency(*dsg.Dogus)
+	installedDogus, err := core.SortDogusByDependencyWithError(*dsg.Dogus)
+	if err != nil {
+		return nil, fmt.Errorf("sorting dogus by dependency failed: %w", err)
+	}
 	waitList := map[string]bool{}
 
 	for _, dogu := range installedDogus {

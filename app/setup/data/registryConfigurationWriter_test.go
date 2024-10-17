@@ -48,7 +48,7 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 		globalReg := k8sreg.NewGlobalConfigRepository(cm)
 		doguReg := k8sreg.NewDoguConfigRepository(cm)
 
-		cm.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).Return(nil, assert.AnError)
+		cm.EXPECT().List(mock.Anything, mock.Anything).Return(nil, assert.AnError)
 
 		writer := data.NewRegistryConfigurationWriter(globalReg, doguReg)
 
@@ -106,8 +106,7 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 			},
 			BinaryData: nil,
 		}
-
-		cm.EXPECT().Get(mock.Anything, "global-config", mock.Anything).Return(&v1.ConfigMap{
+		globalConfig := v1.ConfigMap{
 			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "global-config",
@@ -117,9 +116,12 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				"config.yaml": "{}",
 			},
 			BinaryData: nil,
-		}, nil)
+		}
+		// List is called as SingletonList for watches. Get is called at the saveOrMerge step
+		cm.EXPECT().List(mock.Anything, metav1.SingleObject(metav1.ObjectMeta{Name: "global-config"})).Return(&v1.ConfigMapList{Items: []v1.ConfigMap{globalConfig}}, nil)
+		cm.EXPECT().Get(mock.Anything, "global-config", mock.Anything).Return(&globalConfig, nil)
 
-		cm.EXPECT().Get(mock.Anything, "cas-config", mock.Anything).Return(&v1.ConfigMap{
+		casConfig := v1.ConfigMap{
 			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ldap-mapper-config",
@@ -129,9 +131,11 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				"config.yaml": "{}",
 			},
 			BinaryData: nil,
-		}, nil)
+		}
+		cm.EXPECT().List(mock.Anything, metav1.SingleObject(metav1.ObjectMeta{Name: "cas-config"})).Return(&v1.ConfigMapList{Items: []v1.ConfigMap{casConfig}}, nil)
+		cm.EXPECT().Get(mock.Anything, "cas-config", mock.Anything).Return(&casConfig, nil)
 
-		cm.EXPECT().Get(mock.Anything, "ldap-mapper-config", mock.Anything).Return(&v1.ConfigMap{
+		ldapMapperConfig := v1.ConfigMap{
 			TypeMeta: metav1.TypeMeta{},
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "ldap-mapper-config",
@@ -141,7 +145,9 @@ func TestGenericConfigurationWriter_WriteConfigToRegistry(t *testing.T) {
 				"config.yaml": "{}",
 			},
 			BinaryData: nil,
-		}, nil)
+		}
+		cm.EXPECT().List(mock.Anything, metav1.SingleObject(metav1.ObjectMeta{Name: "ldap-mapper-config"})).Return(&v1.ConfigMapList{Items: []v1.ConfigMap{ldapMapperConfig}}, nil)
+		cm.EXPECT().Get(mock.Anything, "ldap-mapper-config", mock.Anything).Return(&ldapMapperConfig, nil)
 
 		cm.EXPECT().Update(mock.Anything, mock.MatchedBy(func(inputCm *v1.ConfigMap) bool {
 			ldapMapperReader, err := (&k8sconf.YamlConverter{}).Read(strings.NewReader("backend:\n    type: external\nldap:\n    attribute_fullname: myAttributeFullName\nmapping:\n    group:\n        base_dn: myGroupBaseDN\n        member: myGroupAttributeMember\n    user:\n        base_dn: myBaseDN\n        full_name: myAttributeFullName\n        surname: myAttributeSurname\ntest:\n    t1: myTestt1\n    t2: myTestt2\ntest3: myTestKey3\n"))
