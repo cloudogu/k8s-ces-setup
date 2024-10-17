@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v2.1.1] - 2024-10-17
+### Fixed
+- [#101] Generation of wait steps for dogus which have optional component dependencies.
+
 ## [v2.1.0] - 2024-09-18
 ### Changed
 - [#99] Relicense to AGPL-3.0-only
