@@ -9,7 +9,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - [#103] upgrade dogu-operator to v2
 - [#103] upgrade go to 1.23.2
-- [#103] 
 
 ## [v2.1.1] - 2024-10-17
 ### Fixed
