@@ -2,14 +2,12 @@ module github.com/cloudogu/k8s-ces-setup
 
 go 1.23.2
 
-replace github.com/cloudogu/k8s-registry-lib => github.com/cloudogu/k8s-registry-lib v0.2.2-0.20241017124949-786286a58629
-
 require (
-	github.com/cloudogu/cesapp-lib v0.14.1
+	github.com/cloudogu/cesapp-lib v0.14.2
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
-	github.com/cloudogu/k8s-dogu-operator/v2 v2.0.2-0.20241017073713-08ff048a6dd8
-	github.com/cloudogu/k8s-registry-lib v0.4.1
+	github.com/cloudogu/k8s-dogu-operator/v2 v2.2.1
+	github.com/cloudogu/k8s-registry-lib v0.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
