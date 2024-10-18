@@ -8,12 +8,12 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/core"
 
-	"github.com/cloudogu/k8s-dogu-operator/api/ecoSystem"
-	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+	"github.com/cloudogu/k8s-dogu-operator/v2/api/ecoSystem"
+	v2 "github.com/cloudogu/k8s-dogu-operator/v2/api/v2"
 )
 
 type ecoSystemClient interface {
-	ecoSystem.EcoSystemV1Alpha1Interface
+	ecoSystem.EcoSystemV2Interface
 }
 
 type installDogusStep struct {
@@ -48,8 +48,8 @@ func (ids *installDogusStep) PerformSetupStep(ctx context.Context) error {
 	return nil
 }
 
-func getDoguCr(name string, namespaceName string, version string, k8sNamespace string) *v1.Dogu {
-	cr := &v1.Dogu{}
+func getDoguCr(name string, namespaceName string, version string, k8sNamespace string) *v2.Dogu {
+	cr := &v2.Dogu{}
 	labels := make(map[string]string)
 	labels["app"] = "ces"
 	labels["dogu.name"] = name
