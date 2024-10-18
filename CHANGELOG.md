@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v2.1.2] - 2024-10-18
+### Changed
+- [#103] upgrade dogu-operator to v2
+- [#103] upgrade go to 1.23.2
+
 ## [v2.1.1] - 2024-10-17
 ### Fixed
 - [#101] Generation of wait steps for dogus which have optional component dependencies.

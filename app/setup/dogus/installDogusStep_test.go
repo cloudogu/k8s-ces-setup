@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	v1 "github.com/cloudogu/k8s-dogu-operator/api/v1"
+	v1 "github.com/cloudogu/k8s-dogu-operator/v2/api/v2"
 )
 
 var testCtx = context.Background()

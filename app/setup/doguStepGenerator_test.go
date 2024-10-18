@@ -117,11 +117,17 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		// then
 		assert.NotNil(t, generator)
 		assert.Len(t, doguSteps, 5)
-		assert.Equal(t, "Installing dogu [cas]", doguSteps[0].GetStepDescription())
-		assert.Equal(t, "Installing dogu [ldap]", doguSteps[1].GetStepDescription())
-		assert.Equal(t, "Installing dogu [postfix]", doguSteps[2].GetStepDescription())
-		assert.Equal(t, "Installing dogu [postgres]", doguSteps[3].GetStepDescription())
-		assert.Equal(t, "Installing dogu [redmine]", doguSteps[4].GetStepDescription())
+		var stepDiscriptions []string
+		for _, step := range doguSteps {
+			stepDiscriptions = append(stepDiscriptions, step.GetStepDescription())
+		}
+
+		// Dogu-sorting is not deterministic, so dogus without dependencies are in random order
+		assert.Contains(t, stepDiscriptions, "Installing dogu [postgres]")
+		assert.Contains(t, stepDiscriptions, "Installing dogu [postfix]")
+		assert.Contains(t, stepDiscriptions, "Installing dogu [cas]")
+		assert.Contains(t, stepDiscriptions, "Installing dogu [ldap]")
+		assert.Contains(t, stepDiscriptions, "Installing dogu [redmine]")
 	})
 
 	t.Run("generate dogu steps with service account dependencies", func(t *testing.T) {
@@ -131,7 +137,8 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas", "official/postfix:1.0.0-1", "official/postgres", "official/redmine:10.0.0-5"}}
 		doguCas := &core.Dogu{Name: "cas", Version: "6.5.4-2", ServiceAccounts: []core.ServiceAccount{{Type: "ldap"}}, Dependencies: []core.Dependency{{Type: "dogu", Name: "ldap"}}}
 		doguLdap := &core.Dogu{Name: "ldap", Version: "2.1.0-1"}
-		doguPostfix := &core.Dogu{Name: "postfix", Version: "1.0.0-1"}
+		// The dependency on ldap is artificial to ensure a deterministic sorting order of the steps
+		doguPostfix := &core.Dogu{Name: "postfix", Version: "1.0.0-1", Dependencies: []core.Dependency{{Type: "dogu", Name: "ldap"}}}
 		doguPostgres := &core.Dogu{Name: "postgres", Version: "0.3.4-0", ServiceAccounts: []core.ServiceAccount{{Type: "cas"}, {Type: "ldap"}}, Dependencies: []core.Dependency{{Type: "dogu", Name: "cas"}, {Type: "dogu", Name: "ldap"}}}
 		doguRedmine := &core.Dogu{Name: "redmine", Version: "10.0.0-5", ServiceAccounts: []core.ServiceAccount{{Type: "postgres"}, {Type: "postfix"}}, Dependencies: []core.Dependency{{Type: "dogu", Name: "postgres"}, {Type: "dogu", Name: "postfix"}, {Type: "dogu", Name: "cas"}}}
 
