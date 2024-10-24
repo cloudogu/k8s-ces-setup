@@ -35,12 +35,12 @@ Warning: No mandatory credentials for secret {{ $doguSecretName }} specified . Y
         kubectl create secret generic {{ $doguSecretName }} --namespace={{ .Release.Namespace }} --from-literal=username=yourusername --from-literal=password=yourpassword --from-literal=endpoint={{ .Values.dogu_registry_secret.url }}
 {{ end }}
 
-{{- $dockerSecretName := "k8s-dogu-operator-docker-registry" }}
-{{- if not (and .Values.docker_registry_secret.username .Values.docker_registry_secret.password) }}
+{{- $dockerSecretName := "ces-container-registries" }}
+{{- if not .Values.container_registry_secrets }}
 Warning: No mandatory credentials for secret {{ $dockerSecretName }} specified. You must create it before the setup can start.
     Use the corresponding fields in the values.yaml and upgrade the chart.
     Ignore this warning if you create it manually with:
-        kubectl create secret docker-registry {{ $dockerSecretName }} --namespace={{ .Release.Namespace }} --docker-username=yourusername --docker-password=yourpassword --docker-server={{ .Values.docker_registry_secret.url }} --docker-email=youremail
+        kubectl create secret docker-registry {{ $dockerSecretName }} --namespace={{ .Release.Namespace }} --docker-username=yourusername --docker-password=yourpassword --docker-server=registry.cloudogu.com --docker-email=youremail
 {{ end }}
 
 {{- $helmSecretName := "component-operator-helm-registry" }}

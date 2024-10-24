@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#105] **Breaking:** The name of the Secret for container credentials was renamed from `k8s-dogu-operator-docker-registry` to `ces-container-registries`.
+According to this the yaml key of the `values.yaml` changed too from `docker_registry_secret` (Object with `url`, `username` and `password` as attributes) to `container_registry_secrets` (List of Object with `url`, `username` and `password` as attributes).
+This is necessary because the container images of dogus and components may be stored in different registries and not only one like `registry.cloudogu.com`.
 
 ## [v2.1.2] - 2024-10-18
 ### Changed

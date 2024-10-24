@@ -105,9 +105,9 @@ template-dogu-registry: $(BINARY_YQ)
 template-docker-registry: $(BINARY_YQ)
 	@if [[ "${STAGE}" == "development" ]]; then \
           echo "Template docker registry!" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.url=\"${DOCKER_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.username=\"${DOCKER_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.password=\"${DOCKER_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].url=\"${DOCKER_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].username=\"${DOCKER_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].password=\"${DOCKER_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
     fi
 
 .PHONY: template-helm-registry
