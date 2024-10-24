@@ -1,3 +1,6 @@
+global:
+  imagePullSecrets:
+    - name: "ces-container-registries"
 setup:
   env:
     stage: production

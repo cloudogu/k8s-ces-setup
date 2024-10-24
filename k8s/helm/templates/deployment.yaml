@@ -13,6 +13,10 @@ spec:
       labels:
         {{- include "k8s-ces-setup.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "k8s-ces-setup.name" . }}
           image: {{ .Values.setup.image.repository }}:{{ .Values.setup.image.tag }}
