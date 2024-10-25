@@ -65,7 +65,7 @@ func TestNamespaceCreator_validate(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, "instance secret validation error: cannot read secret from target namespace myfavouritenamespace-1: secrets \"k8s-dogu-operator-docker-registry\" not found", err.Error())
+		assert.Equal(t, "instance secret validation error: cannot read secret from target namespace myfavouritenamespace-1: secrets \"ces-container-registries\" not found", err.Error())
 	})
 
 	t.Run("runs without any problems", func(t *testing.T) {

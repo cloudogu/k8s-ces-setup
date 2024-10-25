@@ -24,7 +24,7 @@ const (
 	// SecretDoguRegistryDevPath is the path to the secret containing the dogu registry credentials. This is used for development.
 	SecretDoguRegistryDevPath = "k8s/dev-resources/dogu-registry-secret.yaml"
 	// SecretDockerRegistry is the name of the secret containing the docker registry credentials.
-	SecretDockerRegistry = "k8s-dogu-operator-docker-registry"
+	SecretDockerRegistry = "ces-container-registries"
 	// HelmRepositoryConfigMapName is the name of the configMap containing the endpoint of the HelmRepository.
 	HelmRepositoryConfigMapName = "component-operator-helm-repository"
 	// HelmRepositoryDevPath is the path to the config containing the endpoint of the HelmRepository. This is used for development.
