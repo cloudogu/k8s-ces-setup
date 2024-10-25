@@ -9,7 +9,7 @@
     "internalIp": ""
   },
   "dogus": {
-    "defaultDogu": "ldap",
+    "defaultDogu": "cas",
     "install": [
       "official/ldap",
       "official/postfix",

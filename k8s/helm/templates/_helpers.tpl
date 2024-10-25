@@ -37,10 +37,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Creates the docker config json string used as a docker secret.
 */}}
 {{- define "docker_config_json" }}
-  {{- $url := index . 0 }}
-  {{- $username := index . 1 }}
-  {{- $password := index . 2 | b64dec }}
-  {"auths":{"{{ $url }}":{"username":"{{ $username }}","password":{{ $password | toJson }},"email":"test@mtest.de","auth":"{{ print $username ":" $password | b64enc}}"}}}
+  {
+    "auths": {
+  {{- range $i, $secret := .}}
+  {{- $password := $secret.password | b64dec }}
+    {{- if $i }},{{- end }}"{{ $secret.url }}":{"username":"{{ $secret.username }}","password":{{ $password | toJson }},"email":"test@mtest.de","auth":"{{ print $secret.username ":" $password | b64enc}}"}
+  {{- end}}
+    }
+  }
 {{- end }}
 
 {{- define "helm_config_json" }}

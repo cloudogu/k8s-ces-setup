@@ -1,9 +1,9 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=2.1.2
+VERSION=3.0.0
 
 GOTAG?=1.23.2
-MAKEFILES_VERSION=9.0.5
+MAKEFILES_VERSION=9.3.2
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -105,9 +105,9 @@ template-dogu-registry: $(BINARY_YQ)
 template-docker-registry: $(BINARY_YQ)
 	@if [[ "${STAGE}" == "development" ]]; then \
           echo "Template docker registry!" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.url=\"${DOCKER_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.username=\"${DOCKER_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
-          $(BINARY_YQ) -i e ".docker_registry_secret.password=\"${DOCKER_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].url=\"${DOCKER_REGISTRY_URL}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].username=\"${DOCKER_REGISTRY_USERNAME}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
+          $(BINARY_YQ) -i e ".container_registry_secrets[0].password=\"${DOCKER_REGISTRY_PASSWORD}\"" "${K8S_COMPONENT_TARGET_VALUES}" ; \
     fi
 
 .PHONY: template-helm-registry

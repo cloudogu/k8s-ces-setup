@@ -1,12 +1,13 @@
 apiVersion: v1
 values:
   images:
-    k8sCesSetup: cloudogu/k8s-ces-setup:2.1.2
+    k8sCesSetup: cloudogu/k8s-ces-setup:3.0.0
     kubectl: bitnami/kubectl:1.27.4
 patches:
   values.yaml:
     setup:
       image:
-        repository: "{{ registryFrom .images.k8sCesSetup }}/{{ repositoryFrom .images.k8sCesSetup }}"
+        registry: "{{ registryFrom .images.k8sCesSetup }}"
+        repository: "{{ repositoryFrom .images.k8sCesSetup }}"
         tag: "{{ tagFrom .images.k8sCesSetup }}"
     kubectl_image: "{{ .images.kubectl }}"
