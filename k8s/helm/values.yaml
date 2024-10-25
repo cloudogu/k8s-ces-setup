@@ -6,6 +6,7 @@ setup:
     stage: production
     logLevel: info
   image:
+    registry: docker.io
     repository: cloudogu/k8s-ces-setup
     tag: 2.1.2
   imagePullPolicy: IfNotPresent
