@@ -7,6 +7,7 @@ patches:
   values.yaml:
     setup:
       image:
-        repository: "{{ registryFrom .images.k8sCesSetup }}/{{ repositoryFrom .images.k8sCesSetup }}"
+        registry: "{{ registryFrom .images.k8sCesSetup }}"
+        repository: "{{ repositoryFrom .images.k8sCesSetup }}"
         tag: "{{ tagFrom .images.k8sCesSetup }}"
     kubectl_image: "{{ .images.kubectl }}"
