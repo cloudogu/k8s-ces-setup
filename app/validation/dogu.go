@@ -1,7 +1,11 @@
 package validation
 
 import (
+	ctx "context"
 	"fmt"
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
+	"github.com/cloudogu/k8s-ces-setup/app/retry"
+	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -9,23 +13,24 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/remote"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
+var maxTries = 20
+
 type doguValidator struct {
-	secret   corev1.Secret
-	Registry remote.Registry
+	secret     corev1.Secret
+	Repository cescommons.RemoteDoguDescriptorRepository
 }
 
 // NewDoguValidator creates a new validator for the dogu region of the setup configuration.
-func NewDoguValidator(registry remote.Registry) *doguValidator {
-	return &doguValidator{Registry: registry}
+func NewDoguValidator(repository cescommons.RemoteDoguDescriptorRepository) *doguValidator {
+	return &doguValidator{Repository: repository}
 }
 
 // ValidateDogus check whether the configured dogu has no invalid or unmet dependencies.
-func (dv *doguValidator) ValidateDogus(dogus context.Dogus) error {
-	doguList, err := dv.parseDoguStrToDoguList(dogus.Install)
+func (dv *doguValidator) ValidateDogus(ctx ctx.Context, dogus context.Dogus) error {
+	doguList, err := dv.parseDoguStrToDoguList(ctx, dogus.Install)
 	if err != nil {
 		return err
 	}
@@ -51,10 +56,10 @@ func (dv *doguValidator) ValidateDogus(dogus context.Dogus) error {
 	return nil
 }
 
-func (dv *doguValidator) parseDoguStrToDoguList(dogus []string) ([]*core.Dogu, error) {
+func (dv *doguValidator) parseDoguStrToDoguList(ctx ctx.Context, dogus []string) ([]*core.Dogu, error) {
 	var doguList = make([]*core.Dogu, len(dogus))
 	for i, doguStr := range dogus {
-		dogu, err := dv.getDoguFromVersionStr(doguStr)
+		dogu, err := dv.getDoguFromVersionStr(ctx, doguStr)
 		if err != nil {
 			return nil, err
 		}
@@ -121,22 +126,47 @@ func (dv *doguValidator) getDoguFromSelection(dogus []*core.Dogu, doguName strin
 	return nil, fmt.Errorf("dogu not found")
 }
 
-func (dv *doguValidator) getDoguFromVersionStr(doguStr string) (*core.Dogu, error) {
+func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) (*core.Dogu, error) {
 	namespacedName, version, found := strings.Cut(doguStr, ":")
 	var dogu *core.Dogu
 	var err error
+
+	qualifiedDoguName := cescommons.QualifiedDoguName{
+		SimpleName: cescommons.SimpleDoguName(namespacedName),
+	}
 	if found {
 		v, vErr := core.ParseVersion(version)
 		if vErr != nil {
 			return nil, fmt.Errorf("failed to parse dogu version %s: %w", version, err)
 		}
-		dogu, err = dv.Registry.GetVersion(namespacedName, v.Raw)
+		qualifiedDoguVersion := cescommons.QualifiedDoguVersion{
+			Name:    qualifiedDoguName,
+			Version: v,
+		}
+		err := retry.OnError(maxTries, isConnectionError, func() error {
+			var err error
+			dogu, err = dv.Repository.Get(ctx, qualifiedDoguVersion)
+			return err
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", qualifiedDoguName, err)
+		}
 	} else {
-		dogu, err = dv.Registry.Get(namespacedName)
+		err := retry.OnError(maxTries, isConnectionError, func() error {
+			var err error
+			dogu, err = dv.Repository.GetLatest(ctx, qualifiedDoguName)
+			return err
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", qualifiedDoguName, err)
+		}
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dogu %s: %w", doguStr, err)
 	}
 
 	return dogu, nil
+}
+func isConnectionError(err error) bool {
+	return !strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
 }

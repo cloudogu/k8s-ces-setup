@@ -24,7 +24,7 @@ type SetupExecutor interface {
 	// RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 	RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error
 	// RegisterDoguInstallationSteps creates install steps for the dogu install list
-	RegisterDoguInstallationSteps() error
+	RegisterDoguInstallationSteps(ctx context.Context) error
 	// PerformSetup starts the setup and executes all registered setup steps
 	PerformSetup(ctx context.Context) (error, string)
 }
@@ -75,7 +75,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 		return err
 	}
 
-	err = registerSteps(s.SetupExecutor, s.globalConfigRepo, s.doguConfigRepo, s.SetupContext)
+	err = registerSteps(ctx, s.SetupExecutor, s.globalConfigRepo, s.doguConfigRepo, s.SetupContext)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 	return nil
 }
 
-func registerSteps(setupExecutor SetupExecutor, globalConfig *k8sreg.GlobalConfigRepository, doguConfig *k8sreg.DoguConfigRepository, setupContext *appcontext.SetupContext) error {
+func registerSteps(ctx context.Context, setupExecutor SetupExecutor, globalConfig *k8sreg.GlobalConfigRepository, doguConfig *k8sreg.DoguConfigRepository, setupContext *appcontext.SetupContext) error {
 	err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
 	if err != nil {
 		return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
@@ -121,7 +121,7 @@ func registerSteps(setupExecutor SetupExecutor, globalConfig *k8sreg.GlobalConfi
 		return fmt.Errorf("failed to register component setup steps: %w", err)
 	}
 
-	err = setupExecutor.RegisterDoguInstallationSteps()
+	err = setupExecutor.RegisterDoguInstallationSteps(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to register dogu installation steps: %w", err)
 	}

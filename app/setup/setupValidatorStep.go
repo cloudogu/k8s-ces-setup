@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/cloudogu/cesapp-lib/remote"
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/validation"
@@ -19,7 +19,7 @@ type setupValidatorStep struct {
 
 // setupJsonConfigurationValidator is responsible to validate the Cloudogu EcoSystem setup JSON configuration to prevent inconsistent state after a setup.
 type setupJsonConfigurationValidator interface {
-	Validate(setupJson *appcontext.SetupJsonConfiguration) error
+	Validate(ctx context.Context, setupJson *appcontext.SetupJsonConfiguration) error
 }
 
 // resourcePatchConfigurationValidator is responsible to validate the setup resource patch configuration to prevent inconsistent state after a setup.
@@ -28,8 +28,8 @@ type resourcePatchConfigurationValidator interface {
 }
 
 // NewValidatorStep creates a new setup step to validate the setup configuration.
-func NewValidatorStep(registry remote.Registry, setupCtx *appcontext.SetupContext) *setupValidatorStep {
-	setupJsonValidator := validation.NewSetupJsonConfigurationValidator(registry)
+func NewValidatorStep(repository cescommons.RemoteDoguDescriptorRepository, setupCtx *appcontext.SetupContext) *setupValidatorStep {
+	setupJsonValidator := validation.NewSetupJsonConfigurationValidator(repository)
 	resourcePatchValidator := validation.NewResourcePatchConfigurationValidator()
 
 	return &setupValidatorStep{
@@ -46,11 +46,11 @@ func (svs *setupValidatorStep) GetStepDescription() string {
 }
 
 // PerformSetupStep validates the setup configuration.
-func (svs *setupValidatorStep) PerformSetupStep(context.Context) error {
+func (svs *setupValidatorStep) PerformSetupStep(ctx context.Context) error {
 	var errs []error
 
 	errs = append(errs, svs.resourcePatchValidator.Validate(svs.resourcePatchConfiguration))
-	errs = append(errs, svs.setupJsonValidator.Validate(svs.setupJsonConfiguration))
+	errs = append(errs, svs.setupJsonValidator.Validate(ctx, svs.setupJsonConfiguration))
 
 	return errors.Join(errs...)
 }

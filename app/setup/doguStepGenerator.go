@@ -1,8 +1,12 @@
 package setup
 
 import (
+	"context"
 	"fmt"
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
+	"github.com/cloudogu/k8s-ces-setup/app/retry"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
+	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"github.com/sirupsen/logrus"
 	"k8s.io/utils/strings/slices"
 	"strings"
@@ -11,7 +15,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/remote"
 	setupcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
@@ -28,20 +31,22 @@ const (
 	v1LabelK8sComponent = "app.kubernetes.io/name"
 )
 
+var maxTries = 20
+
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
 // and waiting for the dependencies before doing so.
 type doguStepGenerator struct {
 	Client          kubernetes.Interface
 	EcoSystemClient ecoSystem.EcoSystemV2Interface
 	Dogus           *[]*core.Dogu
-	Registry        remote.Registry
+	Repository      cescommons.RemoteDoguDescriptorRepository
 	namespace       string
 	components      []string
 	componentClient componentEcoSystem.ComponentInterface
 }
 
 // NewDoguStepGenerator creates a new generator capable of generating dogu installation steps.
-func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Config, dogus setupcontext.Dogus, registry remote.Registry, namespace string, components []string) (*doguStepGenerator, error) {
+func NewDoguStepGenerator(ctx context.Context, client kubernetes.Interface, clusterConfig *rest.Config, dogus setupcontext.Dogus, repository cescommons.RemoteDoguDescriptorRepository, namespace string, components []string) (*doguStepGenerator, error) {
 	ecoSystemClient, err := ecoSystem.NewForConfig(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create K8s EcoSystem client: %w", err)
@@ -53,7 +58,7 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 
 	var doguList []*core.Dogu
 	for _, doguString := range dogus.Install {
-		dogu, err := getDoguByString(registry, doguString)
+		dogu, err := getDoguByString(ctx, repository, doguString)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +66,7 @@ func NewDoguStepGenerator(client kubernetes.Interface, clusterConfig *rest.Confi
 		doguList = append(doguList, dogu)
 	}
 
-	return &doguStepGenerator{Client: client, EcoSystemClient: ecoSystemClient, Dogus: &doguList, Registry: registry, namespace: namespace, components: components, componentClient: componentClient.Components(namespace)}, nil
+	return &doguStepGenerator{Client: client, EcoSystemClient: ecoSystemClient, Dogus: &doguList, Repository: repository, namespace: namespace, components: components, componentClient: componentClient.Components(namespace)}, nil
 }
 
 // GenerateSteps generates dogu installation steps for all configured dogus.
@@ -165,23 +170,53 @@ func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDepend
 	return steps
 }
 
-func getDoguByString(registry remote.Registry, doguString string) (*core.Dogu, error) {
+func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescriptorRepository, doguString string) (*core.Dogu, error) {
 	namespaceName, version, found := strings.Cut(doguString, ":")
 	if !found {
+		latest := &core.Dogu{}
+		doguName := cescommons.QualifiedDoguName{
+			Namespace:  cescommons.DoguNamespace(namespaceName),
+			SimpleName: cescommons.SimpleDoguName(""),
+		}
 		// get latest version
-		latest, err := registry.Get(namespaceName)
+		err := retry.OnError(maxTries, isConnectionError, func() error {
+			var err error
+			latest, err = repository.GetLatest(ctx, doguName)
+			return err
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", namespaceName, err)
 		}
 
 		return latest, nil
 	} else {
+		latest := &core.Dogu{}
+		doguName := cescommons.QualifiedDoguName{
+			Namespace:  cescommons.DoguNamespace(namespaceName),
+			SimpleName: cescommons.SimpleDoguName(""),
+		}
+		parsedVersion, err := core.ParseVersion(version)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse version: %s: %w", version, err)
+		}
+		doguVersion := cescommons.QualifiedDoguVersion{
+			Name:    doguName,
+			Version: parsedVersion,
+		}
 		// get specific version
-		latest, err := registry.GetVersion(namespaceName, version)
+		err = retry.OnError(maxTries, isConnectionError, func() error {
+			var err error
+			latest, err = repository.Get(ctx, doguVersion)
+			return err
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get version [%s] of dogu [%s]: %w", version, namespaceName, err)
 		}
 
 		return latest, nil
 	}
+}
+
+func isConnectionError(err error) bool {
+	return !strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
 }

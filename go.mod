@@ -3,19 +3,21 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.23.2
 
 require (
+	github.com/cloudogu/ces-commons-lib v0.0.0-20241025124828-7b1f6d570430
 	github.com/cloudogu/cesapp-lib v0.14.2
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.2.1
 	github.com/cloudogu/k8s-registry-lib v0.5.0
+	github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241025132346-14cd944b3b95
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
-	k8s.io/api v0.31.1
-	k8s.io/apimachinery v0.31.1
-	k8s.io/client-go v0.31.1
+	k8s.io/api v0.31.2
+	k8s.io/apimachinery v0.31.2
+	k8s.io/client-go v0.31.2
 	k8s.io/utils v0.0.0-20240821151609-f90d01438635
 	oras.land/oras-go v1.2.5
 	sigs.k8s.io/controller-runtime v0.19.0
