@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.0.1] - 2024-10-30
+### Fixed
+- [#108] Use newest cesapp-lib version (v0.14.3) to fix dogu sorting bug 
+
 ## [v3.0.0] - 2024-10-25
 ### Changed
 - [#105] **Breaking:** The name of the Secret for container credentials was renamed from `k8s-dogu-operator-docker-registry` to `ces-container-registries`.
