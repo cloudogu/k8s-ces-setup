@@ -2,6 +2,7 @@ package validation
 
 import (
 	ctx "context"
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
@@ -28,4 +29,8 @@ type DoguValidator interface {
 // RegistryConfigEncryptedValidator is used to validate the registry config encrypted section of the setup configuration
 type RegistryConfigEncryptedValidator interface {
 	ValidateRegistryConfigEncrypted(config *context.SetupJsonConfiguration) error
+}
+
+type remoteDoguDescriptorRepository interface {
+	cescommons.RemoteDoguDescriptorRepository
 }

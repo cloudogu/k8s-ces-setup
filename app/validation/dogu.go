@@ -5,7 +5,6 @@ import (
 	"fmt"
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	"github.com/cloudogu/k8s-ces-setup/app/retry"
-	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -128,11 +127,13 @@ func (dv *doguValidator) getDoguFromSelection(dogus []*core.Dogu, doguName strin
 
 func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) (*core.Dogu, error) {
 	namespacedName, version, found := strings.Cut(doguStr, ":")
+	namespace, name, _ := strings.Cut(namespacedName, "/")
 	var dogu *core.Dogu
 	var err error
 
 	qualifiedDoguName := cescommons.QualifiedDoguName{
-		SimpleName: cescommons.SimpleDoguName(namespacedName),
+		SimpleName: cescommons.SimpleDoguName(name),
+		Namespace:  cescommons.DoguNamespace(namespace),
 	}
 	if found {
 		v, vErr := core.ParseVersion(version)
@@ -149,7 +150,7 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 			return err
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", qualifiedDoguName, err)
+			return nil, fmt.Errorf("failed to get version of dogu [%s] [%s]: %w", qualifiedDoguName, v.Raw, err)
 		}
 	} else {
 		err := retry.OnError(maxTries, isConnectionError, func() error {
@@ -161,12 +162,9 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", qualifiedDoguName, err)
 		}
 	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dogu %s: %w", doguStr, err)
-	}
 
 	return dogu, nil
 }
 func isConnectionError(err error) bool {
-	return !strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
+	return strings.Contains(err.Error(), cescommons.ConnectionError.Error())
 }

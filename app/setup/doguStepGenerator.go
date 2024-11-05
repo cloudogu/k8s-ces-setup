@@ -172,11 +172,12 @@ func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDepend
 
 func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescriptorRepository, doguString string) (*core.Dogu, error) {
 	namespaceName, version, found := strings.Cut(doguString, ":")
+	namespace, name, _ := strings.Cut(namespaceName, "/")
 	if !found {
 		latest := &core.Dogu{}
 		doguName := cescommons.QualifiedDoguName{
-			Namespace:  cescommons.DoguNamespace(namespaceName),
-			SimpleName: cescommons.SimpleDoguName(""),
+			Namespace:  cescommons.DoguNamespace(namespace),
+			SimpleName: cescommons.SimpleDoguName(name),
 		}
 		// get latest version
 		err := retry.OnError(maxTries, isConnectionError, func() error {
@@ -192,8 +193,8 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 	} else {
 		latest := &core.Dogu{}
 		doguName := cescommons.QualifiedDoguName{
-			Namespace:  cescommons.DoguNamespace(namespaceName),
-			SimpleName: cescommons.SimpleDoguName(""),
+			Namespace:  cescommons.DoguNamespace(namespace),
+			SimpleName: cescommons.SimpleDoguName(name),
 		}
 		parsedVersion, err := core.ParseVersion(version)
 		if err != nil {
@@ -218,5 +219,5 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 }
 
 func isConnectionError(err error) bool {
-	return !strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
+	return strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
 }

@@ -7,7 +7,7 @@ require (
 	github.com/cloudogu/cesapp-lib v0.14.2
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
-	github.com/cloudogu/k8s-dogu-operator/v2 v2.2.1
+	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
 	github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241025132346-14cd944b3b95
 	github.com/gin-gonic/gin v1.9.1
