@@ -13,7 +13,7 @@ The automatic setup of a CES instance completely without further user interactio
 **Requirements for an unattended setup:**.
 1. dogu operator credentials is provided as Secrets.
     * [Dogu registry credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_dogu_registry_en.md)
-    * [Image-Instance credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_docker_registry_en.md)
+    * [Image-Instance credentials](https://github.com/cloudogu/k8s-dogu-operator/blob/develop/docs/operations/configuring_the_container_registry_en.md)
 2. component-operator-config is provided.
     * [Helm-Repository-credentials](../operations/installation_guide_en.md#deploy-setup)
     * [helmet-repository-config](../operations/installation_guide_en.md#deploy-setup)
