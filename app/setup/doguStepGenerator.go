@@ -6,7 +6,6 @@ import (
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	"github.com/cloudogu/k8s-ces-setup/app/retry"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
-	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"github.com/sirupsen/logrus"
 	"k8s.io/utils/strings/slices"
 	"strings"
@@ -39,7 +38,7 @@ type doguStepGenerator struct {
 	Client          kubernetes.Interface
 	EcoSystemClient ecoSystem.EcoSystemV2Interface
 	Dogus           *[]*core.Dogu
-	Repository      cescommons.RemoteDoguDescriptorRepository
+	Repository      remoteDoguDescriptorRepository
 	namespace       string
 	components      []string
 	componentClient componentEcoSystem.ComponentInterface
@@ -180,7 +179,7 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 			SimpleName: cescommons.SimpleDoguName(name),
 		}
 		// get latest version
-		err := retry.OnError(maxTries, isConnectionError, func() error {
+		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
 			var err error
 			latest, err = repository.GetLatest(ctx, doguName)
 			return err
@@ -205,7 +204,7 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 			Version: parsedVersion,
 		}
 		// get specific version
-		err = retry.OnError(maxTries, isConnectionError, func() error {
+		err = retry.OnError(maxTries, retry.IsConnectionError, func() error {
 			var err error
 			latest, err = repository.Get(ctx, doguVersion)
 			return err
@@ -216,8 +215,4 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 
 		return latest, nil
 	}
-}
-
-func isConnectionError(err error) bool {
-	return strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
 }

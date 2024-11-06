@@ -2,6 +2,8 @@ package retry
 
 import (
 	"fmt"
+	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
+	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -36,12 +38,6 @@ func OnError(maxTries int, retriable func(error) bool, workload func() error) er
 	return onError(maxTries, 3*time.Minute, retriable, workload)
 }
 
-// OnErrorWithLimit provides a K8s-way "retrier" mechanism with a time limit as option.
-func OnErrorWithLimit(limit time.Duration, retriable func(error) bool, workload func() error) error {
-	// Use a high integer here to avoid limit the cap with the steps.
-	return onError(9999999, limit, retriable, workload)
-}
-
 func onError(maxTries int, limit time.Duration, retriable func(error) bool, workload func() error) error {
 	err := retry.OnError(wait.Backoff{
 		Duration: 1500 * time.Millisecond,
@@ -57,13 +53,6 @@ func onError(maxTries int, limit time.Duration, retriable func(error) bool, work
 	return err
 }
 
-// OnConflict provides a K8s-way "retrier" mechanism to avoid conflicts on resource updates.
-func OnConflict(fn func() error) error {
-	return retry.RetryOnConflict(wait.Backoff{
-		Duration: 1500 * time.Millisecond,
-		Factor:   1.5,
-		Jitter:   0,
-		Steps:    9999,
-		Cap:      30 * time.Second,
-	}, fn)
+func IsConnectionError(err error) bool {
+	return strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
 }

@@ -9,8 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
@@ -18,12 +16,11 @@ import (
 var maxTries = 20
 
 type doguValidator struct {
-	secret     corev1.Secret
-	Repository cescommons.RemoteDoguDescriptorRepository
+	Repository remoteDoguDescriptorRepository
 }
 
 // NewDoguValidator creates a new validator for the dogu region of the setup configuration.
-func NewDoguValidator(repository cescommons.RemoteDoguDescriptorRepository) *doguValidator {
+func NewDoguValidator(repository remoteDoguDescriptorRepository) *doguValidator {
 	return &doguValidator{Repository: repository}
 }
 
@@ -144,7 +141,7 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 			Name:    qualifiedDoguName,
 			Version: v,
 		}
-		err := retry.OnError(maxTries, isConnectionError, func() error {
+		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
 			var err error
 			dogu, err = dv.Repository.Get(ctx, qualifiedDoguVersion)
 			return err
@@ -153,7 +150,7 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 			return nil, fmt.Errorf("failed to get version of dogu [%s] [%s]: %w", qualifiedDoguName, v.Raw, err)
 		}
 	} else {
-		err := retry.OnError(maxTries, isConnectionError, func() error {
+		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
 			var err error
 			dogu, err = dv.Repository.GetLatest(ctx, qualifiedDoguName)
 			return err
@@ -164,7 +161,4 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 	}
 
 	return dogu, nil
-}
-func isConnectionError(err error) bool {
-	return strings.Contains(err.Error(), cescommons.ConnectionError.Error())
 }
