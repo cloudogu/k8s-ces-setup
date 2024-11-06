@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [#111] Use newest cesapp-lib version (v0.14.4) to fix dogu sorting bug
 
 ## [v3.0.1] - 2024-10-30
 ### Fixed
