@@ -172,12 +172,12 @@ func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDepend
 func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescriptorRepository, doguString string) (*core.Dogu, error) {
 	namespaceName, version, found := strings.Cut(doguString, ":")
 	namespace, name, _ := strings.Cut(namespaceName, "/")
+	latest := &core.Dogu{}
+	doguName := cescommons.QualifiedDoguName{
+		Namespace:  cescommons.DoguNamespace(namespace),
+		SimpleName: cescommons.SimpleDoguName(name),
+	}
 	if !found {
-		latest := &core.Dogu{}
-		doguName := cescommons.QualifiedDoguName{
-			Namespace:  cescommons.DoguNamespace(namespace),
-			SimpleName: cescommons.SimpleDoguName(name),
-		}
 		// get latest version
 		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
 			var err error
@@ -190,11 +190,6 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 
 		return latest, nil
 	} else {
-		latest := &core.Dogu{}
-		doguName := cescommons.QualifiedDoguName{
-			Namespace:  cescommons.DoguNamespace(namespace),
-			SimpleName: cescommons.SimpleDoguName(name),
-		}
 		parsedVersion, err := core.ParseVersion(version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse version: %s: %w", version, err)

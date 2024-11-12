@@ -26,7 +26,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 
 		// when
-		_, err := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		_, err := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// then
 		require.Error(t, err)

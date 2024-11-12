@@ -1,9 +1,9 @@
 package retry
 
 import (
+	"errors"
 	"fmt"
 	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
-	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -54,5 +54,5 @@ func onError(maxTries int, limit time.Duration, retriable func(error) bool, work
 }
 
 func IsConnectionError(err error) bool {
-	return strings.Contains(err.Error(), remotedogudescriptor.ConnectionError.Error())
+	return errors.Is(err, remotedogudescriptor.ConnectionError)
 }
