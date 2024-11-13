@@ -39,13 +39,13 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		clusterConfig := &rest.Config{}
 		dogus := appcontext.Dogus{Install: []string{"official/ldap", "official/cas"}}
 
-		ldapQualifiedDoguName := cescommons.QualifiedDoguName{
+		ldapQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "ldap",
 		}
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedDoguName).Return(&core.Dogu{}, assert.AnError)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedName).Return(&core.Dogu{}, assert.AnError)
 
 		// when
 		_, err := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
@@ -64,8 +64,8 @@ func TestNewDoguStepGenerator(t *testing.T) {
 
 		ldapVersion, err := core.ParseVersion("1.2.3-4")
 		assert.NoError(t, err)
-		ldapQualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		ldapQualifiedVersion := cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
@@ -73,7 +73,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		}
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, ldapQualifiedDoguVersion).Return(&core.Dogu{}, assert.AnError)
+		remoteDoguRepo.EXPECT().Get(mock.Anything, ldapQualifiedVersion).Return(&core.Dogu{}, assert.AnError)
 
 		// when
 		_, err = NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
@@ -94,18 +94,18 @@ func TestNewDoguStepGenerator(t *testing.T) {
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 
-		ldapQualifiedDoguName := cescommons.QualifiedDoguName{
+		ldapQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "ldap",
 		}
 
-		casQualifiedDoguName := cescommons.QualifiedDoguName{
+		casQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "cas",
 		}
 
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedDoguName).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedDoguName).Return(doguCas, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedName).Return(doguLdap, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedName).Return(doguCas, nil)
 
 		// when
 		generator, err := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
@@ -131,25 +131,25 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 
-		ldapQualifiedDoguName := cescommons.QualifiedDoguName{
+		ldapQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "ldap",
 		}
 
-		casQualifiedDoguName := cescommons.QualifiedDoguName{
+		casQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "cas",
 		}
 
-		postgresQualifiedDoguName := cescommons.QualifiedDoguName{
+		postgresQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "postgres",
 		}
 
 		postfixVersion, err := core.ParseVersion("1.0.0-1")
 		assert.NoError(t, err)
-		postfixQualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		postfixQualifiedVersion := cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "postfix",
 			},
@@ -157,19 +157,19 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		}
 		redmineVersion, err := core.ParseVersion("10.0.0-5")
 		assert.NoError(t, err)
-		redmineQualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		redmineQualifiedVersion := cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "redmine",
 			},
 			Version: redmineVersion,
 		}
 
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedDoguName).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedDoguName).Return(doguCas, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedDoguName).Return(doguPostgres, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedDoguVersion).Return(doguPostfix, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedDoguVersion).Return(doguRedmine, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedName).Return(doguLdap, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedName).Return(doguCas, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedName).Return(doguPostgres, nil)
+		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedVersion).Return(doguPostfix, nil)
+		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedVersion).Return(doguRedmine, nil)
 		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
@@ -204,25 +204,25 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		doguRedmine := &core.Dogu{Name: "redmine", Version: "10.0.0-5", ServiceAccounts: []core.ServiceAccount{{Type: "postgres"}, {Type: "postfix"}}, Dependencies: []core.Dependency{{Type: "dogu", Name: "postgres"}, {Type: "dogu", Name: "postfix"}, {Type: "dogu", Name: "cas"}}}
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		ldapQualifiedDoguName := cescommons.QualifiedDoguName{
+		ldapQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "ldap",
 		}
 
-		casQualifiedDoguName := cescommons.QualifiedDoguName{
+		casQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "cas",
 		}
 
-		postgresQualifiedDoguName := cescommons.QualifiedDoguName{
+		postgresQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "postgres",
 		}
 
 		postfixVersion, err := core.ParseVersion("1.0.0-1")
 		assert.NoError(t, err)
-		postfixQualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		postfixQualifiedVersion := cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "postfix",
 			},
@@ -230,19 +230,19 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		}
 		redmineVersion, err := core.ParseVersion("10.0.0-5")
 		assert.NoError(t, err)
-		redmineQualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		redmineQualifiedVersion := cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "redmine",
 			},
 			Version: redmineVersion,
 		}
 
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedDoguName).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedDoguName).Return(doguCas, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedDoguName).Return(doguPostgres, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedDoguVersion).Return(doguPostfix, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedDoguVersion).Return(doguRedmine, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedName).Return(doguLdap, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedName).Return(doguCas, nil)
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedName).Return(doguPostgres, nil)
+		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedVersion).Return(doguPostfix, nil)
+		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedVersion).Return(doguRedmine, nil)
 		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
@@ -270,11 +270,11 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		doguCas := &core.Dogu{Name: "cas", Version: "6.5.4-2", ServiceAccounts: []core.ServiceAccount{{Type: "ldap"}}, OptionalDependencies: []core.Dependency{{Type: "dogu", Name: "ldap"}}}
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		casQualifiedDoguName := cescommons.QualifiedDoguName{
+		casQualifiedName := cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "cas",
 		}
-		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), casQualifiedDoguName).Return(doguCas, nil)
+		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), casQualifiedName).Return(doguCas, nil)
 
 		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
@@ -295,11 +295,11 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		doguGrafana := &core.Dogu{Name: "grafana", Version: "1.0.0-1", ServiceAccounts: []core.ServiceAccount{{Type: "k8s-prometheus", Kind: "component"}}, OptionalDependencies: []core.Dependency{{Type: "component", Name: "k8s-prometheus"}}}
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		grafanaQualifiedDoguName := cescommons.QualifiedDoguName{
+		grafanaQualifiedName := cescommons.QualifiedName{
 			Namespace:  "premium",
 			SimpleName: "grafana",
 		}
-		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), grafanaQualifiedDoguName).Return(doguGrafana, nil)
+		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), grafanaQualifiedName).Return(doguGrafana, nil)
 		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when

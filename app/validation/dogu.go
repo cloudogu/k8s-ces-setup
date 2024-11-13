@@ -4,7 +4,8 @@ import (
 	ctx "context"
 	"fmt"
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
-	"github.com/cloudogu/k8s-ces-setup/app/retry"
+	cloudoguerrors "github.com/cloudogu/ces-commons-lib/errors"
+	"github.com/cloudogu/retry-lib/retry"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -128,35 +129,35 @@ func (dv *doguValidator) getDoguFromVersionStr(ctx ctx.Context, doguStr string) 
 	var dogu *core.Dogu
 	var err error
 
-	qualifiedDoguName := cescommons.QualifiedDoguName{
-		SimpleName: cescommons.SimpleDoguName(name),
-		Namespace:  cescommons.DoguNamespace(namespace),
+	QualifiedName := cescommons.QualifiedName{
+		SimpleName: cescommons.SimpleName(name),
+		Namespace:  cescommons.Namespace(namespace),
 	}
 	if found {
 		v, vErr := core.ParseVersion(version)
 		if vErr != nil {
 			return nil, fmt.Errorf("failed to parse dogu version %s: %w", version, err)
 		}
-		qualifiedDoguVersion := cescommons.QualifiedDoguVersion{
-			Name:    qualifiedDoguName,
+		QualifiedVersion := cescommons.QualifiedVersion{
+			Name:    QualifiedName,
 			Version: v,
 		}
-		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
+		err := retry.OnError(maxTries, cloudoguerrors.IsConnectionError, func() error {
 			var err error
-			dogu, err = dv.Repository.Get(ctx, qualifiedDoguVersion)
+			dogu, err = dv.Repository.Get(ctx, QualifiedVersion)
 			return err
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to get version of dogu [%s] [%s]: %w", qualifiedDoguName, v.Raw, err)
+			return nil, fmt.Errorf("failed to get version of dogu [%s] [%s]: %w", QualifiedName, v.Raw, err)
 		}
 	} else {
-		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
+		err := retry.OnError(maxTries, cloudoguerrors.IsConnectionError, func() error {
 			var err error
-			dogu, err = dv.Repository.GetLatest(ctx, qualifiedDoguName)
+			dogu, err = dv.Repository.GetLatest(ctx, QualifiedName)
 			return err
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", qualifiedDoguName, err)
+			return nil, fmt.Errorf("failed to get latest version of dogu [%s]: %w", QualifiedName, err)
 		}
 	}
 

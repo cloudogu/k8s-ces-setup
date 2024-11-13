@@ -65,6 +65,10 @@ github.com/chenzhuoyu/iasm v0.9.0 h1:9fhXjVzq5hUy2gkhhgHl95zG2cEAhw9OSGs8toWWAwo
 github.com/chenzhuoyu/iasm v0.9.0/go.mod h1:Xjy2NpN3h7aUqeqM+woSuuvxmIe6+DDsiNLIrkAmYog=
 github.com/cloudogu/ces-commons-lib v0.0.0-20241025124828-7b1f6d570430 h1:Fvj5FPko2yXdKPUhZY+W0hElChAVKpxcikHGEcutnXY=
 github.com/cloudogu/ces-commons-lib v0.0.0-20241025124828-7b1f6d570430/go.mod h1:Ka1+otHzmNllo/Am+T/tTYfOFtQUYMT1vr7GIz3n1Eo=
+github.com/cloudogu/ces-commons-lib v0.0.0-20241111150738-d173c9acc4ae h1:h/6MJEgy+SkNs6m+vXXzCQBhsYK6QTQYRKYYLiMI6Pw=
+github.com/cloudogu/ces-commons-lib v0.0.0-20241111150738-d173c9acc4ae/go.mod h1:Ldi/dVhgrZfsPkB2zaXs8IoT7ExhWvS36vcwx1ems2I=
+github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db h1:PSaAXKQYc1OufKznP3/Sm2UY5QylgNxura6kV6zKXwg=
+github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db/go.mod h1:Ldi/dVhgrZfsPkB2zaXs8IoT7ExhWvS36vcwx1ems2I=
 github.com/cloudogu/cesapp-lib v0.0.0-20241018080030-ce0f66e55342 h1:R9lQwLtLptZh3W+jwWs9BLihAMHaPD65TF89uccZtBc=
 github.com/cloudogu/cesapp-lib v0.0.0-20241018080030-ce0f66e55342/go.mod h1:52PfkrFYg54FjF8Se8P9b1zOfAhmg3PBFKr7YfS+Q+8=
 github.com/cloudogu/cesapp-lib v0.14.2 h1:AtRsQbS31d71DY7DXUhzwO07ZFI0Gz2+IHOhyeJdBhc=
@@ -85,6 +89,14 @@ github.com/cloudogu/k8s-registry-lib v0.5.0 h1:mdo8+0cSLicCNyymc8GbTl8ku5sMGA3IR
 github.com/cloudogu/k8s-registry-lib v0.5.0/go.mod h1:OHIrWCAOcc4nlmBK8G+vdHHJ8vo5QQvKCKIGTiFwYBo=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241025132346-14cd944b3b95 h1:G+0raIoYfl2P30yCTieVkxUz3wh895+Tn1eOWergoqM=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241025132346-14cd944b3b95/go.mod h1:2UqQgM1DrqfhHoGYj0cErfGD9fRlngfCJjMK7j4nop0=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113103735-6765685099f0 h1:vKFL0jmjQMo0ANUVsOUYo0ojb0+X0jYrNck+5D4NrH0=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113103735-6765685099f0/go.mod h1:kXHuvgV8bxzlZI6pwQCNIAPid5Cne7axpa8/tRfrYw4=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113144508-e7ec220346ae h1:If0rR803Z5acPno7AG3IZPYdVx6UqUhyjiaHKcMvEko=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113144508-e7ec220346ae/go.mod h1:kXHuvgV8bxzlZI6pwQCNIAPid5Cne7axpa8/tRfrYw4=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7 h1:UfYv6JaUD8Zis3L6f1ANXXb5yokLACsFuDOnOUmKBfE=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7/go.mod h1:ufhIwXRU9GR276V0fQZmSXPWhN5yWTZA43g8DZ/Ut9M=
+github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880 h1:X/Ha/EqO7LtE8ketTyPQcSxFZPQ6/BVxADwKcDY0kpU=
+github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880/go.mod h1:iG9y6zx8oJZT5ULtl9koZkYJLRsqam/2mTU+rgjxQ0g=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/containerd/cgroups v1.1.0 h1:v8rEWFl6EoqHB+swVNjVoCJE8o3jX7e8nqBGPLaDFBM=
 github.com/containerd/cgroups/v3 v3.0.3 h1:S5ByHZ/h9PMe5IOQoN7E+nMc2UcLEM/V48DGDJ9kip0=

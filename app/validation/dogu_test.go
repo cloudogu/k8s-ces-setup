@@ -60,28 +60,28 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		ldapVersion, _ := core.ParseVersion("1.1.1-2")
 		casVersion, _ := core.ParseVersion("2.0.0-3")
 		redmineVersion, _ := core.ParseVersion("3.1.2-1")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
 			Version: ldapVersion,
 		}).Return(ldapDogu, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},
 			Version: casVersion,
 		}).Return(casDogu, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "redmine",
 			},
 			Version: redmineVersion,
 		}).Return(redmineDogu, nil)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "postfix",
 		}).Return(postfixDogu, nil)
@@ -126,29 +126,29 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		casVersion, _ := core.ParseVersion("2.0.0-3")
 		redmineVersion, _ := core.ParseVersion("3.1.2-1")
 		postfixVersion, _ := core.ParseVersion("0.0.1-1")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
 			Version: ldapVersion,
 		}).Return(ldapDogu, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},
 			Version: casVersion,
 		}).Return(casDogu, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "redmine",
 			},
 			Version: redmineVersion,
 		}).Return(redmineDogu, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "postfix",
 			},
@@ -174,8 +174,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 
 		ldapVersion, _ := core.ParseVersion("1.1.1-2")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
@@ -188,7 +188,7 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to get version of dogu [{ldap official}] [1.1.1-2]")
+		assert.Contains(t, err.Error(), "failed to get version of dogu [official/ldap] [1.1.1-2]")
 		mock.AssertExpectationsForObjects(t, remoteDoguRepo)
 	})
 
@@ -198,7 +198,7 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		doguList := []string{doguA}
 		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
-		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, cescommons.QualifiedName{
 			Namespace:  "official",
 			SimpleName: "ldap",
 		}).Return(&core.Dogu{}, assert.AnError)
@@ -210,7 +210,7 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to get latest version of dogu [{ldap official}]")
+		assert.Contains(t, err.Error(), "failed to get latest version of dogu [official/ldap]")
 		mock.AssertExpectationsForObjects(t, remoteDoguRepo)
 	})
 
@@ -243,8 +243,8 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		dogus := context.Dogus{Install: doguList, DefaultDogu: "cas"}
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 		casVersion, _ := core.ParseVersion("2.0.0-3")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},
@@ -279,15 +279,15 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 		ldapVersion, _ := core.ParseVersion("1.1.1-1")
 		casVersion, _ := core.ParseVersion("1.1.1-1")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
 			Version: ldapVersion,
 		}).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},
@@ -322,15 +322,15 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 		ldapVersion, _ := core.ParseVersion("1.1.1-1")
 		casVersion, _ := core.ParseVersion("1.1.1-1")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
 			Version: ldapVersion,
 		}).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},
@@ -365,15 +365,15 @@ func Test_doguValidator_ValidateDogus(t *testing.T) {
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 		ldapVersion, _ := core.ParseVersion("1.1.1-1")
 		casVersion, _ := core.ParseVersion("1.1.1-1")
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "ldap",
 			},
 			Version: ldapVersion,
 		}).Return(doguLdap, nil)
-		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedDoguVersion{
-			Name: cescommons.QualifiedDoguName{
+		remoteDoguRepo.EXPECT().Get(mock.Anything, cescommons.QualifiedVersion{
+			Name: cescommons.QualifiedName{
 				Namespace:  "official",
 				SimpleName: "cas",
 			},

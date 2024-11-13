@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
-	"github.com/cloudogu/k8s-ces-setup/app/retry"
+	cloudoguerrors "github.com/cloudogu/ces-commons-lib/errors"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
+	"github.com/cloudogu/retry-lib/retry"
 	"github.com/sirupsen/logrus"
 	"k8s.io/utils/strings/slices"
 	"strings"
@@ -172,14 +173,17 @@ func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDepend
 func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescriptorRepository, doguString string) (*core.Dogu, error) {
 	namespaceName, version, found := strings.Cut(doguString, ":")
 	namespace, name, _ := strings.Cut(namespaceName, "/")
+	logrus.Errorf(fmt.Sprintf("namespace: %s", namespace))
+	logrus.Errorf(fmt.Sprintf("name: %s", name))
 	latest := &core.Dogu{}
-	doguName := cescommons.QualifiedDoguName{
-		Namespace:  cescommons.DoguNamespace(namespace),
-		SimpleName: cescommons.SimpleDoguName(name),
+	doguName := cescommons.QualifiedName{
+		Namespace:  cescommons.Namespace(namespace),
+		SimpleName: cescommons.SimpleName(name),
 	}
+	logrus.Infof(fmt.Sprintf("doguName: %s", doguName.String()))
 	if !found {
 		// get latest version
-		err := retry.OnError(maxTries, retry.IsConnectionError, func() error {
+		err := retry.OnError(maxTries, cloudoguerrors.IsConnectionError, func() error {
 			var err error
 			latest, err = repository.GetLatest(ctx, doguName)
 			return err
@@ -194,12 +198,12 @@ func getDoguByString(ctx context.Context, repository cescommons.RemoteDoguDescri
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse version: %s: %w", version, err)
 		}
-		doguVersion := cescommons.QualifiedDoguVersion{
+		doguVersion := cescommons.QualifiedVersion{
 			Name:    doguName,
 			Version: parsedVersion,
 		}
 		// get specific version
-		err = retry.OnError(maxTries, retry.IsConnectionError, func() error {
+		err = retry.OnError(maxTries, cloudoguerrors.IsConnectionError, func() error {
 			var err error
 			latest, err = repository.Get(ctx, doguVersion)
 			return err

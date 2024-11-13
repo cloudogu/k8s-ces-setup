@@ -3,13 +3,13 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.23.2
 
 require (
+	github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db
 	github.com/cloudogu/cesapp-lib v0.14.4
-	github.com/cloudogu/ces-commons-lib v0.0.0-20241025124828-7b1f6d570430
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
-	github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241025132346-14cd944b3b95
+	github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -45,6 +45,7 @@ require (
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880 // indirect
 	github.com/containerd/containerd v1.7.15 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.3.1 // indirect
