@@ -23,10 +23,6 @@ const (
 	serviceAccountKindComponent = "component"
 )
 
-const (
-	v1LabelDogu = "dogu.name"
-)
-
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
 // and waiting for the dependencies before doing so.
 type doguStepGenerator struct {
@@ -138,13 +134,13 @@ func isOptionalServiceAccount(dogu *core.Dogu, serviceAccount core.ServiceAccoun
 }
 
 func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
-	labelSelector := fmt.Sprintf("%s=%s", v1LabelDogu, serviceAccountDependency.Type)
+	labelSelector := dogus.CreateDoguLabelSelector(serviceAccountDependency.Type)
 
 	if waitList[labelSelector] {
 		return steps
 	}
 
-	waitForDependencyStep := dogus.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, dogus.PodTimeoutInSeconds())
+	waitForDependencyStep := dogus.NewWaitForDoguStep(dsg.EcoSystemClient.Dogus(dsg.namespace), serviceAccountDependency.Type, dsg.namespace, dogus.DoguTimeoutInSeconds())
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 
