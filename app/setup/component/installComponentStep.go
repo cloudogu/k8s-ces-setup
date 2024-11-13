@@ -3,16 +3,11 @@ package component
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
-
-type componentsClient interface {
-	ecosystem.ComponentInterface
-}
 
 type installComponentStep struct {
 	client              componentsClient
