@@ -43,7 +43,7 @@ func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
 	return wfcs.isComponentReady(ctx)
 }
 
-// isComponentReady does a watch on a component and returns nil if the component is installed
+// isComponentStatusReady does a watch on a component and returns nil if the component is installed
 func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 	var get *v1.Component
 	err := retry.OnError(retry.DefaultBackoff, errors.IsNotFound, func() error {
@@ -60,7 +60,7 @@ func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 		return err
 	}
 
-	if isComponentReady(get) {
+	if isComponentStatusReady(get) {
 		return nil
 	}
 
@@ -109,10 +109,10 @@ func (crw componentReadyWatcher) checkComponentStatus(event watch.Event) (bool, 
 	case watch.Added, watch.Modified:
 		component, ok := event.Object.(*v1.Component)
 		if !ok {
-			logrus.Errorf("failed to cast event to component: selector=[%s] type=[%s]; object=[%+v]", crw.labelSelector, event.Type, event.Object)
+			logrus.Errorf("failed to cast event object to component: selector=[%s] type=[%s]; object=[%+v]", crw.labelSelector, event.Type, event.Object)
 			return false, nil
 		}
-		if isComponentReady(component) {
+		if isComponentStatusReady(component) {
 			return true, nil
 		}
 		return false, nil
@@ -123,7 +123,7 @@ func (crw componentReadyWatcher) checkComponentStatus(event watch.Event) (bool, 
 	}
 }
 
-func isComponentReady(component *v1.Component) bool {
+func isComponentStatusReady(component *v1.Component) bool {
 	if component.Status.Status == v1.ComponentStatusInstalled && component.Status.Health == v1.AvailableHealthStatus {
 		logrus.Infof("component %q is installed and available", component.Spec.Name)
 		return true
