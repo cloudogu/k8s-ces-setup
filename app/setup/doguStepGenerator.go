@@ -24,8 +24,7 @@ const (
 )
 
 const (
-	v1LabelDogu         = "dogu.name"
-	v1LabelK8sComponent = "app.kubernetes.io/name"
+	v1LabelDogu = "dogu.name"
 )
 
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
@@ -153,12 +152,12 @@ func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency cor
 }
 
 func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
-	labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, serviceAccountDependency.Type)
+	labelSelector := component.CreateComponentLabelSelector(serviceAccountDependency.Type)
 	if waitList[labelSelector] {
 		return steps
 	}
 
-	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, labelSelector, dsg.namespace)
+	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, serviceAccountDependency.Type, dsg.namespace)
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 
