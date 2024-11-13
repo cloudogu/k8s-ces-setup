@@ -160,10 +160,10 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		assert.Equal(t, "Installing dogu [postfix]", doguSteps[1].GetStepDescription())
 		assert.Equal(t, "Wait for pod with selector dogu.name=ldap to be ready", doguSteps[2].GetStepDescription())
 		assert.Equal(t, "Installing dogu [cas]", doguSteps[3].GetStepDescription())
-		assert.Equal(t, "Wait for pod with selector dogu.name=cas to be ready", doguSteps[4].GetStepDescription())
+		assert.Equal(t, "Wait for dogu with selector dogu.name=cas to be ready", doguSteps[4].GetStepDescription())
 		assert.Equal(t, "Installing dogu [postgres]", doguSteps[5].GetStepDescription())
-		assert.Equal(t, "Wait for pod with selector dogu.name=postgres to be ready", doguSteps[6].GetStepDescription())
-		assert.Equal(t, "Wait for pod with selector dogu.name=postfix to be ready", doguSteps[7].GetStepDescription())
+		assert.Equal(t, "Wait for dogu with selector dogu.name=postgres to be ready", doguSteps[6].GetStepDescription())
+		assert.Equal(t, "Wait for dogu with selector dogu.name=postfix to be ready", doguSteps[7].GetStepDescription())
 		assert.Equal(t, "Installing dogu [redmine]", doguSteps[8].GetStepDescription())
 	})
 
@@ -230,8 +230,8 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 		// then
 		assert.NotNil(t, actualSteps)
 		assert.Len(t, actualSteps, 2)
-		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
-		assert.Contains(t, "Wait for pod with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
+		assert.Contains(t, "Wait for dogu with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+		assert.Contains(t, "Wait for dogu with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
 	})
 	t.Run("generates wait step to wait for dogus (explicit kind)", func(t *testing.T) {
 		// given
@@ -253,8 +253,8 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 		// then
 		assert.NotNil(t, actualSteps)
 		assert.Len(t, actualSteps, 2)
-		assert.Contains(t, "Wait for pod with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
-		assert.Contains(t, "Wait for pod with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
+		assert.Contains(t, "Wait for dogu with selector dogu.name=your-most-favorite to be ready", actualSteps[0].GetStepDescription())
+		assert.Contains(t, "Wait for dogu with selector dogu.name=postfix to be ready", actualSteps[1].GetStepDescription())
 	})
 	t.Run("does not generate wait step because there is already a similar waiting step", func(t *testing.T) {
 		// given
