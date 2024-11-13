@@ -6,7 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 	"net/http"
 	"testing"
@@ -154,6 +156,25 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError)
+
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+
+		// when
+		err := step.PerformSetupStep(testCtx)
+
+		// then
+		require.Error(t, err)
+		require.ErrorIs(t, err, assert.AnError)
+		require.ErrorContains(t, err, "failed to get initial component cr \"k8s-ces-control\"", testComponentName)
+	})
+
+	t.Run("should retry getting the initial resource version on not found error", func(t *testing.T) {
+		// given
+		testCtx = context.Background()
+
+		componentsClientMock := newMockComponentsClient(t)
+		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Times(1)
+		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError).Times(1)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
 

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	retrywatch "k8s.io/client-go/tools/watch"
+	"k8s.io/client-go/util/retry"
 )
 
 const (
@@ -43,9 +45,19 @@ func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
 
 // isComponentReady does a watch on a component and returns nil if the component is installed
 func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
-	get, getErr := wfcs.client.Get(ctx, wfcs.componentName, metav1.GetOptions{})
-	if getErr != nil {
-		return fmt.Errorf("failed to get initial component cr %q: %w", wfcs.componentName, getErr)
+	var get *v1.Component
+	err := retry.OnError(retry.DefaultBackoff, errors.IsNotFound, func() error {
+		var getErr error
+		get, getErr = wfcs.client.Get(ctx, wfcs.componentName, metav1.GetOptions{})
+		if getErr != nil && !errors.IsNotFound(getErr) {
+			return fmt.Errorf("failed to get initial component cr %q: %w", wfcs.componentName, getErr)
+		}
+
+		return getErr
+	})
+
+	if err != nil {
+		return err
 	}
 
 	if isComponentReady(get) {
@@ -53,7 +65,7 @@ func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 	}
 
 	watcher := componentReadyWatcher{client: wfcs.client, componentName: wfcs.componentName, labelSelector: wfcs.labelSelector}
-	_, err := retrywatch.Until(ctx, get.ResourceVersion, watcher, watcher.checkComponentStatus)
+	_, err = retrywatch.Until(ctx, get.ResourceVersion, watcher, watcher.checkComponentStatus)
 	if err != nil {
 		return fmt.Errorf("failed to wait for component with label %q with retry watch: %w", wfcs.labelSelector, err)
 	}
