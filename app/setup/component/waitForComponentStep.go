@@ -48,6 +48,10 @@ func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 		return fmt.Errorf("failed to get initial component cr %q: %w", wfcs.componentName, getErr)
 	}
 
+	if isComponentReady(get) {
+		return nil
+	}
+
 	watcher := componentReadyWatcher{client: wfcs.client, componentName: wfcs.componentName, labelSelector: wfcs.labelSelector}
 	_, err := retrywatch.Until(ctx, get.ResourceVersion, watcher, watcher.checkComponentStatus)
 	if err != nil {
@@ -96,11 +100,8 @@ func (crw componentReadyWatcher) checkComponentStatus(event watch.Event) (bool, 
 			logrus.Errorf("failed to cast event to component: selector=[%s] type=[%s]; object=[%+v]", crw.labelSelector, event.Type, event.Object)
 			return false, nil
 		}
-		if component.Status.Status == v1.ComponentStatusInstalled && component.Status.Health == v1.AvailableHealthStatus {
-			logrus.Infof("component %q is installed and available", crw.componentName)
+		if isComponentReady(component) {
 			return true, nil
-		} else {
-			logrus.Debugf("component %q is still not installed and available", crw.componentName)
 		}
 		return false, nil
 	case watch.Deleted:
@@ -108,6 +109,15 @@ func (crw componentReadyWatcher) checkComponentStatus(event watch.Event) (bool, 
 	default:
 		return false, nil
 	}
+}
+
+func isComponentReady(component *v1.Component) bool {
+	if component.Status.Status == v1.ComponentStatusInstalled && component.Status.Health == v1.AvailableHealthStatus {
+		logrus.Infof("component %q is installed and available", component.Spec.Name)
+		return true
+	}
+	logrus.Debugf("component %q is not installed and not available", component.Spec.Name)
+	return false
 }
 
 func CreateComponentLabelSelector(name string) string {

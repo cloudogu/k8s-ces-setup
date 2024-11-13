@@ -55,6 +55,22 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 	testComponent := &v1.Component{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app.kubernetes.io/name": testComponentName}, Name: testComponentName, Namespace: testNamespace, ResourceVersion: testStartResourceVersion}}
 	installedComponent := &v1.Component{ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app.kubernetes.io/name": testComponentName}, Name: testComponentName, Namespace: testNamespace, ResourceVersion: testEndResourceVersion}, Status: v1.ComponentStatus{Status: v1.ComponentStatusInstalled, Health: v1.AvailableHealthStatus}}
 
+	t.Run("should not start watch if the component is already ready", func(t *testing.T) {
+		// given
+		testCtx = context.Background()
+
+		componentsClientMock := newMockComponentsClient(t)
+		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(installedComponent, nil)
+
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+
+		// when
+		err := step.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+	})
+
 	t.Run("should successfully end watch on modified event with ready component", func(t *testing.T) {
 		// given
 		testCtx = context.Background()
