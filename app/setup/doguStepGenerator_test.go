@@ -48,12 +48,12 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, ldapQualifiedName).Return(&core.Dogu{}, assert.AnError)
 
 		// when
-		_, err := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		_, err := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// then
 		require.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
-		assert.ErrorContains(t, err, "failed to get latest version of dogu [official/ldap]")
+		assert.ErrorContains(t, err, "failed to get dogu [official/ldap]")
 	})
 
 	t.Run("creating new generator fails by retrieving versioned dogu from registry", func(t *testing.T) {
@@ -74,14 +74,13 @@ func TestNewDoguStepGenerator(t *testing.T) {
 
 		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 		remoteDoguRepo.EXPECT().Get(mock.Anything, ldapQualifiedVersion).Return(&core.Dogu{}, assert.AnError)
-
 		// when
-		_, err = NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		_, err = NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// then
 		require.Error(t, err)
 		assert.ErrorIs(t, err, assert.AnError)
-		assert.ErrorContains(t, err, "failed to get version [1.2.3-4] of dogu [official/ldap]")
+		assert.ErrorContains(t, err, "failed to get dogu [official/ldap]")
 	})
 
 	t.Run("create new generator", func(t *testing.T) {
@@ -108,7 +107,7 @@ func TestNewDoguStepGenerator(t *testing.T) {
 		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, casQualifiedName).Return(doguCas, nil)
 
 		// when
-		generator, err := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		generator, err := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// then
 		require.NoError(t, err)
@@ -170,7 +169,7 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedName).Return(doguPostgres, nil)
 		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedVersion).Return(doguPostfix, nil)
 		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedVersion).Return(doguRedmine, nil)
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
 		doguSteps, _ := generator.GenerateSteps()
@@ -243,7 +242,7 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 		remoteDoguRepo.EXPECT().GetLatest(mock.Anything, postgresQualifiedName).Return(doguPostgres, nil)
 		remoteDoguRepo.EXPECT().Get(mock.Anything, postfixQualifiedVersion).Return(doguPostfix, nil)
 		remoteDoguRepo.EXPECT().Get(mock.Anything, redmineQualifiedVersion).Return(doguRedmine, nil)
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
 		doguSteps, _ := generator.GenerateSteps()
@@ -274,9 +273,9 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 			Namespace:  "official",
 			SimpleName: "cas",
 		}
-		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), casQualifiedName).Return(doguCas, nil)
+		remoteDoguRepo.EXPECT().GetLatest(testCtx, casQualifiedName).Return(doguCas, nil)
 
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
 		doguSteps, _ := generator.GenerateSteps()
@@ -299,8 +298,8 @@ func Test_doguStepGenerator_GenerateSteps(t *testing.T) {
 			Namespace:  "premium",
 			SimpleName: "grafana",
 		}
-		remoteDoguRepo.EXPECT().GetLatest(context.TODO(), grafanaQualifiedName).Return(doguGrafana, nil)
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
+		remoteDoguRepo.EXPECT().GetLatest(testCtx, grafanaQualifiedName).Return(doguGrafana, nil)
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, remoteDoguRepo, "mynamespace", []string{})
 
 		// when
 		doguSteps, _ := generator.GenerateSteps()
@@ -324,7 +323,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 			Type: "postfix",
 			Kind: "",
 		}
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, nil, "ns", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, nil, "ns", []string{})
 		waitList := map[string]bool{"dogu.name=ldap": true}
 		allStepsTillNow := []ExecutorStep{singleFakeStep}
 
@@ -347,7 +346,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 			Type: "postfix",
 			Kind: "dogu",
 		}
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, nil, "ns", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, nil, "ns", []string{})
 		waitList := map[string]bool{"dogu.name=ldap": true}
 		allStepsTillNow := []ExecutorStep{singleFakeStep}
 
@@ -370,7 +369,7 @@ func Test_doguStepGenerator_createWaitStepForDogu(t *testing.T) {
 			Type: "postfix",
 			Kind: "",
 		}
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, nil, "ns", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, nil, "ns", []string{})
 		waitList := map[string]bool{"dogu.name=postfix": true}
 		allStepsTillNow := []ExecutorStep{singleFakeStep}
 
@@ -396,7 +395,7 @@ func Test_doguStepGenerator_createWaitStepForK8sComponent(t *testing.T) {
 			Type: "k8s-dogu-operator",
 			Kind: "k8s",
 		}
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, nil, "ns", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, nil, "ns", []string{})
 		waitList := map[string]bool{"dogu.name=ldap": true}
 		allStepsTillNow := []ExecutorStep{singleFakeStep}
 
@@ -419,7 +418,7 @@ func Test_doguStepGenerator_createWaitStepForK8sComponent(t *testing.T) {
 			Type: "k8s-dogu-operator",
 			Kind: "k8s",
 		}
-		generator, _ := NewDoguStepGenerator(context.TODO(), clientMock, clusterConfig, dogus, nil, "ns", []string{})
+		generator, _ := NewDoguStepGenerator(testCtx, clientMock, clusterConfig, dogus, nil, "ns", []string{})
 		waitList := map[string]bool{"app.kubernetes.io/name=k8s-dogu-operator": true}
 		allStepsTillNow := []ExecutorStep{singleFakeStep}
 
