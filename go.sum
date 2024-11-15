@@ -69,6 +69,8 @@ github.com/cloudogu/ces-commons-lib v0.0.0-20241111150738-d173c9acc4ae h1:h/6MJE
 github.com/cloudogu/ces-commons-lib v0.0.0-20241111150738-d173c9acc4ae/go.mod h1:Ldi/dVhgrZfsPkB2zaXs8IoT7ExhWvS36vcwx1ems2I=
 github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db h1:PSaAXKQYc1OufKznP3/Sm2UY5QylgNxura6kV6zKXwg=
 github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db/go.mod h1:Ldi/dVhgrZfsPkB2zaXs8IoT7ExhWvS36vcwx1ems2I=
+github.com/cloudogu/ces-commons-lib v0.1.0 h1:4ccgKDlt08Kxsk1V5Ch6poPCUagrO415XFYRAKwPxPo=
+github.com/cloudogu/ces-commons-lib v0.1.0/go.mod h1:4rvR2RTDDaz5a6OZ1fW27G0MOnl5I3ackeiHxt4gn3o=
 github.com/cloudogu/cesapp-lib v0.0.0-20241018080030-ce0f66e55342 h1:R9lQwLtLptZh3W+jwWs9BLihAMHaPD65TF89uccZtBc=
 github.com/cloudogu/cesapp-lib v0.0.0-20241018080030-ce0f66e55342/go.mod h1:52PfkrFYg54FjF8Se8P9b1zOfAhmg3PBFKr7YfS+Q+8=
 github.com/cloudogu/cesapp-lib v0.14.2 h1:AtRsQbS31d71DY7DXUhzwO07ZFI0Gz2+IHOhyeJdBhc=
@@ -99,6 +101,8 @@ github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7/go.mod h1:ufhIwXRU9GR276V0fQZmSXPWhN5yWTZA43g8DZ/Ut9M=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241114145028-67b85e3f3b51 h1:fafhP9EdnnRDgUwBfprTdC7C1Ammack2ma0WzJV6PnQ=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241114145028-67b85e3f3b51/go.mod h1:sxQFM1v+w/gWDLr7IW4RIYB13lyGzdNibNK/68wvyK0=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.1.0 h1:N2Q07Q0G2kUpyAP3rfgFk37twwJ8gQRkKZ1txYu9SxU=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.1.0/go.mod h1:AGZ3bihl/sUUJ6iEtcxtALIt/UlkfUdK7HXJ6DtBivE=
 github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880 h1:X/Ha/EqO7LtE8ketTyPQcSxFZPQ6/BVxADwKcDY0kpU=
 github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880/go.mod h1:iG9y6zx8oJZT5ULtl9koZkYJLRsqam/2mTU+rgjxQ0g=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=

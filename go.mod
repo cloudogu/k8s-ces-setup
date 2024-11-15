@@ -3,13 +3,13 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.23.2
 
 require (
-	github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db
+	github.com/cloudogu/ces-commons-lib v0.1.0
 	github.com/cloudogu/cesapp-lib v0.15.0
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
-	github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241114145028-67b85e3f3b51
+	github.com/cloudogu/remote-dogu-descriptor-lib v0.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
