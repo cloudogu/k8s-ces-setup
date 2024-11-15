@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/cloudogu/ces-commons-lib v0.0.0-20241113093231-55d3fef793db
-	github.com/cloudogu/cesapp-lib v0.14.4
+	github.com/cloudogu/cesapp-lib v0.15.0
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0

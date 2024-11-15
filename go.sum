@@ -77,6 +77,8 @@ github.com/cloudogu/cesapp-lib v0.14.3 h1:2AuDexSJ5puas6+u/auLa5FZTUY4qsaWXRlPbx
 github.com/cloudogu/cesapp-lib v0.14.3/go.mod h1:52PfkrFYg54FjF8Se8P9b1zOfAhmg3PBFKr7YfS+Q+8=
 github.com/cloudogu/cesapp-lib v0.14.4 h1:H85532pT6ww6zLnOmOyfT2DBx9NyliFoEe+4xzynVMs=
 github.com/cloudogu/cesapp-lib v0.14.4/go.mod h1:52PfkrFYg54FjF8Se8P9b1zOfAhmg3PBFKr7YfS+Q+8=
+github.com/cloudogu/cesapp-lib v0.15.0 h1:5jcf3A0LQ2DUjoiLWMv1V/rHmV6m3u+8cYZiuvGLaSM=
+github.com/cloudogu/cesapp-lib v0.15.0/go.mod h1:52PfkrFYg54FjF8Se8P9b1zOfAhmg3PBFKr7YfS+Q+8=
 github.com/cloudogu/k8s-apply-lib v0.5.0 h1:XeQKwTgT8FIozpqyPO/b09LAenPswBilmatw/+1L4fI=
 github.com/cloudogu/k8s-apply-lib v0.5.0/go.mod h1:jR/+7q47O5gb++4gVsmEElT8/EJoi+Msw2dVzArTPW0=
 github.com/cloudogu/k8s-component-operator v1.1.1 h1:Rp+Ew98ihsLVRMduG2fFAGsNESgFNERcpL6CaDf2Uo0=
