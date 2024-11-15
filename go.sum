@@ -95,6 +95,8 @@ github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113144508-e7ec220346a
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113144508-e7ec220346ae/go.mod h1:kXHuvgV8bxzlZI6pwQCNIAPid5Cne7axpa8/tRfrYw4=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7 h1:UfYv6JaUD8Zis3L6f1ANXXb5yokLACsFuDOnOUmKBfE=
 github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241113151358-e8464649dcc7/go.mod h1:ufhIwXRU9GR276V0fQZmSXPWhN5yWTZA43g8DZ/Ut9M=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241114145028-67b85e3f3b51 h1:fafhP9EdnnRDgUwBfprTdC7C1Ammack2ma0WzJV6PnQ=
+github.com/cloudogu/remote-dogu-descriptor-lib v0.0.0-20241114145028-67b85e3f3b51/go.mod h1:sxQFM1v+w/gWDLr7IW4RIYB13lyGzdNibNK/68wvyK0=
 github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880 h1:X/Ha/EqO7LtE8ketTyPQcSxFZPQ6/BVxADwKcDY0kpU=
 github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880/go.mod h1:iG9y6zx8oJZT5ULtl9koZkYJLRsqam/2mTU+rgjxQ0g=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
