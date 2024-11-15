@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.0.3] - 2024-11-15
+### Changed
+- [#107] Use new library for getting dogu descriptors and implement a retry mechanism to stabilize the setup process.
+
 ## [v3.0.2] - 2024-11-06
 ### Fixed
 - [#111] Use newest cesapp-lib version (v0.14.4) to fix dogu sorting bug
