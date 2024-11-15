@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#107] Use new library for getting dogu descriptors and implement a retry mechanism to stabilize the setup process.
 
 ## [v3.0.2] - 2024-11-06
 ### Fixed

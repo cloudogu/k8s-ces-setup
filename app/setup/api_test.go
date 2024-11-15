@@ -99,7 +99,7 @@ func TestSetupAPI(t *testing.T) {
 
 		// then
 		require.NoError(t, err)
-		assert.Contains(t, logs, "failed to register dogu installation steps: failed to generate dogu step generator: failed to get latest version of dogu [official/ldap]")
+		assert.Contains(t, logs, "failed to register dogu installation steps: failed to generate dogu step generator: failed to get dogu [official/ldap]")
 	})
 }
 

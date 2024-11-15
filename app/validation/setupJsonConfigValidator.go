@@ -1,9 +1,9 @@
 package validation
 
 import (
+	ctx "context"
 	"fmt"
-	"github.com/cloudogu/cesapp-lib/remote"
-
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	"github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
@@ -16,8 +16,8 @@ type validator struct {
 }
 
 // NewSetupJsonConfigurationValidator creates a new setup json validator
-func NewSetupJsonConfigurationValidator(registry remote.Registry) *validator {
-	doguValidator := NewDoguValidator(registry)
+func NewSetupJsonConfigurationValidator(repository cescommons.RemoteDoguDescriptorRepository) *validator {
+	doguValidator := NewDoguValidator(repository)
 
 	return &validator{
 		namingValidator:                  NewNamingValidator(),
@@ -30,9 +30,9 @@ func NewSetupJsonConfigurationValidator(registry remote.Registry) *validator {
 
 // Validate checks the section naming, user backend and user from the setup.json configuration
 // see: https://docs.cloudogu.com/docs/system-components/ces-setup/operations/setup-json_de/
-func (v *validator) Validate(configuration *context.SetupJsonConfiguration) error {
+func (v *validator) Validate(ctx ctx.Context, configuration *context.SetupJsonConfiguration) error {
 	dogus := configuration.Dogus
-	err := v.doguValidator.ValidateDogus(dogus)
+	err := v.doguValidator.ValidateDogus(ctx, dogus)
 	if err != nil {
 		return fmt.Errorf("failed to validate dogu section: %w", err)
 	}

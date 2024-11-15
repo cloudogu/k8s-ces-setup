@@ -3,15 +3,16 @@ package setup
 import (
 	"context"
 	"fmt"
+	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
 	componentEcoSystem "github.com/cloudogu/k8s-component-operator/pkg/api/ecosystem"
 	componentHelm "github.com/cloudogu/k8s-component-operator/pkg/helm"
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
+	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"maps"
 	"slices"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/remote"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 	"github.com/cloudogu/k8s-ces-setup/app/patch"
 	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
@@ -47,8 +48,8 @@ type Executor struct {
 	ClusterConfig *rest.Config
 	// Steps contains all necessary steps for the setup
 	Steps []ExecutorStep
-	// Registry is the dogu registry
-	Registry remote.Registry
+	// Repository is the dogu Descriptor repository
+	Repository cescommons.RemoteDoguDescriptorRepository
 }
 
 // NewExecutor creates a new setup executor with the given app configuration.
@@ -58,16 +59,16 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		Password: setupCtx.DoguRegistryConfiguration.Password,
 	}
 
-	doguRegistry, err := remote.New(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.DoguRegistryConfiguration.URLSchema), credentials)
+	doguRepository, err := remotedogudescriptor.NewRemoteDoguDescriptorRepository(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.DoguRegistryConfiguration.URLSchema), credentials)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create remote Registry: %w", err)
+		return nil, fmt.Errorf("failed to create new remote dogu repository: %w", err)
 	}
 
 	return &Executor{
 		SetupContext:  setupCtx,
 		ClientSet:     k8sClient,
 		ClusterConfig: clusterConfig,
-		Registry:      doguRegistry,
+		Repository:    doguRepository,
 	}, nil
 }
 
@@ -298,8 +299,8 @@ func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepos
 }
 
 // RegisterDoguInstallationSteps creates install steps for the dogu install list
-func (e *Executor) RegisterDoguInstallationSteps() error {
-	doguStepGenerator, err := NewDoguStepGenerator(e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Registry, e.SetupContext.AppConfig.TargetNamespace, slices.Collect(maps.Keys(e.SetupContext.AppConfig.Components)))
+func (e *Executor) RegisterDoguInstallationSteps(ctx context.Context) error {
+	doguStepGenerator, err := NewDoguStepGenerator(ctx, e.ClientSet, e.ClusterConfig, e.SetupContext.SetupJsonConfiguration.Dogus, e.Repository, e.SetupContext.AppConfig.TargetNamespace, slices.Collect(maps.Keys(e.SetupContext.AppConfig.Components)))
 	if err != nil {
 		return fmt.Errorf("failed to generate dogu step generator: %w", err)
 	}
@@ -353,7 +354,7 @@ func (e *Executor) RegisterLoadBalancerFQDNRetrieverSteps() error {
 
 // RegisterValidationStep registers all validation steps
 func (e *Executor) RegisterValidationStep() error {
-	e.RegisterSetupSteps(NewValidatorStep(e.Registry, e.SetupContext))
+	e.RegisterSetupSteps(NewValidatorStep(e.Repository, e.SetupContext))
 	return nil
 }
 
