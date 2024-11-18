@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	"github.com/cloudogu/retry-lib/retry"
 	"github.com/sirupsen/logrus"
@@ -10,28 +11,38 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	retrywatch "k8s.io/client-go/tools/watch"
+	"os"
 	"time"
 )
 
 const (
 	v1LabelK8sComponent = "app.kubernetes.io/name"
-	waitLimit           = time.Hour
 )
+
+// DefaultComponentWaitTimeOut30Minutes is the default timeout.
+// Since the components are actual applied unordered we use a 30 Minutes timeout as default.
+var DefaultComponentWaitTimeOut30Minutes = time.Second * 1800
+
+// componentTimeOutInSecondsEnvVar contains the name of the environment variable that may replace the default component wait timeout.
+// An environment variable with this name must contain the seconds as reasonably sized integer (=< int64)
+const componentTimeOutInSecondsEnvVar = "COMPONENT_TIMEOUT_SECS"
 
 type waitForComponentStep struct {
 	client        componentsClient
 	labelSelector string
 	namespace     string
 	componentName string
+	timeout       time.Duration
 }
 
 // NewWaitForComponentStep creates a new setup step which on waits for a component with a specific label
-func NewWaitForComponentStep(client componentsClient, componentName string, namespace string) *waitForComponentStep {
+func NewWaitForComponentStep(client componentsClient, componentName string, namespace string, timeout time.Duration) *waitForComponentStep {
 	return &waitForComponentStep{
 		client:        client,
 		namespace:     namespace,
 		componentName: componentName,
 		labelSelector: CreateComponentLabelSelector(componentName),
+		timeout:       timeout,
 	}
 }
 
@@ -42,13 +53,15 @@ func (wfcs *waitForComponentStep) GetStepDescription() string {
 
 // PerformSetupStep implements all actions in this step
 func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
-	return wfcs.isComponentReady(ctx)
+	timeoutCtx, cancel := context.WithTimeout(ctx, wfcs.timeout)
+	defer cancel()
+	return wfcs.isComponentReady(timeoutCtx)
 }
 
 // isComponentStatusReady does a watch on a component and returns nil if the component is installed
 func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 	var get *v1.Component
-	err := retry.OnErrorWithLimit(waitLimit, errors.IsNotFound, func() error {
+	err := retry.OnErrorWithLimit(wfcs.timeout, errors.IsNotFound, func() error {
 		var getErr error
 		get, getErr = wfcs.client.Get(ctx, wfcs.componentName, metav1.GetOptions{})
 		if getErr != nil && !errors.IsNotFound(getErr) {
@@ -136,4 +149,16 @@ func isComponentStatusReady(component *v1.Component) bool {
 
 func CreateComponentLabelSelector(name string) string {
 	return fmt.Sprintf("%s=%s", v1LabelK8sComponent, name)
+}
+
+// TimeoutInSeconds returns either DefaultComponentWaitTimeOut30Minutes or a positive integer if set as EnvVar
+// COMPONENT_TIMEOUT_SECS. See also componentTimeOutInSecondsEnvVar
+func TimeoutInSeconds() time.Duration {
+	defaultTimeout := DefaultComponentWaitTimeOut30Minutes
+	if podTimeoutRaw, ok := os.LookupEnv(componentTimeOutInSecondsEnvVar); ok {
+		logrus.Infof("Custom component timeout found")
+		return dogus.ParseTimeoutString(podTimeoutRaw, defaultTimeout)
+	}
+
+	return defaultTimeout
 }

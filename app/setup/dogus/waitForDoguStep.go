@@ -17,14 +17,13 @@ import (
 
 const (
 	v1LabelDogu = "dogu.name"
-	waitLimit   = time.Hour
 )
 
 var DefaultDoguWaitTimeOut5Minutes = time.Second * 300
 
-// podTimeOutInSecondsEnvVar contains the name of the environment variable that may replace the default pod wait timeout.
+// doguTimeOutInSecondsEnvVar contains the name of the environment variable that may replace the default pod wait timeout.
 // An environment variable with this name must contain the seconds as reasonably sized integer (=< int64)
-const podTimeOutInSecondsEnvVar = "POD_TIMEOUT_SECS"
+const doguTimeOutInSecondsEnvVar = "DOGU_TIMEOUT_SECS"
 
 type waitForDoguStep struct {
 	client        doguClient
@@ -60,7 +59,7 @@ func (wfds *waitForDoguStep) PerformSetupStep(ctx context.Context) error {
 // isDoguReady does a watch on a dogu and returns nil if the dogu is installed
 func (wfds *waitForDoguStep) isDoguReady(ctx context.Context) error {
 	var get *v2.Dogu
-	err := retry.OnErrorWithLimit(waitLimit, errors.IsNotFound, func() error {
+	err := retry.OnErrorWithLimit(wfds.timeout, errors.IsNotFound, func() error {
 		var getErr error
 		get, getErr = wfds.client.Get(ctx, wfds.doguName, metav1.GetOptions{})
 		if getErr != nil && !errors.IsNotFound(getErr) {
@@ -110,7 +109,7 @@ func (drw doguReadyWatcher) Watch(options metav1.ListOptions) (watch.Interface, 
 // If it returns true, nil the watch will end.
 // If it returns false, nil the watch will continue and check further events.
 // If it returns and error the watch will end and don't retry.
-func (crw doguReadyWatcher) checkDoguStatus(event watch.Event) (bool, error) {
+func (drw doguReadyWatcher) checkDoguStatus(event watch.Event) (bool, error) {
 	logrus.Debugf("received %q watch event for checking dogu ready status", event.Type)
 	switch event.Type {
 	case watch.Error:
@@ -123,7 +122,7 @@ func (crw doguReadyWatcher) checkDoguStatus(event watch.Event) (bool, error) {
 	case watch.Added, watch.Modified:
 		dogu, ok := event.Object.(*v2.Dogu)
 		if !ok {
-			logrus.Errorf("failed to cast event object to dogu: selector=[%s] type=[%s]; object=[%+v]", crw.labelSelector, event.Type, event.Object)
+			logrus.Errorf("failed to cast event object to dogu: selector=[%s] type=[%s]; object=[%+v]", drw.labelSelector, event.Type, event.Object)
 			return false, nil
 		}
 		if isDoguStatusReady(dogu) {
@@ -150,27 +149,31 @@ func CreateDoguLabelSelector(name string) string {
 	return fmt.Sprintf("%s=%s", v1LabelDogu, name)
 }
 
-// DoguTimeoutInSeconds returns either DefaultDoguWaitTimeOut5Minutes or a positive integer if set as EnvVar
-// POD_TIMEOUT_SECS. See also podTimeOutInSecondsEnvVar
-func DoguTimeoutInSeconds() time.Duration {
-	if podTimeoutRaw, ok := os.LookupEnv(podTimeOutInSecondsEnvVar); ok {
-		logrus.Infof("Custom pod timeout found")
-
-		podTimeout, err := strconv.ParseInt(podTimeoutRaw, 10, 32)
-		if err != nil {
-			logrus.Errorf("Failed to parse seconds into pod timeout %s=%s (fallback to %0.f): %s",
-				podTimeOutInSecondsEnvVar, podTimeoutRaw, DefaultDoguWaitTimeOut5Minutes.Seconds(), err.Error())
-			return DefaultDoguWaitTimeOut5Minutes
-		}
-
-		if podTimeout < 0 {
-			logrus.Errorf("Found negative pod timeout %s=%d (fallback to %0.f)",
-				podTimeOutInSecondsEnvVar, podTimeout, DefaultDoguWaitTimeOut5Minutes.Seconds())
-			return DefaultDoguWaitTimeOut5Minutes
-		}
-
-		return time.Duration(podTimeout) * time.Second
+// TimeoutInSeconds returns either DefaultDoguWaitTimeOut5Minutes or a positive integer if set as EnvVar
+// POD_TIMEOUT_SECS. See also doguTimeOutInSecondsEnvVar
+func TimeoutInSeconds() time.Duration {
+	defaultTimeout := DefaultDoguWaitTimeOut5Minutes
+	if podTimeoutRaw, ok := os.LookupEnv(doguTimeOutInSecondsEnvVar); ok {
+		logrus.Infof("Custom dogu timeout found")
+		return ParseTimeoutString(podTimeoutRaw, defaultTimeout)
 	}
 
-	return DefaultDoguWaitTimeOut5Minutes
+	return defaultTimeout
+}
+
+func ParseTimeoutString(timeout string, defaultTimeout time.Duration) time.Duration {
+	i, err := strconv.ParseInt(timeout, 10, 32)
+	if err != nil {
+		logrus.Errorf("Failed to parse seconds into timeout %s=%s (fallback to %0.f): %s",
+			doguTimeOutInSecondsEnvVar, timeout, defaultTimeout.Seconds(), err.Error())
+		return defaultTimeout
+	}
+
+	if i < 0 {
+		logrus.Errorf("Found negative pod timeout %s=%d (fallback to %0.f)",
+			doguTimeOutInSecondsEnvVar, i, defaultTimeout.Seconds())
+		return defaultTimeout
+	}
+
+	return time.Duration(i) * time.Second
 }

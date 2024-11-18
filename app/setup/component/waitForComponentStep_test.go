@@ -14,13 +14,18 @@ import (
 	"testing"
 )
 
+const (
+	testNamespace     = "ecosystem"
+	testComponentName = "k8s-ces-control"
+)
+
 func TestNewWaitForComponentStep(t *testing.T) {
 	t.Run("create without error", func(t *testing.T) {
 		// given
 		componentsClientMock := newMockComponentsClient(t)
 
 		// when
-		step := NewWaitForComponentStep(componentsClientMock, "k8s-ces-control", "ecosystem")
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		// then
 		assert.NotNil(t, step)
@@ -34,7 +39,7 @@ func TestNewWaitForComponentStep(t *testing.T) {
 func TestWaitForComponentStep_GetStepDescription(t *testing.T) {
 	t.Run("should get description", func(t *testing.T) {
 		// given
-		step := NewWaitForComponentStep(newMockComponentsClient(t), "k8s-ces-control", "ecosystem")
+		step := NewWaitForComponentStep(newMockComponentsClient(t), testComponentName, testNamespace, TimeoutInSeconds())
 
 		// when
 		desc := step.GetStepDescription()
@@ -48,8 +53,6 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 	var testCtx = context.Background()
 
-	testNamespace := "ecosystem"
-	testComponentName := "k8s-ces-control"
 	testSelector := "app.kubernetes.io/name=k8s-ces-control"
 
 	testStartResourceVersion := "2771"
@@ -64,7 +67,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(installedComponent, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		// when
 		err := step.PerformSetupStep(testCtx)
@@ -83,7 +86,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Modify(installedComponent)
@@ -106,7 +109,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Add(testComponent)
@@ -135,7 +138,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher, nil)
 		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher2, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Add(testComponent)
@@ -157,7 +160,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock := newMockComponentsClient(t)
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		// when
 		err := step.PerformSetupStep(testCtx)
@@ -176,7 +179,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Times(1)
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError).Times(1)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		// when
 		err := step.PerformSetupStep(testCtx)
@@ -197,7 +200,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Delete(installedComponent)
@@ -221,7 +224,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Error(&metav1.Status{Code: http.StatusGone, Message: "msg", Reason: "reason"})
@@ -251,7 +254,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher3, nil).Times(1)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher4, nil).Times(1)
 
-		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace)
+		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
 		go func() {
 			watcher.Error(&metav1.Status{Code: http.StatusGatewayTimeout})

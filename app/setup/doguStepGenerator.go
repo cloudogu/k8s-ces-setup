@@ -144,7 +144,7 @@ func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency cor
 		return steps
 	}
 
-	waitForDependencyStep := dogus.NewWaitForDoguStep(dsg.EcoSystemClient.Dogus(dsg.namespace), serviceAccountDependency.Type, dsg.namespace, dogus.DoguTimeoutInSeconds())
+	waitForDependencyStep := dogus.NewWaitForDoguStep(dsg.EcoSystemClient.Dogus(dsg.namespace), serviceAccountDependency.Type, dsg.namespace, dogus.TimeoutInSeconds())
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 
@@ -157,7 +157,7 @@ func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDepend
 		return steps
 	}
 
-	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, serviceAccountDependency.Type, dsg.namespace)
+	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, serviceAccountDependency.Type, dsg.namespace, component.TimeoutInSeconds())
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 

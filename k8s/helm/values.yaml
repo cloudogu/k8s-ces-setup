@@ -5,6 +5,8 @@ setup:
   env:
     stage: production
     logLevel: info
+    doguWaitTimeoutSecs: "300"
+    componentWaitTimeoutSecs: "1800"
   image:
     registry: docker.io
     repository: cloudogu/k8s-ces-setup
