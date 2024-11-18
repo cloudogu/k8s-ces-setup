@@ -6,8 +6,8 @@ This document information to support the development on the `k8s-ces-setup`.
 
 First, development files should be created to be used instead of the cluster values:
 
-* `k8s/dev-config/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_en.md)
-* `k8s/dev-config/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_en.md)
+* `k8s/dev-resources/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_en.md)
+* `k8s/dev-resources/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_en.md)
 
 ### execution with `go run` or an IDE
 
