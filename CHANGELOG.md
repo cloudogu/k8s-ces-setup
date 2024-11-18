@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v3.0.4] - 2024-11-18
 ### Fixed
 - [#115] Update remote dogu descriptor lib to avoid a nil pointer when recoverable errors occur.
 
