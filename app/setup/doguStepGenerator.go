@@ -24,6 +24,7 @@ import (
 const (
 	serviceAccountKindDogu      = "dogu"
 	serviceAccountKindComponent = "component"
+	maxTries                    = 20
 )
 
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
