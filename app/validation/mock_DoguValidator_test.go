@@ -3,7 +3,10 @@
 package validation
 
 import (
-	context "github.com/cloudogu/k8s-ces-setup/app/context"
+	context "context"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -20,17 +23,21 @@ func (_m *MockDoguValidator) EXPECT() *MockDoguValidator_Expecter {
 	return &MockDoguValidator_Expecter{mock: &_m.Mock}
 }
 
-// ValidateDogus provides a mock function with given fields: dogus
-func (_m *MockDoguValidator) ValidateDogus(dogus context.Dogus) error {
-	ret := _m.Called(dogus)
+// ValidateDogus provides a mock function with given fields: ctx, dogus
+func (_m *MockDoguValidator) ValidateDogus(ctx context.Context, dogus appcontext.Dogus) error {
+	ret := _m.Called(ctx, dogus)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateDogus")
+	}
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidateDogus")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Dogus) error); ok {
-		r0 = rf(dogus)
+	if rf, ok := ret.Get(0).(func(context.Context, appcontext.Dogus) error); ok {
+		r0 = rf(ctx, dogus)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -44,14 +51,15 @@ type MockDoguValidator_ValidateDogus_Call struct {
 }
 
 // ValidateDogus is a helper method to define mock.On call
-//   - dogus context.Dogus
-func (_e *MockDoguValidator_Expecter) ValidateDogus(dogus interface{}) *MockDoguValidator_ValidateDogus_Call {
-	return &MockDoguValidator_ValidateDogus_Call{Call: _e.mock.On("ValidateDogus", dogus)}
+//   - ctx context.Context
+//   - dogus appcontext.Dogus
+func (_e *MockDoguValidator_Expecter) ValidateDogus(ctx interface{}, dogus interface{}) *MockDoguValidator_ValidateDogus_Call {
+	return &MockDoguValidator_ValidateDogus_Call{Call: _e.mock.On("ValidateDogus", ctx, dogus)}
 }
 
-func (_c *MockDoguValidator_ValidateDogus_Call) Run(run func(dogus context.Dogus)) *MockDoguValidator_ValidateDogus_Call {
+func (_c *MockDoguValidator_ValidateDogus_Call) Run(run func(ctx context.Context, dogus appcontext.Dogus)) *MockDoguValidator_ValidateDogus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Dogus))
+		run(args[0].(context.Context), args[1].(appcontext.Dogus))
 	})
 	return _c
 }
@@ -61,7 +69,7 @@ func (_c *MockDoguValidator_ValidateDogus_Call) Return(_a0 error) *MockDoguValid
 	return _c
 }
 
-func (_c *MockDoguValidator_ValidateDogus_Call) RunAndReturn(run func(context.Dogus) error) *MockDoguValidator_ValidateDogus_Call {
+func (_c *MockDoguValidator_ValidateDogus_Call) RunAndReturn(run func(context.Context, appcontext.Dogus) error) *MockDoguValidator_ValidateDogus_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -170,17 +170,21 @@ func (_c *MockSetupExecutor_RegisterDataSetupSteps_Call) RunAndReturn(run func(*
 	return _c
 }
 
-// RegisterDoguInstallationSteps provides a mock function with given fields:
-func (_m *MockSetupExecutor) RegisterDoguInstallationSteps() error {
-	ret := _m.Called()
+// RegisterDoguInstallationSteps provides a mock function with given fields: ctx
+func (_m *MockSetupExecutor) RegisterDoguInstallationSteps(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterDoguInstallationSteps")
+	}
 
 	if len(ret) == 0 {
 		panic("no return value specified for RegisterDoguInstallationSteps")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -194,13 +198,14 @@ type MockSetupExecutor_RegisterDoguInstallationSteps_Call struct {
 }
 
 // RegisterDoguInstallationSteps is a helper method to define mock.On call
-func (_e *MockSetupExecutor_Expecter) RegisterDoguInstallationSteps() *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
-	return &MockSetupExecutor_RegisterDoguInstallationSteps_Call{Call: _e.mock.On("RegisterDoguInstallationSteps")}
+//   - ctx context.Context
+func (_e *MockSetupExecutor_Expecter) RegisterDoguInstallationSteps(ctx interface{}) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
+	return &MockSetupExecutor_RegisterDoguInstallationSteps_Call{Call: _e.mock.On("RegisterDoguInstallationSteps", ctx)}
 }
 
-func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) Run(run func()) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
+func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) Run(run func(ctx context.Context)) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -210,7 +215,7 @@ func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) Return(_a0 error
 	return _c
 }
 
-func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) RunAndReturn(run func() error) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
+func (_c *MockSetupExecutor_RegisterDoguInstallationSteps_Call) RunAndReturn(run func(context.Context) error) *MockSetupExecutor_RegisterDoguInstallationSteps_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -28,7 +28,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
-		expect.RegisterDoguInstallationSteps().Return(nil)
+		expect.RegisterDoguInstallationSteps(mock.Anything).Return(nil)
 		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
 
@@ -49,7 +49,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
-		expect.RegisterDoguInstallationSteps().Return(nil)
+		expect.RegisterDoguInstallationSteps(mock.Anything).Return(nil)
 		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
 
@@ -188,7 +188,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterComponentSetupSteps().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
-		expect.RegisterDoguInstallationSteps().Return(assert.AnError)
+		expect.RegisterDoguInstallationSteps(mock.Anything).Return(assert.AnError)
 		starter.SetupExecutor = executorMock
 
 		// when

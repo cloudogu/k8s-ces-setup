@@ -9,6 +9,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - [#113] Use retry watchers for wait steps and thus fix a bug where wait steps for component installations got canceled.
 
+## [v3.0.4] - 2024-11-18
+### Fixed
+- [#115] Update remote dogu descriptor lib to avoid a nil pointer when recoverable errors occur.
+
+## [v3.0.3] - 2024-11-15
+### Changed
+- [#107] Use new library for getting dogu descriptors and implement a retry mechanism to stabilize the setup process.
+
 ## [v3.0.2] - 2024-11-06
 ### Fixed
 - [#111] Use newest cesapp-lib version (v0.14.4) to fix dogu sorting bug

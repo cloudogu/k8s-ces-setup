@@ -3,7 +3,10 @@
 package setup
 
 import (
-	context "github.com/cloudogu/k8s-ces-setup/app/context"
+	context "context"
+
+	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -20,17 +23,21 @@ func (_m *mockSetupJsonConfigurationValidator) EXPECT() *mockSetupJsonConfigurat
 	return &mockSetupJsonConfigurationValidator_Expecter{mock: &_m.Mock}
 }
 
-// Validate provides a mock function with given fields: setupJson
-func (_m *mockSetupJsonConfigurationValidator) Validate(setupJson *context.SetupJsonConfiguration) error {
-	ret := _m.Called(setupJson)
+// Validate provides a mock function with given fields: ctx, setupJson
+func (_m *mockSetupJsonConfigurationValidator) Validate(ctx context.Context, setupJson *appcontext.SetupJsonConfiguration) error {
+	ret := _m.Called(ctx, setupJson)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Validate")
+	}
 
 	if len(ret) == 0 {
 		panic("no return value specified for Validate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*context.SetupJsonConfiguration) error); ok {
-		r0 = rf(setupJson)
+	if rf, ok := ret.Get(0).(func(context.Context, *appcontext.SetupJsonConfiguration) error); ok {
+		r0 = rf(ctx, setupJson)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -44,14 +51,15 @@ type mockSetupJsonConfigurationValidator_Validate_Call struct {
 }
 
 // Validate is a helper method to define mock.On call
-//   - setupJson *context.SetupJsonConfiguration
-func (_e *mockSetupJsonConfigurationValidator_Expecter) Validate(setupJson interface{}) *mockSetupJsonConfigurationValidator_Validate_Call {
-	return &mockSetupJsonConfigurationValidator_Validate_Call{Call: _e.mock.On("Validate", setupJson)}
+//   - ctx context.Context
+//   - setupJson *appcontext.SetupJsonConfiguration
+func (_e *mockSetupJsonConfigurationValidator_Expecter) Validate(ctx interface{}, setupJson interface{}) *mockSetupJsonConfigurationValidator_Validate_Call {
+	return &mockSetupJsonConfigurationValidator_Validate_Call{Call: _e.mock.On("Validate", ctx, setupJson)}
 }
 
-func (_c *mockSetupJsonConfigurationValidator_Validate_Call) Run(run func(setupJson *context.SetupJsonConfiguration)) *mockSetupJsonConfigurationValidator_Validate_Call {
+func (_c *mockSetupJsonConfigurationValidator_Validate_Call) Run(run func(ctx context.Context, setupJson *appcontext.SetupJsonConfiguration)) *mockSetupJsonConfigurationValidator_Validate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*context.SetupJsonConfiguration))
+		run(args[0].(context.Context), args[1].(*appcontext.SetupJsonConfiguration))
 	})
 	return _c
 }
@@ -61,7 +69,7 @@ func (_c *mockSetupJsonConfigurationValidator_Validate_Call) Return(_a0 error) *
 	return _c
 }
 
-func (_c *mockSetupJsonConfigurationValidator_Validate_Call) RunAndReturn(run func(*context.SetupJsonConfiguration) error) *mockSetupJsonConfigurationValidator_Validate_Call {
+func (_c *mockSetupJsonConfigurationValidator_Validate_Call) RunAndReturn(run func(context.Context, *appcontext.SetupJsonConfiguration) error) *mockSetupJsonConfigurationValidator_Validate_Call {
 	_c.Call.Return(run)
 	return _c
 }
