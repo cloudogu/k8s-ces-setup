@@ -212,7 +212,7 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		require.ErrorContains(t, err, "failed to wait for dogu with label \"dogu.name=cas\" with retry watch: abort watch because of dogu deletion")
 	})
 
-	t.Run("should not retry if the resource version is to old", func(t *testing.T) {
+	t.Run("should not retry if the resource version is too old", func(t *testing.T) {
 		// given
 		testCtx = context.Background()
 

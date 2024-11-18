@@ -211,7 +211,7 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		require.ErrorContains(t, err, "failed to wait for component with label \"app.kubernetes.io/name=k8s-ces-control\" with retry watch: abort watch because of component deletion")
 	})
 
-	t.Run("should not retry if the resource version is to old", func(t *testing.T) {
+	t.Run("should not retry if the resource version is too old", func(t *testing.T) {
 		// given
 		testCtx = context.Background()
 
