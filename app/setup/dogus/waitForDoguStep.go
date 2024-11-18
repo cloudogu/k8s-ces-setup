@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	v2 "github.com/cloudogu/k8s-dogu-operator/v2/api/v2"
+	"github.com/cloudogu/retry-lib/retry"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	retrywatch "k8s.io/client-go/tools/watch"
-	"k8s.io/client-go/util/retry"
 	"os"
 	"strconv"
 	"time"
@@ -17,6 +17,7 @@ import (
 
 const (
 	v1LabelDogu = "dogu.name"
+	waitLimit   = time.Hour
 )
 
 var DefaultDoguWaitTimeOut5Minutes = time.Second * 300
@@ -59,7 +60,7 @@ func (wfds *waitForDoguStep) PerformSetupStep(ctx context.Context) error {
 // isDoguReady does a watch on a dogu and returns nil if the dogu is installed
 func (wfds *waitForDoguStep) isDoguReady(ctx context.Context) error {
 	var get *v2.Dogu
-	err := retry.OnError(retry.DefaultBackoff, errors.IsNotFound, func() error {
+	err := retry.OnErrorWithLimit(waitLimit, errors.IsNotFound, func() error {
 		var getErr error
 		get, getErr = wfds.client.Get(ctx, wfds.doguName, metav1.GetOptions{})
 		if getErr != nil && !errors.IsNotFound(getErr) {

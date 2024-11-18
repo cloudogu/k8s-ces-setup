@@ -4,16 +4,18 @@ import (
 	"context"
 	"fmt"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
+	"github.com/cloudogu/retry-lib/retry"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	retrywatch "k8s.io/client-go/tools/watch"
-	"k8s.io/client-go/util/retry"
+	"time"
 )
 
 const (
 	v1LabelK8sComponent = "app.kubernetes.io/name"
+	waitLimit           = time.Hour
 )
 
 type waitForComponentStep struct {
@@ -46,7 +48,7 @@ func (wfcs *waitForComponentStep) PerformSetupStep(ctx context.Context) error {
 // isComponentStatusReady does a watch on a component and returns nil if the component is installed
 func (wfcs *waitForComponentStep) isComponentReady(ctx context.Context) error {
 	var get *v1.Component
-	err := retry.OnError(retry.DefaultBackoff, errors.IsNotFound, func() error {
+	err := retry.OnErrorWithLimit(waitLimit, errors.IsNotFound, func() error {
 		var getErr error
 		get, getErr = wfcs.client.Get(ctx, wfcs.componentName, metav1.GetOptions{})
 		if getErr != nil && !errors.IsNotFound(getErr) {
