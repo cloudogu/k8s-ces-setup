@@ -3,6 +3,8 @@ package data
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
 )
+
+var defaultBackoffTime = 15
 
 var backoff = wait.Backoff{
 	Duration: 5000 * time.Millisecond,
@@ -45,6 +49,14 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 }
 
 func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
+	const backoffTimeEnv = "BACKOFF_TIME"
+	backoffTimeString, found := os.LookupEnv(backoffTimeEnv)
+	backoffTime, err := strconv.Atoi(backoffTimeString)
+	if !found || err != nil {
+		logrus.Warningf("failed to read %s environment variable, using default value of %d", backoffTimeEnv, defaultBackoffTime)
+		backoffTime = defaultBackoffTime
+	}
+	backoff.Cap = time.Duration(backoffTime) * time.Minute
 	return retry.OnError(backoff, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})

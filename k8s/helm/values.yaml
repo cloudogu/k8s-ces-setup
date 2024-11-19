@@ -5,6 +5,7 @@ setup:
   env:
     stage: production
     logLevel: info
+    backoffTime: 15
   image:
     registry: docker.io
     repository: cloudogu/k8s-ces-setup
