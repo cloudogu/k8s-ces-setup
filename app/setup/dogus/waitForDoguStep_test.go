@@ -45,6 +45,11 @@ func TestWaitForDoguStep_GetStepDescription(t *testing.T) {
 	})
 }
 
+func assertTimeoutCtx(t *testing.T, ctx context.Context) {
+	_, ok := ctx.Deadline()
+	assert.True(t, ok)
+}
+
 func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 	var testCtx = context.Background()
@@ -63,7 +68,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(installedDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(installedDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
 
@@ -81,7 +88,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
@@ -104,7 +113,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
@@ -131,7 +142,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher2 := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(nil, assert.AnError)
 		doguClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher, nil)
 		doguClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher2, nil)
@@ -156,7 +169,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, assert.AnError)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, assert.AnError).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
 
@@ -174,8 +189,12 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Times(1)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, assert.AnError).Times(1)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		}).Times(1)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(nil, assert.AnError).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		}).Times(1)
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
 
@@ -195,7 +214,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
@@ -219,7 +240,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForDoguStep(doguClientMock, testDoguName, testNamespace, DefaultDoguWaitTimeOut5Minutes)
@@ -246,7 +269,9 @@ func TestWaitForDoguStep_PerformSetupStep(t *testing.T) {
 		watcher4 := watch.NewFake()
 
 		doguClientMock := newMockDoguClient(t)
-		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil)
+		doguClientMock.EXPECT().Get(mock.Anything, testDoguName, metav1.GetOptions{}).Return(testDogu, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil).Times(1)
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher2, nil).Times(1)
 		doguClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher3, nil).Times(1)

@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -49,6 +50,11 @@ func TestWaitForComponentStep_GetStepDescription(t *testing.T) {
 	})
 }
 
+func assertTimeoutCtx(t *testing.T, ctx context.Context) {
+	_, ok := ctx.Deadline()
+	assert.True(t, ok)
+}
+
 func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 	t.Parallel()
 	var testCtx = context.Background()
@@ -65,7 +71,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(installedComponent, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(installedComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -83,8 +91,10 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
-		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
+		componentsClientMock.EXPECT().Watch(mock.Anything, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -106,8 +116,10 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
-		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
+		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -133,7 +145,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher2 := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(nil, assert.AnError)
 		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher, nil)
 		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Times(1).Return(watcher2, nil)
@@ -158,7 +172,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -176,8 +192,12 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		testCtx = context.Background()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Times(1)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError).Times(1)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(nil, errors.NewNotFound(schema.GroupResource{}, "")).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		}).Times(1)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(nil, assert.AnError).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		}).Times(1)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -197,8 +217,10 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
-		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
+		componentsClientMock.EXPECT().Watch(context.Background(), metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
 
@@ -221,7 +243,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil)
 
 		step := NewWaitForComponentStep(componentsClientMock, testComponentName, testNamespace, TimeoutInSeconds())
@@ -248,7 +272,9 @@ func TestWaitForComponentStep_PerformSetupStep(t *testing.T) {
 		watcher4 := watch.NewFake()
 
 		componentsClientMock := newMockComponentsClient(t)
-		componentsClientMock.EXPECT().Get(testCtx, testComponentName, metav1.GetOptions{}).Return(testComponent, nil)
+		componentsClientMock.EXPECT().Get(mock.Anything, testComponentName, metav1.GetOptions{}).Return(testComponent, nil).Run(func(ctx context.Context, _ string, _ metav1.GetOptions) {
+			assertTimeoutCtx(t, ctx)
+		})
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher, nil).Times(1)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher2, nil).Times(1)
 		componentsClientMock.EXPECT().Watch(testCtx, metav1.ListOptions{LabelSelector: testSelector, ResourceVersion: testStartResourceVersion, AllowWatchBookmarks: true}).Return(watcher3, nil).Times(1)
