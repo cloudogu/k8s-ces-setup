@@ -31,6 +31,10 @@ func (_m *mockSetupJsonConfigurationValidator) Validate(ctx context.Context, set
 		panic("no return value specified for Validate")
 	}
 
+	if len(ret) == 0 {
+		panic("no return value specified for Validate")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *appcontext.SetupJsonConfiguration) error); ok {
 		r0 = rf(ctx, setupJson)

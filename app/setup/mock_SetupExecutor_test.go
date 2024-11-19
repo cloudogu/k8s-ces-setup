@@ -178,6 +178,10 @@ func (_m *MockSetupExecutor) RegisterDoguInstallationSteps(ctx context.Context) 
 		panic("no return value specified for RegisterDoguInstallationSteps")
 	}
 
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterDoguInstallationSteps")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
 		r0 = rf(ctx)
