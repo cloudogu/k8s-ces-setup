@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/retry-lib/retry"
 	"strings"
 	"time"
 
@@ -10,18 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/util/retry"
 )
 
-var backoff = wait.Backoff{
-	Duration: 5000 * time.Millisecond,
-	Factor:   1,
-	Jitter:   0,
-	Steps:    25,
-	Cap:      3 * time.Minute,
-}
+const waitLimit = time.Minute * 3
 
 type fqdnRetrieverStep struct {
 	config    *appcontext.SetupJsonConfiguration
@@ -45,7 +38,7 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 }
 
 func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
-	return retry.OnError(backoff, serviceRetry, func() error {
+	return retry.OnErrorWithLimit(waitLimit, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
 

@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.0.5] - 2024-11-19
+### Fixed
+- [#113] Use retry watchers for wait steps and thus fix a bug where wait steps for component installations got canceled.
+
 ## [v3.0.4] - 2024-11-18
 ### Fixed
 - [#115] Update remote dogu descriptor lib to avoid a nil pointer when recoverable errors occur.

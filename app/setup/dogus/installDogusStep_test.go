@@ -76,7 +76,7 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 			Status: v1.DoguStatus{},
 		}
 
-		doguClientMock := NewDoguInterface(t)
+		doguClientMock := newMockDoguClient(t)
 		doguClientMock.EXPECT().Create(context.Background(), doguCr, metav1.CreateOptions{}).Return(nil, assert.AnError)
 		ecoSystemClientMock := newMockEcoSystemClient(t)
 		ecoSystemClientMock.EXPECT().Dogus("namespace").Return(doguClientMock)
@@ -110,7 +110,7 @@ func Test_installDogusStep_PerformSetupStep(t *testing.T) {
 			Status: v1.DoguStatus{},
 		}
 
-		doguClientMock := NewDoguInterface(t)
+		doguClientMock := newMockDoguClient(t)
 		doguClientMock.EXPECT().Create(context.Background(), doguCr, metav1.CreateOptions{}).Return(doguCr, nil)
 		ecoSystemClientMock := newMockEcoSystemClient(t)
 		ecoSystemClientMock.EXPECT().Dogus("namespace").Return(doguClientMock)

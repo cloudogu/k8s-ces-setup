@@ -206,7 +206,7 @@ func (e *Executor) createComponentStepsByString(componentClient componentEcoSyst
 	}
 
 	result = append(result, component.NewInstallComponentStep(componentClient, name, attributes, namespace))
-	result = append(result, component.NewWaitForComponentStep(componentClient, createComponentLabelSelector(name), namespace))
+	result = append(result, component.NewWaitForComponentStep(componentClient, name, namespace, component.TimeoutInSeconds()))
 
 	return result, nil
 }
@@ -245,18 +245,13 @@ func (e *Executor) createLonghornSteps(componentsClient componentEcoSystem.Compo
 
 	if containsLonghorn {
 		installStep := component.NewInstallComponentStep(componentsClient, longhornComponentName, longhornComponentAttributes, namespace)
-		selector := createComponentLabelSelector(longhornComponentName)
-		waitStep := component.NewWaitForComponentStep(componentsClient, selector, namespace)
+		waitStep := component.NewWaitForComponentStep(componentsClient, longhornComponentName, namespace, component.TimeoutInSeconds())
 		result = append(result, installStep)
 		result = append(result, waitStep)
 		delete(components, longhornComponentName)
 	}
 
 	return result
-}
-
-func createComponentLabelSelector(name string) string {
-	return fmt.Sprintf("%s=%s", v1LabelK8sComponent, name)
 }
 
 func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.ComponentInterface) ([]ExecutorStep, []ExecutorStep) {
@@ -266,7 +261,7 @@ func (e *Executor) createComponentSteps(componentsClient componentEcoSystem.Comp
 
 	for componentName, componentAttributes := range e.SetupContext.AppConfig.Components {
 		componentSteps = append(componentSteps, component.NewInstallComponentStep(componentsClient, componentName, componentAttributes, namespace))
-		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, createComponentLabelSelector(componentName), namespace))
+		waitSteps = append(waitSteps, component.NewWaitForComponentStep(componentsClient, componentName, namespace, component.TimeoutInSeconds()))
 	}
 
 	return componentSteps, waitSteps
