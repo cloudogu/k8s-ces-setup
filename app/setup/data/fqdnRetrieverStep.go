@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/retry-lib/retry"
 	"os"
 	"strconv"
 	"strings"
@@ -12,20 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/util/retry"
 )
 
-var defaultBackoffTime = 15
-
-var backoff = wait.Backoff{
-	Duration: 5000 * time.Millisecond,
-	Factor:   1,
-	Jitter:   0,
-	Steps:    25,
-	Cap:      3 * time.Minute,
-}
+const defaultWaitLimit = 15
 
 type fqdnRetrieverStep struct {
 	config    *appcontext.SetupJsonConfiguration
@@ -49,15 +40,14 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 }
 
 func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
-	const backoffTimeEnv = "BACKOFF_TIME"
-	backoffTimeString, found := os.LookupEnv(backoffTimeEnv)
-	backoffTime, err := strconv.Atoi(backoffTimeString)
+	const waitLimitEnv = "WAIT_LIMIT"
+	backoffTimeString, found := os.LookupEnv(waitLimitEnv)
+	waitLimit, err := strconv.Atoi(backoffTimeString)
 	if !found || err != nil {
-		logrus.Warningf("failed to read %s environment variable, using default value of %d", backoffTimeEnv, defaultBackoffTime)
-		backoffTime = defaultBackoffTime
+		logrus.Warningf("failed to read %s environment variable, using default value of %d", waitLimitEnv, defaultWaitLimit)
+		waitLimit = defaultWaitLimit
 	}
-	backoff.Cap = time.Duration(backoffTime) * time.Minute
-	return retry.OnError(backoff, serviceRetry, func() error {
+	return retry.OnErrorWithLimit(time.Duration(waitLimit)*time.Minute, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
 

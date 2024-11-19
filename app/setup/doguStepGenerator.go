@@ -24,14 +24,8 @@ import (
 const (
 	serviceAccountKindDogu      = "dogu"
 	serviceAccountKindComponent = "component"
+	maxTries                    = 20
 )
-
-const (
-	v1LabelDogu         = "dogu.name"
-	v1LabelK8sComponent = "app.kubernetes.io/name"
-)
-
-var maxTries = 20
 
 // doguStepGenerator is responsible to generate the steps to install a dogu, i.e., applying the dogu cr into the cluster
 // and waiting for the dependencies before doing so.
@@ -144,13 +138,13 @@ func isOptionalServiceAccount(dogu *core.Dogu, serviceAccount core.ServiceAccoun
 }
 
 func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
-	labelSelector := fmt.Sprintf("%s=%s", v1LabelDogu, serviceAccountDependency.Type)
+	labelSelector := dogus.CreateDoguLabelSelector(serviceAccountDependency.Type)
 
 	if waitList[labelSelector] {
 		return steps
 	}
 
-	waitForDependencyStep := dogus.NewWaitForPodStep(dsg.Client, labelSelector, dsg.namespace, dogus.PodTimeoutInSeconds())
+	waitForDependencyStep := dogus.NewWaitForDoguStep(dsg.EcoSystemClient.Dogus(dsg.namespace), serviceAccountDependency.Type, dsg.namespace, dogus.TimeoutInSeconds())
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 
@@ -158,12 +152,12 @@ func (dsg *doguStepGenerator) createWaitStepForDogu(serviceAccountDependency cor
 }
 
 func (dsg *doguStepGenerator) createWaitStepForK8sComponent(serviceAccountDependency core.ServiceAccount, waitList map[string]bool, steps []ExecutorStep) []ExecutorStep {
-	labelSelector := fmt.Sprintf("%s=%s", v1LabelK8sComponent, serviceAccountDependency.Type)
+	labelSelector := component.CreateComponentLabelSelector(serviceAccountDependency.Type)
 	if waitList[labelSelector] {
 		return steps
 	}
 
-	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, labelSelector, dsg.namespace)
+	waitForDependencyStep := component.NewWaitForComponentStep(dsg.componentClient, serviceAccountDependency.Type, dsg.namespace, component.TimeoutInSeconds())
 	steps = append(steps, waitForDependencyStep)
 	waitList[labelSelector] = true
 

@@ -31,6 +31,10 @@ func (_m *MockDoguValidator) ValidateDogus(ctx context.Context, dogus appcontext
 		panic("no return value specified for ValidateDogus")
 	}
 
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateDogus")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, appcontext.Dogus) error); ok {
 		r0 = rf(ctx, dogus)
