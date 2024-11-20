@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const defaultWaitLimit = 15
 const defaultFqdnFromLoadBalancerWaitTimeoutMins = time.Duration(15)
 const fqdnFromLoadBalancerWaitTimeoutMinsEnv = "FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS"
 
@@ -42,14 +41,7 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 }
 
 func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
-	const waitLimitEnv = "WAIT_LIMIT"
-	backoffTimeString, found := os.LookupEnv(waitLimitEnv)
-	waitLimit, err := strconv.Atoi(backoffTimeString)
-	if !found || err != nil {
-		logrus.Warningf("failed to read %s environment variable, using default value of %d", waitLimitEnv, defaultWaitLimit)
-		waitLimit = defaultWaitLimit
-	}
-	return retry.OnErrorWithLimit(time.Duration(waitLimit)*time.Minute, serviceRetry, func() error {
+	return retry.OnErrorWithLimit(readFqdnFromLoadBalancerWaitTimeoutMinsEnv()*time.Minute, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
 
