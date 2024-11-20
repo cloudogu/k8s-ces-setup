@@ -17,6 +17,7 @@ import (
 )
 
 const defaultWaitLimit = 15
+const fqdnFromLoadBalancerWaitTimeoutMinsEnv = "FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS"
 
 type fqdnRetrieverStep struct {
 	config    *appcontext.SetupJsonConfiguration

@@ -36,8 +36,8 @@ spec:
               value: "{{ .Values.setup.env.doguWaitTimeoutSecs | default "300" }}"
             - name: COMPONENT_TIMEOUT_SECS
               value: "{{ .Values.setup.env.componentWaitTimeoutSecs | default "1800" }}"
-            - name: BACKOFF_TIME
-              value: {{ .Values.setup.env.backoffTime | default "15" }}
+            - name: FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS
+              value: "{{ .Values.setup.env.fqdnFromLoadBalancerWaitTimeoutMins | default "15" }}"
           startupProbe:
             httpGet:
               path: /api/v1/health
