@@ -1,3 +1,5 @@
+# The ces-setup installs some components which could have or in fact have (component-operator) this permission
+# Without this permission, the setup of some components could not be done
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
