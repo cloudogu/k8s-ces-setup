@@ -5,6 +5,7 @@ setup:
   env:
     stage: production
     logLevel: info
+    fqdnFromLoadBalancerWaitTimeoutMins: "15"
     doguWaitTimeoutSecs: "300"
     componentWaitTimeoutSecs: "1800"
   image:
