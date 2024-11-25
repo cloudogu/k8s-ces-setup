@@ -6,8 +6,8 @@ Dieses Dokument Informationen um die Entwicklung an dem `k8s-ces-setup` zu unter
 
 Zuerst sollten Entwicklungsdateien angelegt werden, die anstelle der Cluster-Werte verwendet werden sollen:
 
-* `k8s/dev-config/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_de.md)
-* `k8s/dev-config/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_de.md)
+* `k8s/dev-resources/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_de.md)
+* `k8s/dev-resources/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_de.md)
 
 ### Installation des Ces-Setups im lokalen Cluster
 

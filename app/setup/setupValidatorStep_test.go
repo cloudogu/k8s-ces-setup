@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	remoteMocks "github.com/cloudogu/cesapp-lib/remote/mocks"
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
 )
 
@@ -27,10 +26,10 @@ func TestNewValidatorStep(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		// given
 		ctx := getSetupCtx()
-		registryMock := &remoteMocks.Registry{}
+		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
 
 		// when
-		step := NewValidatorStep(registryMock, &ctx)
+		step := NewValidatorStep(remoteDoguRepo, &ctx)
 
 		// then
 		require.NotNil(t, step)
@@ -41,8 +40,8 @@ func Test_setupValidatorStep_GetStepDescription(t *testing.T) {
 	t.Run("get correct description", func(t *testing.T) {
 		// given
 		ctx := getSetupCtx()
-		registryMock := &remoteMocks.Registry{}
-		step := NewValidatorStep(registryMock, &ctx)
+		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
+		step := NewValidatorStep(remoteDoguRepo, &ctx)
 
 		// when
 		description := step.GetStepDescription()
@@ -55,11 +54,11 @@ func Test_setupValidatorStep_GetStepDescription(t *testing.T) {
 func Test_setupValidatorStep_PerformSetupStep(t *testing.T) {
 	t.Run("sucessful performing step", func(t *testing.T) {
 		// given
-		validatorMock := NewMockConfigurationValidator(t)
-		validatorMock.EXPECT().ValidateConfiguration(mock.Anything).Return(nil)
+		validatorMock := newMockSetupJsonConfigurationValidator(t)
+		validatorMock.EXPECT().Validate(mock.Anything, mock.Anything).Return(nil)
 		appCtx := getSetupCtx()
-		registryMock := &remoteMocks.Registry{}
-		step := NewValidatorStep(registryMock, &appCtx)
+		remoteDoguRepo := newMockRemoteDoguDescriptorRepository(t)
+		step := NewValidatorStep(remoteDoguRepo, &appCtx)
 		step.setupJsonValidator = validatorMock
 
 		// when

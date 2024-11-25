@@ -3,6 +3,9 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/cloudogu/retry-lib/retry"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,18 +13,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/util/retry"
 )
 
-var backoff = wait.Backoff{
-	Duration: 5000 * time.Millisecond,
-	Factor:   1,
-	Jitter:   0,
-	Steps:    25,
-	Cap:      3 * time.Minute,
-}
+const defaultFqdnFromLoadBalancerWaitTimeoutMins = time.Duration(15)
+const fqdnFromLoadBalancerWaitTimeoutMinsEnv = "FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS"
 
 type fqdnRetrieverStep struct {
 	config    *appcontext.SetupJsonConfiguration
@@ -45,7 +41,7 @@ func (fcs *fqdnRetrieverStep) PerformSetupStep(ctx context.Context) error {
 }
 
 func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) error {
-	return retry.OnError(backoff, serviceRetry, func() error {
+	return retry.OnErrorWithLimit(readFqdnFromLoadBalancerWaitTimeoutMinsEnv()*time.Minute, serviceRetry, func() error {
 		logrus.Debug("Try retrieving service...")
 		service, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, cesLoadbalancerName, metav1.GetOptions{})
 
@@ -62,6 +58,25 @@ func (fcs *fqdnRetrieverStep) setFQDNFromLoadbalancerIP(ctx context.Context) err
 		logrus.Infof("Loadbalancer IP succesfully retrieved and set as new FQDN")
 		return nil
 	})
+}
+
+func readFqdnFromLoadBalancerWaitTimeoutMinsEnv() time.Duration {
+	fqdnFromLoadBalancerWaitTimeoutMinsString, found := os.LookupEnv(fqdnFromLoadBalancerWaitTimeoutMinsEnv)
+	if !found {
+		logrus.Debugf("failed to read %s environment variable, using default value of %d", fqdnFromLoadBalancerWaitTimeoutMinsEnv, defaultFqdnFromLoadBalancerWaitTimeoutMins)
+		return defaultFqdnFromLoadBalancerWaitTimeoutMins
+	}
+	fqdnFromLoadBalancerWaitTimeoutMinsParsed, err := strconv.Atoi(fqdnFromLoadBalancerWaitTimeoutMinsString)
+	if err != nil {
+		logrus.Warningf("failed to parse %s environment variable, using default value of %d", fqdnFromLoadBalancerWaitTimeoutMinsEnv, defaultFqdnFromLoadBalancerWaitTimeoutMins)
+		return defaultFqdnFromLoadBalancerWaitTimeoutMins
+	}
+	if fqdnFromLoadBalancerWaitTimeoutMinsParsed <= 0 {
+		logrus.Warningf("parsed value (%d) is smaller than 0, using default value of %d", fqdnFromLoadBalancerWaitTimeoutMinsParsed, defaultFqdnFromLoadBalancerWaitTimeoutMins)
+		return defaultFqdnFromLoadBalancerWaitTimeoutMins
+
+	}
+	return time.Duration(fqdnFromLoadBalancerWaitTimeoutMinsParsed)
 }
 
 func serviceRetry(err error) bool {

@@ -3,19 +3,21 @@ module github.com/cloudogu/k8s-ces-setup
 go 1.23.2
 
 require (
-	github.com/cloudogu/cesapp-lib v0.14.4
+	github.com/cloudogu/ces-commons-lib v0.1.0
+	github.com/cloudogu/cesapp-lib v0.15.0
 	github.com/cloudogu/k8s-apply-lib v0.5.0
 	github.com/cloudogu/k8s-component-operator v1.1.1
-	github.com/cloudogu/k8s-dogu-operator/v2 v2.2.1
+	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
+	github.com/cloudogu/remote-dogu-descriptor-lib v0.1.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
-	k8s.io/api v0.31.1
-	k8s.io/apimachinery v0.31.1
-	k8s.io/client-go v0.31.1
+	k8s.io/api v0.31.2
+	k8s.io/apimachinery v0.31.2
+	k8s.io/client-go v0.31.2
 	k8s.io/utils v0.0.0-20240821151609-f90d01438635
 	oras.land/oras-go v1.2.5
 	sigs.k8s.io/controller-runtime v0.19.0
@@ -43,6 +45,7 @@ require (
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880 // indirect
 	github.com/containerd/containerd v1.7.15 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.3.1 // indirect

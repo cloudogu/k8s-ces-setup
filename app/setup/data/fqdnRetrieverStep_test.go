@@ -1,14 +1,17 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	appctx "github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/fake"
+	"os"
 	"testing"
 	"time"
 )
@@ -91,4 +94,82 @@ func Test_fqdnRetrieverStep_GetStepDescription(t *testing.T) {
 
 	// then
 	assert.Equal(t, "Retrieving a new FQDN from the IP of a loadbalancer service", description)
+}
+
+func Test_readFqdnFromLoadBalancerWaitTimeoutMinsEnv(t *testing.T) {
+	tests := []struct {
+		name        string
+		setEnvVar   bool
+		envVarValue string
+		want        time.Duration
+		wantLogs    bool
+		wantedLogs  string
+		logLevel    logrus.Level
+	}{
+		{
+			name:       "Environment variable not set",
+			setEnvVar:  false,
+			want:       time.Duration(15),
+			wantLogs:   true,
+			wantedLogs: "failed to read FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS environment variable, using default value of 15",
+			logLevel:   logrus.DebugLevel,
+		},
+		{
+			name:        "Environment variable not set correctly",
+			setEnvVar:   true,
+			envVarValue: "15//",
+			want:        time.Duration(15),
+			wantLogs:    true,
+			wantedLogs:  "failed to parse FQDN_FROM_LOAD_BALANCER_WAIT_TIMEOUT_MINS environment variable, using default value of 15",
+			logLevel:    logrus.WarnLevel,
+		},
+		{
+			name:        "read negative environment variable",
+			setEnvVar:   true,
+			envVarValue: "-20",
+			want:        time.Duration(15),
+			wantLogs:    true,
+			wantedLogs:  "parsed value (-20) is smaller than 0, using default value of 15",
+			logLevel:    logrus.WarnLevel,
+		},
+		{
+			name:        "Successfully read environment variable",
+			setEnvVar:   true,
+			envVarValue: "20",
+			want:        time.Duration(20),
+			wantLogs:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setEnvVar {
+				err := os.Setenv(fqdnFromLoadBalancerWaitTimeoutMinsEnv, tt.envVarValue)
+				require.NoError(t, err)
+			}
+			var result = time.Duration(0)
+
+			var logOutput bytes.Buffer
+
+			originalOutput := logrus.StandardLogger().Out
+			originalLevel := logrus.StandardLogger().Level
+			if tt.wantLogs {
+				logrus.StandardLogger().SetOutput(&logOutput)
+				logrus.StandardLogger().SetLevel(tt.logLevel)
+			}
+
+			result = readFqdnFromLoadBalancerWaitTimeoutMinsEnv()
+
+			logrus.StandardLogger().SetOutput(originalOutput)
+			logrus.StandardLogger().SetLevel(originalLevel)
+
+			logs := logOutput.String()
+
+			assert.Equalf(t, tt.want, result, "readFqdnFromLoadBalancerWaitTimeoutMinsEnv()")
+
+			if tt.wantLogs {
+				assert.Contains(t, logs, tt.wantedLogs)
+			}
+		})
+	}
 }

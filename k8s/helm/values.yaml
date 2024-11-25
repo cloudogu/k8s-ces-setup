@@ -5,10 +5,13 @@ setup:
   env:
     stage: production
     logLevel: info
+    fqdnFromLoadBalancerWaitTimeoutMins: "15"
+    doguWaitTimeoutSecs: "300"
+    componentWaitTimeoutSecs: "1800"
   image:
     registry: docker.io
     repository: cloudogu/k8s-ces-setup
-    tag: 3.0.2
+    tag: 3.0.5
   imagePullPolicy: IfNotPresent
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
