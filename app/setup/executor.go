@@ -359,3 +359,9 @@ func (e *Executor) RegisterSSLGenerationStep() error {
 	e.RegisterSetupSteps(generationStep)
 	return nil
 }
+
+func (e *Executor) RegisterDisableDefaultSAAutomountStep() error {
+	namespace := e.SetupContext.AppConfig.TargetNamespace
+	e.RegisterSetupSteps(data.NewDisableDefaultSAAutomountStep(e.ClientSet, namespace))
+	return nil
+}
