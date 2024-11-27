@@ -75,6 +75,11 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 		return err
 	}
 
+	err = disableDefaultServiceAccountAutomount(ctx, s.ClientSet, s.Namespace)
+	if err != nil {
+		return err
+	}
+
 	err = registerSteps(ctx, s.SetupExecutor, s.globalConfigRepo, s.doguConfigRepo, s.SetupContext)
 	if err != nil {
 		return err
@@ -148,5 +153,20 @@ func setSetupState(ctx context.Context, clientSet kubernetes.Interface, namespac
 		return fmt.Errorf("failed to update k8s-ces-setup configmap: %w", err)
 	}
 
+	return nil
+}
+
+// No pod in the ecosystem namespace should mount the default service account, so we prevent accidental mounting
+func disableDefaultServiceAccountAutomount(ctx context.Context, clientSet kubernetes.Interface, namespace string) error {
+	serviceAccount, err := clientSet.CoreV1().ServiceAccounts(namespace).Get(ctx, "default", metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("unable to get default service account: %w", err)
+	}
+	var automountServiceAccountToken = false
+	serviceAccount.AutomountServiceAccountToken = &automountServiceAccountToken
+	_, err = clientSet.CoreV1().ServiceAccounts(namespace).Update(ctx, serviceAccount, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("unable to deactivate token automount on default service account: %w", err)
+	}
 	return nil
 }

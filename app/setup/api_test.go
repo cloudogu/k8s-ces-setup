@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"io"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
 	"net/http/httptest"
@@ -35,7 +37,7 @@ func TestSetupAPI(t *testing.T) {
 			return routesMock
 		})
 		restConfig := &rest.Config{}
-		clientSet := fake.NewSimpleClientset()
+		clientSet := fake.NewClientset()
 
 		setupCtxBuilder := context.NewSetupContextBuilder("development")
 		setupCtxBuilder.DevSetupConfigPath = "invalid"
@@ -71,7 +73,13 @@ func TestSetupAPI(t *testing.T) {
 			return routesMock
 		})
 		restConfig := &rest.Config{}
-		clientSet := fake.NewSimpleClientset()
+		defaultSA := &corev1.ServiceAccount{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "default",
+				Namespace: "ecosystem",
+			},
+		}
+		clientSet := fake.NewClientset(defaultSA)
 
 		// get project root
 		_, b, _, _ := runtime.Caller(0)
