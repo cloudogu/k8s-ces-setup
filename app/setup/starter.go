@@ -13,6 +13,8 @@ import (
 
 // SetupExecutor is uses to register all necessary steps and executes them
 type SetupExecutor interface {
+	// RegisterDisableDefaultSAAutomountStep registers the step to disable automount for the default service account
+	RegisterDisableDefaultSAAutomountStep() error
 	// RegisterLoadBalancerFQDNRetrieverSteps registers the FQDN retriever step
 	RegisterLoadBalancerFQDNRetrieverSteps() error
 	// RegisterSSLGenerationStep registers all ssl steps
@@ -94,7 +96,12 @@ func (s *Starter) StartSetup(ctx context.Context) error {
 }
 
 func registerSteps(ctx context.Context, setupExecutor SetupExecutor, globalConfig *k8sreg.GlobalConfigRepository, doguConfig *k8sreg.DoguConfigRepository, setupContext *appcontext.SetupContext) error {
-	err := setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
+	err := setupExecutor.RegisterDisableDefaultSAAutomountStep()
+	if err != nil {
+		return fmt.Errorf("failed to register step for disabling automount of the default service account in the ecosystem namespace: %w", err)
+	}
+
+	err = setupExecutor.RegisterLoadBalancerFQDNRetrieverSteps()
 	if err != nil {
 		return fmt.Errorf("failed to register steps for creating loadbalancer and retrieving its ip as fqdn: %w", err)
 	}

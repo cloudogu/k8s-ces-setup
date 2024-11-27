@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.1.0] - 2024-11-27
+### Changed
+- [#120] Deactivate service account token automount for default SA
+
 ## [v3.0.6] - 2024-11-27
 ### Changed
 - [#180] Split rbac permissions into separate files
