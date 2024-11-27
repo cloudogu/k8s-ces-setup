@@ -9,6 +9,23 @@ First, development files should be created to be used instead of the cluster val
 * `k8s/dev-resources/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_en.md)
 * `k8s/dev-resources/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_en.md)
 
+
+### Installing the ces setup in the local cluster
+
+In order for the ces-setup to be executed and tested in the local cluster, a few things must be taken into account.
+Firstly, all existing dogus, components, etc. should be removed from the system. To do this
+the command `make k8s-clean` can be used.
+So that the Ces setup can then be installed, a small change must first be made to the
+k8s/helm/values.yaml file beforehand.
+The following part must be commented in, otherwise the setup cannot be carried out:
+```
+  # k8s-longhorn:
+  # version: latest
+  # helmRepositoryNamespace: k8s
+  # deployNamespace: longhorn-system
+```
+The Ces setup can then be installed with `make helm-apply`. It is then carried out automatically.
+
 ### execution with `go run` or an IDE
 
 - local development at the setup can be started with `STAGE=development go run .`
