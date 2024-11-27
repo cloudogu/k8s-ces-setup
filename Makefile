@@ -41,7 +41,7 @@ include build/make/digital-signature.mk
 include build/make/mocks.mk
 include build/make/release.mk
 
-BINARY_HELM_ADDITIONAL_UPGR_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json"
+BINARY_HELM_ADDITIONAL_UPGR_ARGS=--set-file=setup_json="${WORKDIR}/k8s/dev-resources/setup.json" --values="${WORKDIR}/additionalValues.yaml"
 
 K8S_COMPONENT_SOURCE_VALUES = ${HELM_SOURCE_DIR}/values.yaml
 K8S_COMPONENT_TARGET_VALUES = ${HELM_TARGET_DIR}/values.yaml

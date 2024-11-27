@@ -16,13 +16,13 @@ func TestStarter_StartSetup(t *testing.T) {
 	setupContext := context.SetupContext{AppConfig: &context.Config{TargetNamespace: "test"}, SetupJsonConfiguration: &context.SetupJsonConfiguration{Naming: context.Naming{CertificateType: "selfsigned"}}}
 	starter := &Starter{}
 	starter.SetupContext = &setupContext
-	starter.ClientSet = &fake.Clientset{}
 	starter.Namespace = "test"
 
 	t.Run("successful run without FQDN", func(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
@@ -31,6 +31,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterDoguInstallationSteps(mock.Anything).Return(nil)
 		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -44,6 +45,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		setupContext.SetupJsonConfiguration.Naming.Fqdn = "My-Test-FQDN"
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		expect.RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
@@ -52,6 +54,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterDoguInstallationSteps(mock.Anything).Return(nil)
 		expect.PerformSetup(testCtx).Return(nil, "")
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -68,7 +71,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		data := make(map[string]string)
 		data[context.SetupStateKey] = context.SetupStateInstalling
 		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupStateConfigMap, Namespace: "test"}, Data: data}
-		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
+		doneStarter.ClientSet = fake.NewClientset(configmap)
 
 		// when
 		err := doneStarter.StartSetup(testCtx)
@@ -86,7 +89,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		data := make(map[string]string)
 		data[context.SetupStateKey] = context.SetupStateInstalled
 		configmap := &v1.ConfigMap{ObjectMeta: v12.ObjectMeta{Name: context.SetupStateConfigMap, Namespace: "test"}, Data: data}
-		doneStarter.ClientSet = fake.NewSimpleClientset(configmap)
+		doneStarter.ClientSet = fake.NewClientset(configmap)
 
 		// when
 		err := doneStarter.StartSetup(testCtx)
@@ -96,11 +99,28 @@ func TestStarter_StartSetup(t *testing.T) {
 		assert.Contains(t, err.Error(), "setup is busy or already done")
 	})
 
+	t.Run("failed to register disable default service account automount step", func(t *testing.T) {
+		// given
+		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(assert.AnError)
+		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
+
+		// when
+		err := starter.StartSetup(testCtx)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to register step for disabling automount of the default service account in the ecosystem namespace")
+	})
+
 	t.Run("failed to register loadbalancer fqdn retriever steps", func(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		executorMock.EXPECT().RegisterLoadBalancerFQDNRetrieverSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -113,9 +133,11 @@ func TestStarter_StartSetup(t *testing.T) {
 	t.Run("failed to register ssl generate step", func(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		executorMock.EXPECT().RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		executorMock.EXPECT().RegisterSSLGenerationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -129,10 +151,12 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -146,12 +170,14 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
 		expect.RegisterComponentSetupSteps().Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -165,11 +191,13 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
@@ -183,6 +211,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		// given
 		executorMock := NewMockSetupExecutor(t)
 		expect := executorMock.EXPECT()
+		executorMock.EXPECT().RegisterDisableDefaultSAAutomountStep().Return(nil)
 		expect.RegisterLoadBalancerFQDNRetrieverSteps().Return(nil)
 		expect.RegisterSSLGenerationStep().Return(nil)
 		expect.RegisterValidationStep().Return(nil)
@@ -190,6 +219,7 @@ func TestStarter_StartSetup(t *testing.T) {
 		expect.RegisterDataSetupSteps(mock.Anything, mock.Anything).Return(nil)
 		expect.RegisterDoguInstallationSteps(mock.Anything).Return(assert.AnError)
 		starter.SetupExecutor = executorMock
+		starter.ClientSet = fake.NewClientset()
 
 		// when
 		err := starter.StartSetup(testCtx)
