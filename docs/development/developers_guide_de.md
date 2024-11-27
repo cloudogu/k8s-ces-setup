@@ -9,6 +9,23 @@ Zuerst sollten Entwicklungsdateien angelegt werden, die anstelle der Cluster-Wer
 * `k8s/dev-resources/k8s-ces-setup.yaml`: [setup-config](../operations/configuration_guide_de.md)
 * `k8s/dev-resources/setup.json`: [custom-setup-config](../operations/custom_setup_configuration_de.md)
 
+### Installation des Ces-Setups im lokalen Cluster
+
+Damit das ces-setup im lokalen Cluster ausgeführt und getestet werden kann, müssen einige Dinge beachtet werden.
+Zuerst sollten alle vorhandenen Dogus, Komponenten, etc. aus dem System entfernt werden. Dazu kann
+der Befehl `make k8s-clean` verwendet werden.
+Damit anschließend das Ces-Setup installiert werden kann, muss vorher noch eine kleine Änderung an der 
+k8s/helm/values.yaml durchgeführt werden.
+Der folgende Teil muss einkommentiert werden, andernfalls kann das Setup nicht durchgeführt werden:
+```
+  # k8s-longhorn:
+  #   version: latest
+  #   helmRepositoryNamespace: k8s
+  #   deployNamespace: longhorn-system
+```
+Anschließend kann mit `make helm-apply` das Ces-Setup installiert werden. Es wird dann automatisch durchgeführt.
+
+
 ### Ausführung mit `go run` oder einer IDE
 
 - die lokale Entwicklung am Setup kann mit `STAGE=development go run .` gestartet werden

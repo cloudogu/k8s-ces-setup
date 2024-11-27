@@ -1,0 +1,18 @@
+# This permission allows the ces-setup to create its own roles and role bindings
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "k8s-ces-setup.name" . }}
+  namespace: kube-system
+  labels:
+    {{- include "k8s-ces-setup.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+      - rolebindings
+    verbs:
+      - get
+      - create
+      - delete
