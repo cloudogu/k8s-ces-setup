@@ -141,8 +141,9 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-velero --namespace=$(NAMESPACE) || true
 	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
-		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]]; then \
+		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]] && [[ $$cmp != *"k8s-component-operator-crd"* ]]; then \
 		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
 		fi; \
 	done;
