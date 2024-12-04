@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- [#122] Add a `deny-all` network-policy, to block all incoming traffic
+
+### Removed
+- [#122] Remove REST-API and all HTTP-Endpoints
+
 ## [v3.1.0] - 2024-11-27
 ### Changed
 - [#120] Deactivate service account token automount for default SA
