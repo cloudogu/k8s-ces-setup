@@ -117,24 +117,21 @@ type configWriter struct {
 
 // handleEntry writes values into the appcontext implemented in the write process.
 func (contextWriter configWriter) handleEntry(field string, value interface{}) (err error) {
-	switch value.(type) {
+	switch castedConfigValue := value.(type) {
 	case string:
-		// nolint
-		err = contextWriter.write(field, value.(string))
+		err = contextWriter.write(field, castedConfigValue)
 		if err != nil {
 			return errors.Wrapf(err, "could not set %s", value)
 		}
 	case map[string]string:
-		// nolint
-		for fieldName, fieldEntry := range value.(map[string]string) {
+		for fieldName, fieldEntry := range castedConfigValue {
 			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
 				break
 			}
 		}
 	case map[string]interface{}:
-		// nolint
-		for fieldName, fieldEntry := range value.(map[string]interface{}) {
+		for fieldName, fieldEntry := range castedConfigValue {
 			err = contextWriter.handleEntry(field+contextWriter.delimiter+fieldName, fieldEntry)
 			if err != nil {
 				break
