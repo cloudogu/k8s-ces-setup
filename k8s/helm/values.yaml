@@ -13,6 +13,8 @@ setup:
     repository: cloudogu/k8s-ces-setup
     tag: 3.1.0
   imagePullPolicy: IfNotPresent
+  networkPolicies:
+    enabled: false
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
 component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
