@@ -18,10 +18,10 @@ func TestNewResourcePatchConfigurationValidator(t *testing.T) {
 func Test_resourcePatchValidator_Validate(t *testing.T) {
 	validPatches := []patch.JsonPatch{{Operation: "add", Path: "/metadata/annotations", Value: map[string]interface{}{"service.beta.kubernetes.io/azure-load-balancer-internal": "true"}}}
 	validResourceConfigs := []patch.ResourcePatch{
-		{patch.DoguPhase, patch.ResourceReference{"v1", "Pod", "my-pod"}, validPatches},
+		{Phase: patch.DoguPhase, Resource: patch.ResourceReference{ApiVersion: "v1", Kind: "Pod", Name: "my-pod"}, Patches: validPatches},
 	}
 	invalidResourceConfigs := []patch.ResourcePatch{
-		{"boohoo", patch.ResourceReference{"v1", "Pod", "my-pod"}, validPatches},
+		{Phase: "boohoo", Resource: patch.ResourceReference{ApiVersion: "v1", Kind: "Pod", Name: "my-pod"}, Patches: validPatches},
 	}
 
 	type args struct {
