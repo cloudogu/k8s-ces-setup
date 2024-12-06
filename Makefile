@@ -1,6 +1,6 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=3.1.0
+VERSION=3.2.0
 
 GOTAG?=1.23.2
 MAKEFILES_VERSION=9.3.2
@@ -141,8 +141,9 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
+	@kubectl delete component k8s-velero --namespace=$(NAMESPACE) || true
 	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
-		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]]; then \
+		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]] && [[ $$cmp != *"k8s-component-operator-crd"* ]]; then \
 		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
 		fi; \
 	done;
@@ -153,7 +154,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
 	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
+	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv,networkpolicy --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
 	@kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE)
 
 .PHONY: build-setup

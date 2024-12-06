@@ -5,7 +5,7 @@ Thank you for installing the Cloudogu EcoSystem.
 If all sections from the setup.json are completed the setup starts unattended.
 
 To start the setup manually:
-    kubectl port-forward service/{{ .Release.Name }} 30080:8080
+    kubectl port-forward pod/$(kubectl get pods -l app.kubernetes.io/name=k8s-ces-setup -o jsonpath='{.items[0].metadata.name}') 30080:8080
     curl -I --request POST --url http://localhost:30080/api/v1/setup
 {{- printf "\n" }}
 {{- $statusConfigName := "k8s-setup-config"}}

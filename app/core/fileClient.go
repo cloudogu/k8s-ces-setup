@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -43,7 +43,7 @@ func (dhc *defaultHttpClient) Get(url string, username string, password string) 
 		return nil, fmt.Errorf("response for YAML file '%s' returned with non-200 reply (HTTP %d): identifying this as an error", url, resp.StatusCode)
 	}
 
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error while reading the response body of '%s'", url)
 	}
