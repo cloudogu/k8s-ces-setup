@@ -30,7 +30,7 @@ func NewGenerateSSLStep(config *appcontext.SetupJsonConfiguration) *generateSSLS
 
 // GetStepDescription return the human-readable description of the step
 func (gss *generateSSLStep) GetStepDescription() string {
-	return fmt.Sprintf("Generate SSL certificate and key")
+	return "Generate SSL certificate and key"
 }
 
 // PerformSetupStep either generates a certificate if necessary and writes it to the setup configuration
