@@ -23,6 +23,58 @@ func (_m *mockHelmClient) EXPECT() *mockHelmClient_Expecter {
 	return &mockHelmClient_Expecter{mock: &_m.Mock}
 }
 
+// GetLatestVersion provides a mock function with given fields: chartName
+func (_m *mockHelmClient) GetLatestVersion(chartName string) (string, error) {
+	ret := _m.Called(chartName)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(chartName)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(chartName)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(chartName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// mockHelmClient_GetLatestVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestVersion'
+type mockHelmClient_GetLatestVersion_Call struct {
+	*mock.Call
+}
+
+// GetLatestVersion is a helper method to define mock.On call
+//   - chartName string
+func (_e *mockHelmClient_Expecter) GetLatestVersion(chartName interface{}) *mockHelmClient_GetLatestVersion_Call {
+	return &mockHelmClient_GetLatestVersion_Call{Call: _e.mock.On("GetLatestVersion", chartName)}
+}
+
+func (_c *mockHelmClient_GetLatestVersion_Call) Run(run func(chartName string)) *mockHelmClient_GetLatestVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *mockHelmClient_GetLatestVersion_Call) Return(_a0 string, _a1 error) *mockHelmClient_GetLatestVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *mockHelmClient_GetLatestVersion_Call) RunAndReturn(run func(string) (string, error)) *mockHelmClient_GetLatestVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InstallOrUpgrade provides a mock function with given fields: ctx, chart
 func (_m *mockHelmClient) InstallOrUpgrade(ctx context.Context, chart *client.ChartSpec) error {
 	ret := _m.Called(ctx, chart)

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [#79] Missing post-renderer for installing Helm charts caused restart and unhealthiness in component operator 
 
 ## [v3.2.0] - 2024-12-06
 
