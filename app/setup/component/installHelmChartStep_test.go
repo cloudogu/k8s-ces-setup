@@ -2,6 +2,8 @@ package component
 
 import (
 	"context"
+	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
+	"github.com/cloudogu/k8s-component-operator/pkg/labels"
 	"testing"
 	"time"
 
@@ -56,6 +58,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -81,14 +87,19 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			ReleaseName:     "testChart",
 			ChartName:       "foo/testChart",
 			Namespace:       "testing",
-			Version:         "",
+			Version:         "1.5.0",
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "1.5.0",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
 		helmClientMock.EXPECT().InstallOrUpgrade(testCtx, chartSpec).Return(nil)
+		helmClientMock.EXPECT().GetLatestVersion("foo/testChart").Return("1.5.0", nil)
 
 		step := &installHelmChartStep{
 			namespace:  "testing",
@@ -102,6 +113,26 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 	})
+	t.Run("should fail to resolve 'latest' version", func(t *testing.T) {
+		// given
+		testCtx := context.TODO()
+
+		helmClientMock := newMockHelmClient(t)
+		helmClientMock.EXPECT().GetLatestVersion("foo/testChart").Return("", assert.AnError)
+
+		step := &installHelmChartStep{
+			namespace:  "testing",
+			chart:      "foo/testChart:latest",
+			helmClient: helmClientMock,
+		}
+
+		// when
+		err := step.PerformSetupStep(testCtx)
+
+		// then
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.ErrorContains(t, err, "error fetching latest version of chart \"foo/testChart\"")
+	})
 
 	t.Run("should fail to perform setup for error in helmClient when installing the crd chart", func(t *testing.T) {
 		// given
@@ -114,6 +145,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -181,6 +216,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)

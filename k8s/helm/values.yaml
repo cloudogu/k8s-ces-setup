@@ -11,7 +11,7 @@ setup:
   image:
     registry: docker.io
     repository: cloudogu/k8s-ces-setup
-    tag: 3.2.0
+    tag: 3.2.1
   imagePullPolicy: IfNotPresent
   networkPolicies:
     enabled: false
@@ -156,7 +156,7 @@ helm_registry_secret:
 #resource_patches:
 #- phase: dogu
 #  resource:
-#    apiVersion: k8s.cloudogu.com/v1
+#    apiVersion: k8s.cloudogu.com/v2
 #    kind: Dogu
 #    name: nexus
 #  patches:

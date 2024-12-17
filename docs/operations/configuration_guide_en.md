@@ -60,7 +60,7 @@ data:
     resource_patches:
     - phase: dogu
       resource:
-        apiVersion: k8s.cloudogu.com/v1
+        apiVersion: k8s.cloudogu.com/v2
         kind: Dogu
         name: nexus
       patches:
@@ -212,7 +212,7 @@ resource_patches:
   - phase: dogu
     resource:
 # the usual notation of Kubernetes resources is used here.
-      apiVersion: k8s.cloudogu.com/v1
+      apiVersion: k8s.cloudogu.com/v2
       kind: dogu
       name: nexus
     patches:
