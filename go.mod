@@ -10,7 +10,7 @@ require (
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
 	github.com/cloudogu/remote-dogu-descriptor-lib v0.1.1
-	github.com/cloudogu/retry-lib v0.0.0-20241113131535-ecc1897c3880
+	github.com/cloudogu/retry-lib v0.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
@@ -25,7 +25,10 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.68.1
+replace (
+	github.com/cloudogu/k8s-component-operator v1.4.0 => github.com/cloudogu/k8s-component-operator v0.0.0-20241216161712-a146ccd94e4a
+	google.golang.org/grpc => google.golang.org/grpc v1.68.1
+)
 
 require (
 	dario.cat/mergo v1.0.1 // indirect

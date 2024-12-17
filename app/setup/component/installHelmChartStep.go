@@ -11,6 +11,8 @@ import (
 type helmClient interface {
 	// InstallOrUpgrade takes a component and applies the corresponding helmChart.
 	InstallOrUpgrade(ctx context.Context, chart *helmclient.ChartSpec) error
+	// GetLatestVersion tries to get the latest version identifier for the chart with the given name.
+	GetLatestVersion(chartName string) (string, error)
 }
 
 type installHelmChartStep struct {
@@ -48,12 +50,19 @@ func (s *installHelmChartStep) installChart(ctx context.Context, chart string) e
 		return err
 	}
 
-	chartName := fullChartName[strings.LastIndex(fullChartName, "/")+1:]
-	if len(chartName) <= 0 {
+	releaseName := fullChartName[strings.LastIndex(fullChartName, "/")+1:]
+	if len(releaseName) <= 0 {
 		return fmt.Errorf("error reading chartname '%s': wrong format", fullChartName)
 	}
 
-	chartSpec := s.createChartSpec(chartName, fullChartName, chartVersion)
+	if chartVersion == "latest" {
+		chartVersion, err = s.helmClient.GetLatestVersion(fullChartName)
+		if err != nil {
+			return fmt.Errorf("error fetching latest version of chart %q: %w", fullChartName, err)
+		}
+	}
+
+	chartSpec := s.createChartSpec(releaseName, fullChartName, chartVersion)
 
 	return s.helmClient.InstallOrUpgrade(ctx, chartSpec)
 }
@@ -74,12 +83,12 @@ func SplitHelmNamespaceFromChartString(chartString string) (string, string) {
 	return split[0], split[1]
 }
 
-func (s *installHelmChartStep) createChartSpec(chartName string, fullChartName string, chartVersion string) *helmclient.ChartSpec {
+func (s *installHelmChartStep) createChartSpec(releaseName string, fullChartName string, chartVersion string) *helmclient.ChartSpec {
 	return &helmclient.ChartSpec{
-		ReleaseName: chartName,
+		ReleaseName: releaseName,
 		ChartName:   fullChartName,
 		Namespace:   s.namespace,
-		Version:     patchHelmChartVersion(chartVersion),
+		Version:     chartVersion,
 		// This timeout prevents context exceeded errors from the used k8s client from the helm library.
 		Timeout: time.Second * 300,
 		// Wait for the release to deployed and ready
