@@ -3,9 +3,12 @@ package component
 import (
 	"context"
 	"fmt"
-	helmclient "github.com/cloudogu/k8s-component-operator/pkg/helm/client"
 	"strings"
 	"time"
+
+	"github.com/cloudogu/k8s-component-operator/pkg/api/v1"
+	helmclient "github.com/cloudogu/k8s-component-operator/pkg/helm/client"
+	"github.com/cloudogu/k8s-component-operator/pkg/labels"
 )
 
 type helmClient interface {
@@ -94,5 +97,9 @@ func (s *installHelmChartStep) createChartSpec(releaseName string, fullChartName
 		// Wait for the release to deployed and ready
 		Atomic:          true,
 		CreateNamespace: true,
+		PostRenderer: labels.NewPostRenderer(map[string]string{
+			v1.ComponentNameLabelKey:    releaseName,
+			v1.ComponentVersionLabelKey: chartVersion,
+		}),
 	}
 }
