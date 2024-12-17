@@ -2,6 +2,8 @@ package component
 
 import (
 	"context"
+	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
+	"github.com/cloudogu/k8s-component-operator/pkg/labels"
 	"testing"
 	"time"
 
@@ -56,6 +58,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -85,6 +91,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "1.5.0",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -135,6 +145,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
@@ -202,6 +216,10 @@ func TestComponentChartInstallerStep_PerformSetupStep(t *testing.T) {
 			Timeout:         time.Second * 300,
 			Atomic:          true,
 			CreateNamespace: true,
+			PostRenderer: labels.NewPostRenderer(map[string]string{
+				v1.ComponentNameLabelKey:    "testChart",
+				v1.ComponentVersionLabelKey: "0.1",
+			}),
 		}
 
 		helmClientMock := newMockHelmClient(t)
