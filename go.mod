@@ -6,7 +6,7 @@ require (
 	github.com/cloudogu/ces-commons-lib v0.2.0
 	github.com/cloudogu/cesapp-lib v0.15.0
 	github.com/cloudogu/k8s-apply-lib v0.5.0
-	github.com/cloudogu/k8s-component-operator v1.4.0
+	github.com/cloudogu/k8s-component-operator v1.6.0
 	github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0
 	github.com/cloudogu/k8s-registry-lib v0.5.0
 	github.com/cloudogu/remote-dogu-descriptor-lib v0.1.1
@@ -26,7 +26,6 @@ require (
 )
 
 replace (
-	github.com/cloudogu/k8s-component-operator v1.4.0 => github.com/cloudogu/k8s-component-operator v0.0.0-20241216161712-a146ccd94e4a
 	google.golang.org/grpc => google.golang.org/grpc v1.68.1
 )
 

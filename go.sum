@@ -70,6 +70,8 @@ github.com/cloudogu/k8s-apply-lib v0.5.0 h1:XeQKwTgT8FIozpqyPO/b09LAenPswBilmatw
 github.com/cloudogu/k8s-apply-lib v0.5.0/go.mod h1:jR/+7q47O5gb++4gVsmEElT8/EJoi+Msw2dVzArTPW0=
 github.com/cloudogu/k8s-component-operator v0.0.0-20241216161712-a146ccd94e4a h1:0uKdcxDJiy6o2XUn2vrtyP39scZxl0vDMNDSOI/sOVE=
 github.com/cloudogu/k8s-component-operator v0.0.0-20241216161712-a146ccd94e4a/go.mod h1:dz0VavPTPZ228X2kJWBNdsns6TGfupcAv8UbUs0takY=
+github.com/cloudogu/k8s-component-operator v1.6.0 h1:WvvbF0Av7hSbYrt8Sl5xYfwvkwRPNbF2q5B+FdwA7cY=
+github.com/cloudogu/k8s-component-operator v1.6.0/go.mod h1:dz0VavPTPZ228X2kJWBNdsns6TGfupcAv8UbUs0takY=
 github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0 h1:U2VHM9QwHArm5AYmcfSgzzAbTdgxrk+TqcgTublhNZA=
 github.com/cloudogu/k8s-dogu-operator/v2 v2.3.0/go.mod h1:yfvaFn951pWxFMapJmEz2ZPpT5unEOcTwEhspGehNYQ=
 github.com/cloudogu/k8s-registry-lib v0.5.0 h1:mdo8+0cSLicCNyymc8GbTl8ku5sMGA3IR/n5ga2WIvI=
