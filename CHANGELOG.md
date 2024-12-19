@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.2.2] - 2024-12-19
+### Fixed
+- [#101] Fix CVE-2024-45337
+
 ## [v3.2.1] - 2024-12-17
 ### Fixed
 - [#79] Missing post-renderer for installing Helm charts caused restart and unhealthiness in component operator 
