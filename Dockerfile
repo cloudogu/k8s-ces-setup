@@ -30,7 +30,7 @@ RUN make compile-generic
 FROM gcr.io/distroless/static:nonroot
 LABEL maintainer="hello@cloudogu.com" \
       NAME="k8s-ces-setup" \
-      VERSION="3.2.1"
+      VERSION="3.2.2"
 
 WORKDIR /
 
