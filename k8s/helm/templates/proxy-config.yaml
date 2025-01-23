@@ -1,0 +1,11 @@
+{{- if .Values.setup.env.proxy }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ces-proxy
+  labels:
+    app: ces
+type: Opaque
+data:
+  url: "{{- .Values.setup.env.proxy.url | b64enc }}"
+{{- end }}
