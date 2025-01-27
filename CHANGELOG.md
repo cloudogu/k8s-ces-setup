@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v3.3.0] - 2025-01-27
 ### Added
 - [#128] Proxy support for dogu, container and helm registry.
   - If configured via `.setup.env.proxy` the setup creates a secret `ces-proxy` with the fully url and uses this proxy to query the dogu registry.
