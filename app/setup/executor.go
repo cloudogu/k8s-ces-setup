@@ -9,7 +9,10 @@ import (
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	remotedogudescriptor "github.com/cloudogu/remote-dogu-descriptor-lib/repository"
 	"maps"
+	"net/url"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
@@ -59,7 +62,12 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 		Password: setupCtx.DoguRegistryConfiguration.Password,
 	}
 
-	doguRepository, err := remotedogudescriptor.NewRemoteDoguDescriptorRepository(getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.DoguRegistryConfiguration.URLSchema), credentials)
+	config, err := getRemoteConfig(setupCtx.DoguRegistryConfiguration.Endpoint, setupCtx.DoguRegistryConfiguration.URLSchema)
+	if err != nil {
+		return nil, err
+	}
+
+	doguRepository, err := remotedogudescriptor.NewRemoteDoguDescriptorRepository(config, credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new remote dogu repository: %w", err)
 	}
@@ -72,18 +80,55 @@ func NewExecutor(clusterConfig *rest.Config, k8sClient kubernetes.Interface, set
 	}, nil
 }
 
-func getRemoteConfig(endpoint string, urlSchema string) *core.Remote {
+func getRemoteConfig(endpoint string, urlSchema string) (*core.Remote, error) {
 	endpoint = strings.TrimSuffix(endpoint, "/")
 	if urlSchema == "default" {
 		endpoint = strings.TrimSuffix(endpoint, "dogus")
 		endpoint = strings.TrimSuffix(endpoint, "/")
 	}
 
-	return &core.Remote{
-		Endpoint:  endpoint,
-		URLSchema: urlSchema,
-		CacheDir:  "/tmp",
+	proxyURL, b := os.LookupEnv("PROXY_URL")
+
+	proxySettings := core.ProxySettings{}
+	if b && len(proxyURL) > 0 {
+		var err error
+		if proxySettings, err = configureProxySettings(proxyURL); err != nil {
+			return nil, err
+		}
 	}
+
+	return &core.Remote{
+		Endpoint:      endpoint,
+		URLSchema:     urlSchema,
+		CacheDir:      "/tmp",
+		ProxySettings: proxySettings,
+	}, nil
+}
+
+func configureProxySettings(proxyURL string) (core.ProxySettings, error) {
+	parsedURL, err := url.Parse(proxyURL)
+	if err != nil {
+		return core.ProxySettings{}, fmt.Errorf("invalid proxy url: %w", err)
+	}
+
+	proxySettings := core.ProxySettings{}
+	proxySettings.Enabled = true
+	if parsedURL.User != nil {
+		proxySettings.Username = parsedURL.User.Username()
+		if password, set := parsedURL.User.Password(); set {
+			proxySettings.Password = password
+		}
+	}
+
+	proxySettings.Server = parsedURL.Hostname()
+
+	port, err := strconv.Atoi(parsedURL.Port())
+	if err != nil {
+		return core.ProxySettings{}, fmt.Errorf("invalid port %s: %w", parsedURL.Port(), err)
+	}
+	proxySettings.Port = port
+
+	return proxySettings, nil
 }
 
 // RegisterSetupSteps adds a new step to the setup

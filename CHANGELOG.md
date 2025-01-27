@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.3.0] - 2025-01-27
+### Added
+- [#128] Proxy support for dogu, container and helm registry.
+  - If configured via `.setup.env.proxy` the setup creates a secret `ces-proxy` with the fully url and uses this proxy to query the dogu registry.
+  Other components e.g. component-operator uses the url from the secret too if available.
+  In general if you use this proxy configuration you should also set the proxy for the dogus via the global config in the setup json.
+  See [setup json documentation](https://docs.cloudogu.com/en/docs/system-components/ces-setup/operations/setup-json/#section-config_globalproxy).
+
 ## [v3.2.2] - 2024-12-19
 ### Fixed
 - [#101] Fix CVE-2024-45337

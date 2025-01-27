@@ -8,10 +8,12 @@ setup:
     fqdnFromLoadBalancerWaitTimeoutMins: "15"
     doguWaitTimeoutSecs: "300"
     componentWaitTimeoutSecs: "1800"
+    proxy:
+    #      url: http://user:password@host:port
   image:
     registry: docker.io
     repository: cloudogu/k8s-ces-setup
-    tag: 3.2.2
+    tag: 3.3.0
   imagePullPolicy: IfNotPresent
   networkPolicies:
     enabled: false

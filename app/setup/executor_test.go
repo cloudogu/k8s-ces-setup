@@ -332,44 +332,93 @@ func Test_getRemoteConfig(t *testing.T) {
 		urlSchema string
 	}
 	tests := []struct {
-		name string
-		args args
-		want *core.Remote
+		name    string
+		args    args
+		want    *core.Remote
+		wantErr assert.ErrorAssertionFunc
+		setEnv  func(t *testing.T)
 	}{
 		{
-			name: "test default url schema",
-			args: args{endpoint: "https://example.com/", urlSchema: "default"},
-			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			name:    "test default url schema",
+			args:    args{endpoint: "https://example.com/", urlSchema: "default"},
+			want:    &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
 		},
 		{
-			name: "test default url schema with 'dogus' suffix",
-			args: args{endpoint: "https://example.com/dogus", urlSchema: "default"},
-			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			name:    "test default url schema with 'dogus' suffix",
+			args:    args{endpoint: "https://example.com/dogus", urlSchema: "default"},
+			want:    &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
 		},
 		{
-			name: "test default url schema with 'dogus/' suffix",
-			args: args{endpoint: "https://example.com/dogus/", urlSchema: "default"},
-			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			name:    "test default url schema with 'dogus/' suffix",
+			args:    args{endpoint: "https://example.com/dogus/", urlSchema: "default"},
+			want:    &core.Remote{Endpoint: "https://example.com", URLSchema: "default", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
 		},
 		{
-			name: "test non-default url schema",
-			args: args{endpoint: "https://example.com/", urlSchema: "index"},
-			want: &core.Remote{Endpoint: "https://example.com", URLSchema: "index", CacheDir: "/tmp"},
+			name:    "test non-default url schema",
+			args:    args{endpoint: "https://example.com/", urlSchema: "index"},
+			want:    &core.Remote{Endpoint: "https://example.com", URLSchema: "index", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
 		},
 		{
-			name: "test non-default url schema with 'dogus' suffix",
-			args: args{endpoint: "https://example.com/dogus", urlSchema: "index"},
-			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
+			name:    "test non-default url schema with 'dogus' suffix",
+			args:    args{endpoint: "https://example.com/dogus", urlSchema: "index"},
+			want:    &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
 		},
 		{
-			name: "test non-default url schema with 'dogus/' suffix",
+			name:    "test non-default url schema with 'dogus/' suffix",
+			args:    args{endpoint: "https://example.com/dogus/", urlSchema: "index"},
+			want:    &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "test with proxy",
 			args: args{endpoint: "https://example.com/dogus/", urlSchema: "index"},
-			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp"},
+			want: &core.Remote{Endpoint: "https://example.com/dogus", URLSchema: "index", CacheDir: "/tmp", ProxySettings: core.ProxySettings{
+				Enabled:  true,
+				Server:   "host",
+				Port:     3128,
+				Username: "user",
+				Password: "password",
+			}},
+			wantErr: assert.NoError,
+			setEnv: func(t *testing.T) {
+				t.Setenv("PROXY_URL", "https://user:password@host:3128")
+			},
+		},
+		{
+			name:    "test proxy invalid url",
+			args:    args{endpoint: "https://example.com/dogus/", urlSchema: "index"},
+			want:    nil,
+			wantErr: assert.Error,
+			setEnv: func(t *testing.T) {
+				t.Setenv("PROXY_URL", "://f")
+			},
+		},
+		{
+			name:    "test proxy invalid port",
+			args:    args{endpoint: "https://example.com/dogus/", urlSchema: "index"},
+			want:    nil,
+			wantErr: assert.Error,
+			setEnv: func(t *testing.T) {
+				t.Setenv("PROXY_URL", "https://user:password@host:invalid")
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, getRemoteConfig(tt.args.endpoint, tt.args.urlSchema), "getRemoteConfig(%v, %v)", tt.args.endpoint, tt.args.urlSchema)
+			if tt.setEnv != nil {
+				tt.setEnv(t)
+			}
+
+			config, err := getRemoteConfig(tt.args.endpoint, tt.args.urlSchema)
+
+			tt.wantErr(t, err)
+
+			assert.Equalf(t, tt.want, config, "getRemoteConfig(%v, %v)", tt.args.endpoint, tt.args.urlSchema)
 		})
 	}
 }
