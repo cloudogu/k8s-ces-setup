@@ -31,6 +31,24 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		expected := map[string]string{"app": "ces"}
 		assert.Equal(t, expected, actual.ObjectMeta.Labels)
 	})
+	t.Run("creates load-balancer with external IPs if none exists", func(t *testing.T) {
+		// given
+		fakeClient := fake.NewSimpleClientset()
+		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: "", LoadBalancerIPs: []string{"203.0.113.25", "198.51.100.22"}}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
+		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
+
+		// when
+		err := sut.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, "ces-loadbalancer", metav1.GetOptions{})
+		require.NoError(t, err)
+		assert.NotNil(t, actual)
+		expected := map[string]string{"app": "ces"}
+		assert.Equal(t, expected, actual.ObjectMeta.Labels)
+		assert.Equal(t, []string{"203.0.113.25", "198.51.100.22"}, actual.Spec.ExternalIPs)
+	})
 	t.Run("deletes misconfigured but still existing service and creates a new one", func(t *testing.T) {
 		// given
 		serviceResource := &corev1.Service{

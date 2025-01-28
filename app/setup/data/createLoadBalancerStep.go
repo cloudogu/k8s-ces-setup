@@ -70,6 +70,7 @@ func (fcs *createLoadBalancerStep) createServiceResource(ctx context.Context) er
 			IPFamilyPolicy: &ipSingleStackPolicy,
 			IPFamilies:     []corev1.IPFamily{corev1.IPv4Protocol},
 			Selector:       map[string]string{DoguLabelName: nginxIngressName},
+			ExternalIPs:    fcs.config.Naming.LoadBalancerIPs,
 			Ports:          []corev1.ServicePort{createNginxPortResource(80), createNginxPortResource(443)},
 		},
 	}

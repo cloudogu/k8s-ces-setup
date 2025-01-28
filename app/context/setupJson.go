@@ -15,6 +15,8 @@ import (
 type Naming struct {
 	// Fqdn contains the complete fully qualified domain name of the Cloudogu EcoSystem.
 	Fqdn string `json:"fqdn"`
+	// LoadBalancerIPs contains IPs to be explicitly set in the ces-loadbalancer service.
+	LoadBalancerIPs []string `json:"loadBalancerIPs"`
 	// Domain is primarily used to send emails from within the EcoSystem.
 	Domain string `json:"domain"`
 	// CertificateType is the type of certificate used to connect to the EcoSystem.
