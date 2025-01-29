@@ -22,7 +22,7 @@ func (_m *mockJsonPatchApplier) EXPECT() *mockJsonPatchApplier_Expecter {
 	return &mockJsonPatchApplier_Expecter{mock: &_m.Mock}
 }
 
-// Patch provides a mock function with given fields: ctx, jsonPatch, gvk, name
+// Patch provides a mock function with given fields: ctx, jsonRepresentation, gvk, name
 func (_m *mockJsonPatchApplier) Patch(ctx context.Context, jsonPatch []byte, gvk schema.GroupVersionKind, name string) error {
 	ret := _m.Called(ctx, jsonPatch, gvk, name)
 
@@ -43,7 +43,7 @@ type mockJsonPatchApplier_Patch_Call struct {
 
 // Patch is a helper method to define mock.On call
 //   - ctx context.Context
-//   - jsonPatch []byte
+//   - jsonRepresentation []byte
 //   - gvk schema.GroupVersionKind
 //   - name string
 func (_e *mockJsonPatchApplier_Expecter) Patch(ctx interface{}, jsonPatch interface{}, gvk interface{}, name interface{}) *mockJsonPatchApplier_Patch_Call {
