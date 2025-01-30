@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.23.2 AS builder
+FROM golang:1.23.5 AS builder
 
 WORKDIR /workspace
 
@@ -30,7 +30,7 @@ RUN make compile-generic
 FROM gcr.io/distroless/static:nonroot
 LABEL maintainer="hello@cloudogu.com" \
       NAME="k8s-ces-setup" \
-      VERSION="3.3.0"
+      VERSION="3.3.1"
 
 WORKDIR /
 

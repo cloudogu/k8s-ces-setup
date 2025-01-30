@@ -1,10 +1,14 @@
 package patch
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 func TestResourceReference_GroupVersionKind(t *testing.T) {
@@ -49,11 +53,96 @@ func TestResourceReference_GroupVersionKind(t *testing.T) {
 	})
 }
 
+func TestJsonPatch_unmarshalling(t *testing.T) {
+	tests := []struct {
+		jsonRepresentation   []byte
+		objectRepresentation JsonPatch
+	}{
+		{
+			jsonRepresentation:   []byte(`{}`),
+			objectRepresentation: JsonPatch{},
+		},
+		{
+			jsonRepresentation: []byte(`{"op": "add", "path": "/metadata/labels", "value": {"foo": "bar"}}`),
+			objectRepresentation: JsonPatch{
+				Operation: "add",
+				Path:      "/metadata/labels",
+				Value:     map[string]interface{}{"foo": "bar"},
+			},
+		},
+		{
+			jsonRepresentation: []byte(`{"op": "add", "path": "/spec/loadBalancerIP", "value": "203.0.113.55"}`),
+			objectRepresentation: JsonPatch{
+				Operation: "add",
+				Path:      "/spec/loadBalancerIP",
+				Value:     "203.0.113.55",
+			},
+		},
+		{
+			jsonRepresentation: []byte(`{"op": "remove", "path": "/spec/loadBalancerIP"}`),
+			objectRepresentation: JsonPatch{
+				Operation: "remove",
+				Path:      "/spec/loadBalancerIP",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.jsonRepresentation), func(t *testing.T) {
+			var actual JsonPatch
+			err := json.Unmarshal(tt.jsonRepresentation, &actual)
+			require.NoError(t, err)
+			assert.Equal(t, tt.objectRepresentation, actual)
+		})
+	}
+}
+
+func TestJsonPatch_marshalling(t *testing.T) {
+	tests := []struct {
+		jsonRepresentation   []byte
+		objectRepresentation JsonPatch
+	}{
+		{
+			jsonRepresentation:   []byte(`{"op":"","path":""}`),
+			objectRepresentation: JsonPatch{},
+		},
+		{
+			jsonRepresentation: []byte(`{"op":"add","path":"/metadata/labels","value":{"foo":"bar"}}`),
+			objectRepresentation: JsonPatch{
+				Operation: "add",
+				Path:      "/metadata/labels",
+				Value:     map[string]interface{}{"foo": "bar"},
+			},
+		},
+		{
+			jsonRepresentation: []byte(`{"op":"add","path":"/spec/loadBalancerIP","value":"203.0.113.55"}`),
+			objectRepresentation: JsonPatch{
+				Operation: "add",
+				Path:      "/spec/loadBalancerIP",
+				Value:     "203.0.113.55",
+			},
+		},
+		{
+			jsonRepresentation: []byte(`{"op":"remove","path":"/spec/loadBalancerIP"}`),
+			objectRepresentation: JsonPatch{
+				Operation: "remove",
+				Path:      "/spec/loadBalancerIP",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.jsonRepresentation), func(t *testing.T) {
+			actual, err := json.Marshal(tt.objectRepresentation)
+			require.NoError(t, err)
+			assert.Equal(t, tt.jsonRepresentation, actual)
+		})
+	}
+}
+
 func TestJsonPatch_Validate(t *testing.T) {
 	type fields struct {
 		Operation JsonPatchOperation
 		Path      string
-		Value     map[string]interface{}
+		Value     interface{}
 	}
 	tests := []struct {
 		name    string
