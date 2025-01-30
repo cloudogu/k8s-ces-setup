@@ -117,7 +117,7 @@ type JsonPatch struct {
 	// If keys contain '/' or '~', those characters have to be replaced with '~1' and '~0' respectively.
 	Path string `yaml:"path" json:"path"`
 	// Value contains the value that should be inserted at the specified path.
-	Value map[string]interface{} `yaml:"value,omitempty" json:"value,omitempty"`
+	Value any `yaml:"value,omitempty" json:"value,omitempty"`
 }
 
 // Validate checks the JsonPatch for errors.
