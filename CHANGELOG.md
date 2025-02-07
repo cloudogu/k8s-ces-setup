@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#134] The setup can now be processed with a previously created loadbalancer service.
+This is useful if the loadbalancer ip is required for the setup configuration.
+In this case one can simply create the service before, wait for the ip assignment and use it for the setup.
+The setup will patch the service with the default http ports.
 
 ## [v3.3.1] - 2025-01-30
 ### Fixed
