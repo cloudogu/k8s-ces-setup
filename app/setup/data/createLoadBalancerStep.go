@@ -45,7 +45,7 @@ func (fcs *createLoadBalancerStep) PerformSetupStep(ctx context.Context) error {
 		return err
 	}
 
-	return fcs.upsertServiceResource(ctx)
+	return fcs.upsertLoadbalancerService(ctx)
 }
 
 func (fcs *createLoadBalancerStep) checkIfNginxWillBeInstalled() error {
@@ -57,7 +57,7 @@ func (fcs *createLoadBalancerStep) checkIfNginxWillBeInstalled() error {
 	return fmt.Errorf("invalid configuration: FQDN can only be created if nginx-ingress will be installed")
 }
 
-func (fcs *createLoadBalancerStep) upsertServiceResource(ctx context.Context) error {
+func (fcs *createLoadBalancerStep) upsertLoadbalancerService(ctx context.Context) error {
 	ipSingleStackPolicy := corev1.IPFamilyPolicySingleStack
 	serviceResource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
