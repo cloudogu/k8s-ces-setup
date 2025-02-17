@@ -3,11 +3,11 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"strings"
 
 	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -45,7 +45,7 @@ func (fcs *createLoadBalancerStep) PerformSetupStep(ctx context.Context) error {
 		return err
 	}
 
-	return fcs.createServiceResource(ctx)
+	return fcs.upsertLoadbalancerService(ctx)
 }
 
 func (fcs *createLoadBalancerStep) checkIfNginxWillBeInstalled() error {
@@ -57,7 +57,7 @@ func (fcs *createLoadBalancerStep) checkIfNginxWillBeInstalled() error {
 	return fmt.Errorf("invalid configuration: FQDN can only be created if nginx-ingress will be installed")
 }
 
-func (fcs *createLoadBalancerStep) createServiceResource(ctx context.Context) error {
+func (fcs *createLoadBalancerStep) upsertLoadbalancerService(ctx context.Context) error {
 	ipSingleStackPolicy := corev1.IPFamilyPolicySingleStack
 	serviceResource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -74,15 +74,34 @@ func (fcs *createLoadBalancerStep) createServiceResource(ctx context.Context) er
 		},
 	}
 
-	// Delete for idempotence
-	err := fcs.clientSet.CoreV1().Services(fcs.namespace).Delete(ctx, serviceResource.Name, metav1.DeleteOptions{})
-	if err != nil && !errors.IsNotFound(err) {
-		return err
+	actualService, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, serviceResource.Name, metav1.GetOptions{})
+	if err == nil {
+		return fcs.updateServiceResource(ctx, actualService, serviceResource)
 	}
 
-	logrus.Debug("Create load balancer service")
-	_, err = fcs.clientSet.CoreV1().Services(fcs.namespace).Create(ctx, serviceResource, metav1.CreateOptions{})
+	if err != nil && errors.IsNotFound(err) {
+		logrus.Debug("Create load balancer service")
+		_, err = fcs.clientSet.CoreV1().Services(fcs.namespace).Create(ctx, serviceResource, metav1.CreateOptions{})
+	}
+
 	return err
+}
+
+func (fcs *createLoadBalancerStep) updateServiceResource(ctx context.Context, actualService *corev1.Service, service *corev1.Service) error {
+	logrus.Debug("Update existing load balancer service")
+	// Update to ensure idempotence
+	if actualService.Labels != nil {
+		actualService.Labels["app"] = "ces"
+	} else {
+		actualService.Labels = service.Labels
+	}
+	actualService.Spec.Type = service.Spec.Type
+	actualService.Spec.IPFamilyPolicy = service.Spec.IPFamilyPolicy
+	actualService.Spec.IPFamilies = service.Spec.IPFamilies
+	actualService.Spec.Selector = service.Spec.Selector
+	actualService.Spec.Ports = service.Spec.Ports
+	_, updateErr := fcs.clientSet.CoreV1().Services(fcs.namespace).Update(ctx, actualService, metav1.UpdateOptions{})
+	return updateErr
 }
 
 func createNginxPortResource(port int) corev1.ServicePort {
@@ -90,6 +109,6 @@ func createNginxPortResource(port int) corev1.ServicePort {
 		Name:       fmt.Sprintf("%s-%d", nginxIngressName, port),
 		Protocol:   corev1.ProtocolTCP,
 		Port:       int32(port),
-		TargetPort: intstr.FromInt(port),
+		TargetPort: intstr.FromInt32(int32(port)),
 	}
 }
