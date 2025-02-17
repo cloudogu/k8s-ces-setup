@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v3.4.0] - 2025-02-17
 ### Changed
 - [#134] The setup can now be processed with a previously created loadbalancer service.
 This is useful if the loadbalancer ip is required for the setup configuration.
