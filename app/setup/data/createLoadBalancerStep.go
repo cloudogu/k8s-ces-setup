@@ -74,9 +74,9 @@ func (fcs *createLoadBalancerStep) upsertServiceResource(ctx context.Context) er
 		},
 	}
 
-	get, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, serviceResource.Name, metav1.GetOptions{})
+	actualService, err := fcs.clientSet.CoreV1().Services(fcs.namespace).Get(ctx, serviceResource.Name, metav1.GetOptions{})
 	if err == nil {
-		return fcs.updateServiceResource(ctx, get, serviceResource)
+		return fcs.updateServiceResource(ctx, actualService, serviceResource)
 	}
 
 	if err != nil && errors.IsNotFound(err) {
