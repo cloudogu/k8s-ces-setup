@@ -1,5 +1,5 @@
 #!groovy
-@Library('github.com/cloudogu/ces-build-lib@3.1.0')
+@Library('github.com/cloudogu/ces-build-lib@4.0.1')
 import com.cloudogu.ces.cesbuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -43,11 +43,11 @@ node('docker') {
             make 'dist-clean'
         }
 
-        stage('Lint - Dockerfile') {
+        stage('Lint Dockerfile') {
             lintDockerfile()
         }
 
-        stage('Check Markdown Links') {
+        stage('Check Markdown links') {
             Markdown markdown = new Markdown(this, "3.11.0")
             markdown.check()
         }
@@ -61,7 +61,7 @@ node('docker') {
                                 make 'compile'
                             }
 
-                            stage('Unit Tests') {
+                            stage('Unit tests') {
                                 make 'unit-test'
                                 junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
                             }
@@ -92,7 +92,7 @@ node('docker') {
             }
 
             def cessetupImageName
-            stage('Build & Push Image') {
+            stage('Build & push image') {
                 String setupVersion = makefile.getVersion()
                 cessetupImageName = k3d.buildAndPushToLocalRegistry("cloudogu/${repositoryName}", setupVersion)
             }
@@ -110,11 +110,11 @@ node('docker') {
                 k3d.configureComponentOperatorVersion("latest")
             }
 
-            stage('Install and Trigger Setup (trigger warning: setup)') {
+            stage('Install and trigger setup') {
                 k3d.helm("install -f k3d_values.yaml ${repositoryName} ${helmChartDir}")
             }
 
-            stage("wait for k8s-specific dogu (it has special needs)") {
+            stage("Wait for k8s-specific dogu") {
                 k3d.waitForDeploymentRollout("nginx-ingress", 300, 10)
             }
 
