@@ -43,29 +43,35 @@ func (wlds *writeLdapDataStep) PerformSetupStep(context.Context) error {
 }
 
 func (wlds *writeLdapDataStep) getCasEntriesAsMap() map[string]interface{} {
-	ldapInCasOptions := map[string]string{
-		"ds_type":              wlds.Configuration.UserBackend.DsType,
-		"server":               wlds.Configuration.UserBackend.Server,
-		"attribute_id":         wlds.Configuration.UserBackend.AttributeID,
-		"attribute_given_name": wlds.Configuration.UserBackend.AttributeGivenName,
-		"attribute_fullname":   wlds.Configuration.UserBackend.AttributeFullname,
-		"attribute_mail":       wlds.Configuration.UserBackend.AttributeMail,
-		"attribute_group":      wlds.Configuration.UserBackend.AttributeGroup,
-		"group_base_dn":        wlds.Configuration.UserBackend.GroupBaseDN,
-		"group_search_filter":  wlds.Configuration.UserBackend.GroupSearchFilter,
-		"group_attribute_name": wlds.Configuration.UserBackend.GroupAttributeName,
-		"base_dn":              wlds.Configuration.UserBackend.BaseDN,
-		"search_filter":        wlds.Configuration.UserBackend.SearchFilter,
-		"connection_dn":        wlds.Configuration.UserBackend.ConnectionDN,
-		"host":                 wlds.Configuration.UserBackend.Host,
-		"port":                 wlds.Configuration.UserBackend.Port,
-	}
-
-	if wlds.Configuration.UserBackend.Encryption != "" {
-		ldapInCasOptions["encryption"] = wlds.Configuration.UserBackend.Encryption
-	}
+	ldapInCasOptions := map[string]string{}
+	putIfNotEmpty(ldapInCasOptions,
+		[2]string{"ds_type", wlds.Configuration.UserBackend.DsType},
+		[2]string{"server", wlds.Configuration.UserBackend.Server},
+		[2]string{"attribute_id", wlds.Configuration.UserBackend.AttributeID},
+		[2]string{"attribute_given_name", wlds.Configuration.UserBackend.AttributeGivenName},
+		[2]string{"attribute_fullname", wlds.Configuration.UserBackend.AttributeFullname},
+		[2]string{"attribute_mail", wlds.Configuration.UserBackend.AttributeMail},
+		[2]string{"attribute_group", wlds.Configuration.UserBackend.AttributeGroup},
+		[2]string{"group_base_dn", wlds.Configuration.UserBackend.GroupBaseDN},
+		[2]string{"group_search_filter", wlds.Configuration.UserBackend.GroupSearchFilter},
+		[2]string{"group_attribute_name", wlds.Configuration.UserBackend.GroupAttributeName},
+		[2]string{"base_dn", wlds.Configuration.UserBackend.BaseDN},
+		[2]string{"search_filter", wlds.Configuration.UserBackend.SearchFilter},
+		[2]string{"connection_dn", wlds.Configuration.UserBackend.ConnectionDN},
+		[2]string{"host", wlds.Configuration.UserBackend.Host},
+		[2]string{"port", wlds.Configuration.UserBackend.Port},
+		[2]string{"encryption", wlds.Configuration.UserBackend.Encryption})
 
 	return map[string]interface{}{"ldap": ldapInCasOptions}
+}
+
+func putIfNotEmpty(myMap map[string]string, kvPairs ...[2]string) {
+	for _, pair := range kvPairs {
+		key, value := pair[0], pair[1]
+		if strings.TrimSpace(value) != "" {
+			myMap[key] = value
+		}
+	}
 }
 
 func (wlds *writeLdapDataStep) getLdapMapperEntriesAsMap() map[string]interface{} {

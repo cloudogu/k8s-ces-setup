@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#136] Do not set empty ldap registry keys for cas 
+  - With this change the default value is correctly used in case of empty values
 
 ## [v3.4.0] - 2025-02-17
 ### Changed
