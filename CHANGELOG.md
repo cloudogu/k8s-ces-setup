@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.4.1] - 2025-02-26
+### Changed
+- [#136] Do not set empty ldap registry keys for cas 
+  - With this change the default value is correctly used in case of empty values
+
 ## [v3.4.0] - 2025-02-17
 ### Changed
 - [#134] The setup can now be processed with a previously created loadbalancer service.

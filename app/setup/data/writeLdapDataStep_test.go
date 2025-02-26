@@ -130,6 +130,44 @@ func Test_writeLdapDataStep_PerformSetupStep(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("successfully write all dogu data to the registry but ignore empty value ones", func(t *testing.T) {
+		// given
+		testConfig := &context.SetupJsonConfiguration{UserBackend: ldapConfiguration}
+		testConfig.UserBackend.DsType = validation.DsTypeEmbedded
+		testConfig.UserBackend.Encryption = ""
+		testConfig.UserBackend.AttributeGivenName = ""
+		testConfig.UserBackend.Host = ""
+		testConfig.UserBackend.AttributeMail = "    " // only spaces should be ignored, too
+
+		registryConfig := context.CustomKeyValue{
+			"cas": map[string]interface{}{
+				"ldap": map[string]string{
+					"attribute_fullname":   "myAttributeFullName",
+					"attribute_group":      "myAttributeGroup",
+					"attribute_id":         "myAttributeID",
+					"base_dn":              "myBaseDN",
+					"connection_dn":        "myConnectionDN",
+					"ds_type":              "embedded",
+					"group_attribute_name": "myGroupAttributeName",
+					"group_base_dn":        "myGroupBaseDN",
+					"group_search_filter":  "myGroupSearchFilter",
+					"port":                 "myPort",
+					"search_filter":        "mySearchFilter",
+					"server":               "myServer"}},
+		}
+
+		mockRegistryWriter := data.NewMockRegistryWriter(t)
+		mockRegistryWriter.EXPECT().WriteConfigToRegistry(registryConfig).Return(nil)
+
+		myStep := data.NewWriteLdapDataStep(mockRegistryWriter, testConfig)
+
+		// when
+		err := myStep.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+	})
+
 	t.Run("successfully write all dogu data to the registry with: embedded ldap, with encryption and no ldap-mapper enabled", func(t *testing.T) {
 		// given
 		testConfig := &context.SetupJsonConfiguration{UserBackend: ldapConfiguration}

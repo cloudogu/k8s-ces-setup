@@ -1,7 +1,7 @@
 apiVersion: v1
 values:
   images:
-    k8sCesSetup: cloudogu/k8s-ces-setup:3.4.0
+    k8sCesSetup: cloudogu/k8s-ces-setup:3.4.1
     kubectl: bitnami/kubectl:1.27.4
 patches:
   values.yaml:
