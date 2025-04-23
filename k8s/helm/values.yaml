@@ -17,6 +17,12 @@ setup:
   imagePullPolicy: IfNotPresent
   networkPolicies:
     enabled: false
+  resources:
+    requests:
+      cpu: 15m
+      memory: 105M
+    limits:
+      memory: 105M
 # Chart of the component operator
 # Format: <namespace>/<name>:<version>
 component_operator_crd_chart: "k8s/k8s-component-operator-crd:latest"
