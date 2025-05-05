@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v3.4.2] - 2025-05-05
+
+### Changed
+- [#138] Set sensible resource requests and limits
+
 ## [v3.4.1] - 2025-02-26
 ### Changed
 - [#136] Do not set empty ldap registry keys for cas 
