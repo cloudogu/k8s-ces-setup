@@ -326,6 +326,7 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error {
 	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
+	secretClient := e.ClientSet.CoreV1().Secrets(e.SetupContext.AppConfig.TargetNamespace)
 	// register steps
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
@@ -334,6 +335,7 @@ func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepos
 	e.RegisterSetupSteps(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
+	e.RegisterSetupSteps(data.NewWriteEcosystemCertificateDataStep(secretClient, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }

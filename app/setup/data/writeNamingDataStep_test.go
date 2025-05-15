@@ -1,12 +1,9 @@
 package data_test
 
 import (
-	gocontext "context"
 	"oras.land/oras-go/pkg/context"
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/stretchr/testify/assert"
@@ -80,8 +77,6 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 			Domain:          "myDomain",
 			MailAddress:     "my@mail.address",
 			CertificateType: "self-signed",
-			Certificate:     "myCertificate",
-			CertificateKey:  "myCertificateKey",
 			RelayHost:       "myRelayHost",
 			UseInternalIp:   true,
 			InternalIp:      "1.2.3.4",
@@ -89,14 +84,12 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 
 		registryConfig := appcontext.CustomKeyValue{
 			"_global": map[string]interface{}{
-				"fqdn":                   "myFqdn",
-				"domain":                 "myDomain",
-				"certificate/type":       "self-signed",
-				"certificate/server.crt": "myCertificate",
-				"certificate/server.key": "myCertificateKey",
-				"mail_address":           "my@mail.address",
-				"k8s/use_internal_ip":    "true",
-				"k8s/internal_ip":        "1.2.3.4",
+				"fqdn":                "myFqdn",
+				"domain":              "myDomain",
+				"certificate/type":    "self-signed",
+				"mail_address":        "my@mail.address",
+				"k8s/use_internal_ip": "true",
+				"k8s/internal_ip":     "1.2.3.4",
 			},
 			"postfix": map[string]interface{}{
 				"relayhost": "myRelayHost",
@@ -116,11 +109,6 @@ func Test_writeNamingDataStep_PerformSetupStep(t *testing.T) {
 		// then
 		require.NoError(t, err)
 
-		tlsSecret, err := fakeClient.CoreV1().Secrets("ecosystem").Get(gocontext.Background(), "ecosystem-certificate", metav1.GetOptions{})
-		require.NoError(t, err)
-
-		assert.Equal(t, []byte("myCertificate"), tlsSecret.Data[v1.TLSCertKey])
-		assert.Equal(t, []byte("myCertificateKey"), tlsSecret.Data[v1.TLSPrivateKeyKey])
 	})
 
 	// TODO add tests for internal ip when addressed
