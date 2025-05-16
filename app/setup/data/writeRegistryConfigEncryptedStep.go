@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
+	k8sdogu "github.com/cloudogu/ces-commons-lib/dogu"
 	k8sconf "github.com/cloudogu/k8s-registry-lib/config"
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"k8s.io/client-go/kubernetes"
@@ -50,7 +51,7 @@ func (wrces *writeRegistryConfigEncryptedStep) PerformSetupStep(ctx context.Cont
 		if err != nil {
 			return fmt.Errorf("faild to map config for dogu '%s' to entries: %w", dogu, err)
 		}
-		doguConfig := k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(dogu), entries)
+		doguConfig := k8sconf.CreateDoguConfig(k8sdogu.SimpleName(dogu), entries)
 
 		switch dogu {
 		case "cas":
