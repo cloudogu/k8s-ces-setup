@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#140] Write the public key and secret key of the certificate only in a secret and no longer in the global config 
 
 ## [v3.4.2] - 2025-05-05
 
