@@ -15,9 +15,9 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	setupcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
+	setupcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/dogus"
 	"github.com/cloudogu/k8s-dogu-operator/v2/api/ecoSystem"
 )
 

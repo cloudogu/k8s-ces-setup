@@ -9,7 +9,7 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/core"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

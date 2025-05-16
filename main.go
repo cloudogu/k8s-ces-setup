@@ -8,9 +8,9 @@ import (
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/health"
-	"github.com/cloudogu/k8s-ces-setup/app/setup"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/health"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

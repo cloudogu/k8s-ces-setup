@@ -2,8 +2,8 @@ package data_test
 
 import (
 	"context"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/data"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

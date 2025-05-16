@@ -2,7 +2,7 @@ package setup
 
 import (
 	"context"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 	"k8s.io/client-go/rest"
 	"net/http"
 

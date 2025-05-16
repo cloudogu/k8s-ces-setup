@@ -3,7 +3,7 @@ package data
 import (
 	"bytes"
 	"context"
-	appctx "github.com/cloudogu/k8s-ces-setup/app/context"
+	appctx "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

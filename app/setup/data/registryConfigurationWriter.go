@@ -3,12 +3,13 @@ package data
 import (
 	"context"
 	"fmt"
+	k8sdogu "github.com/cloudogu/ces-commons-lib/dogu"
+	k8serror "github.com/cloudogu/ces-commons-lib/errors"
 	k8sconf "github.com/cloudogu/k8s-registry-lib/config"
-	k8serror "github.com/cloudogu/k8s-registry-lib/errors"
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"reflect"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 
 	"github.com/sirupsen/logrus"
 
@@ -72,9 +73,9 @@ func (gcw *RegistryConfigurationWriter) writeEntriesForConfig(entries map[string
 		})
 	} else {
 		contextWriter = gcw.newConfigWriter(func(field string, value string) error {
-			c, err := gcw.doguConfig.Get(ctx, k8sconf.SimpleDoguName(config))
+			c, err := gcw.doguConfig.Get(ctx, k8sdogu.SimpleName(config))
 			if err != nil && k8serror.IsNotFoundError(err) {
-				c, err = gcw.doguConfig.Create(ctx, k8sconf.CreateDoguConfig(k8sconf.SimpleDoguName(config), make(k8sconf.Entries)))
+				c, err = gcw.doguConfig.Create(ctx, k8sconf.CreateDoguConfig(k8sdogu.SimpleName(config), make(k8sconf.Entries)))
 				if err != nil {
 					return fmt.Errorf("failed to create dogu config for '%s': %w", config, err)
 				}
