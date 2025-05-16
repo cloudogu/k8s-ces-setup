@@ -8,8 +8,8 @@ import (
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"k8s.io/client-go/kubernetes"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
-	"github.com/cloudogu/k8s-ces-setup/v2/app/validation"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/validation"
 )
 
 type writeRegistryConfigEncryptedStep struct {

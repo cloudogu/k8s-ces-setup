@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudogu/k8s-ces-setup/v2/app/validation"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/validation"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 )
 
 type writeLdapDataStep struct {

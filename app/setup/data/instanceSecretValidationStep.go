@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

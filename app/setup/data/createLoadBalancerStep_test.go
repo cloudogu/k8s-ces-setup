@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
-	appctx "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appctx "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"

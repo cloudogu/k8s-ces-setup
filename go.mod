@@ -1,8 +1,6 @@
-module github.com/cloudogu/k8s-ces-setup/v2
+module github.com/cloudogu/k8s-ces-setup/v4
 
 go 1.24.3
-
-toolchain go1.24.3
 
 require (
 	github.com/cloudogu/ces-commons-lib v0.2.0

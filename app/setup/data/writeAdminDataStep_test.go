@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
-	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/data"
-	"github.com/cloudogu/k8s-ces-setup/v2/app/validation"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/validation"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

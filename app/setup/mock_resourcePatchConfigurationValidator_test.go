@@ -3,7 +3,7 @@
 package setup
 
 import (
-	patch "github.com/cloudogu/k8s-ces-setup/v2/app/patch"
+	patch "github.com/cloudogu/k8s-ces-setup/v4/app/patch"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -3,7 +3,7 @@ package validation
 import (
 	ctx "context"
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
-	"github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/context"
 )
 
 // NamingValidator is used to validate the naming section of the setup configuration

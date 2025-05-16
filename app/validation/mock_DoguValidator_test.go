@@ -5,7 +5,7 @@ package validation
 import (
 	context "context"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 
 	mock "github.com/stretchr/testify/mock"
 )

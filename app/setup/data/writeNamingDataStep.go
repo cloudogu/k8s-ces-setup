@@ -6,7 +6,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"strconv"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 )
 
 const tlsSecretName = "ecosystem-certificate"

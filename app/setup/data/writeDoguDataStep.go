@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 )
 
 type writeDoguDataStep struct {
