@@ -331,11 +331,11 @@ func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepos
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteEcosystemCertificateDataStep(secretClient, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteDoguDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
-	e.RegisterSetupSteps(data.NewWriteEcosystemCertificateDataStep(secretClient, e.SetupContext.SetupJsonConfiguration))
 
 	return nil
 }
