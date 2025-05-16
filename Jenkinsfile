@@ -10,7 +10,7 @@ gitflow = new GitFlow(this, gitWrapper)
 github = new GitHub(this, gitWrapper)
 changelog = new Changelog(this)
 Docker docker = new Docker(this)
-goVersion = "1.24.1"
+goVersion = "1.24.3"
 Makefile makefile = new Makefile(this)
 
 // Configuration of repository
