@@ -10,6 +10,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [#140] Write the public key and secret key of the certificate only in a secret and no longer in the global config
 - [#140] Remove the `ecosystem-certificate` with `make k8s-clean`
 
+> [!IMPORTANT]
+> Requires at least the version `2.0.0` of the `k8s-service-discovery` to work correctly!
+
 ## [v3.4.2] - 2025-05-05
 
 ### Changed
