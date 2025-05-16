@@ -7,7 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
-- [#140] Write the public key and secret key of the certificate only in a secret and no longer in the global config 
+- [#140] Write the public key and secret key of the certificate only in a secret and no longer in the global config
+- [#140] Remove the `ecosystem-certificate` with `make k8s-clean`
 
 ## [v3.4.2] - 2025-05-05
 

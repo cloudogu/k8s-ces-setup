@@ -156,6 +156,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv,networkpolicy --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
 	@kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE)
+	@kubectl delete secret --ignore-not-found ecosystem-certificate --namespace=$(NAMESPACE)
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
