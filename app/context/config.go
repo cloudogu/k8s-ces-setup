@@ -11,7 +11,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/patch"
 )
 
 // ComponentAttributes defines the component to install.

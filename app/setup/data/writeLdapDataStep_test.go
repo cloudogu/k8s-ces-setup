@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
-	"github.com/cloudogu/k8s-ces-setup/app/validation"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/validation"
 )
 
 func TestNewWriteLdapDataStep(t *testing.T) {

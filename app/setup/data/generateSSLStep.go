@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/ssl"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 )
 
 const (

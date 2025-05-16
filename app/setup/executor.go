@@ -16,10 +16,10 @@ import (
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/data"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"

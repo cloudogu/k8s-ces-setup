@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

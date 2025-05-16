@@ -4,7 +4,7 @@ import (
 	ctx "context"
 	"fmt"
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/context"
 )
 
 type validator struct {

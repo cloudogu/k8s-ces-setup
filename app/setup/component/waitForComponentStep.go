@@ -3,7 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/dogus"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/dogus"
 	v1 "github.com/cloudogu/k8s-component-operator/pkg/api/v1"
 	"github.com/cloudogu/retry-lib/retry"
 	"github.com/sirupsen/logrus"

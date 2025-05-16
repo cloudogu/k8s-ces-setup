@@ -1,4 +1,4 @@
-module github.com/cloudogu/k8s-ces-setup
+module github.com/cloudogu/k8s-ces-setup/v2
 
 go 1.23.5
 

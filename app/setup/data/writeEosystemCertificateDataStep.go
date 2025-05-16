@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

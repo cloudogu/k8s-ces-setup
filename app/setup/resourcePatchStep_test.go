@@ -1,7 +1,7 @@
 package setup
 
 import (
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/patch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"

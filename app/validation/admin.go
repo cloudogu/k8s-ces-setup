@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/mail"
 
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/context"
 )
 
 type adminValidator struct{}

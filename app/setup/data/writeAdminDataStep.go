@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 
-	"github.com/cloudogu/k8s-ces-setup/app/validation"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/validation"
 )
 
 type writeAdminDataStep struct {

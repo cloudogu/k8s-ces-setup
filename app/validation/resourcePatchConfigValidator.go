@@ -2,7 +2,7 @@ package validation
 
 import (
 	"errors"
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/patch"
 )
 
 type resourcePatchValidator struct{}

@@ -3,7 +3,7 @@
 package validation
 
 import (
-	context "github.com/cloudogu/k8s-ces-setup/app/context"
+	context "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 	mock "github.com/stretchr/testify/mock"
 )
 

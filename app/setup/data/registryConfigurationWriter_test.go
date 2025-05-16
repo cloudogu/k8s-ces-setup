@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/setup/data"
 	"github.com/stretchr/testify/require"
 )
 

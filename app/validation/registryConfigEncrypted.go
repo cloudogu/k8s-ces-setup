@@ -2,7 +2,7 @@ package validation
 
 import (
 	"fmt"
-	"github.com/cloudogu/k8s-ces-setup/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v2/app/context"
 	"strings"
 )
 

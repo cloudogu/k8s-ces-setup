@@ -8,7 +8,7 @@ import (
 	k8sreg "github.com/cloudogu/k8s-registry-lib/repository"
 	"reflect"
 
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v2/app/context"
 
 	"github.com/sirupsen/logrus"
 

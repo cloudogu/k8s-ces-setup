@@ -5,7 +5,7 @@ package setup
 import (
 	context "context"
 
-	patch "github.com/cloudogu/k8s-ces-setup/app/patch"
+	patch "github.com/cloudogu/k8s-ces-setup/v2/app/patch"
 	mock "github.com/stretchr/testify/mock"
 )
 
