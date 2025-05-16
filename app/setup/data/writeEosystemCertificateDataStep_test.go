@@ -13,8 +13,6 @@ import (
 const ecosystemNamespace = "ecosystem"
 
 func TestNewWriteEcosystemCertificateDataStep(t *testing.T) {
-	t.Parallel()
-
 	t.Run("successfully create new naming data step", func(t *testing.T) {
 		// given
 		testConfig := &appcontext.SetupJsonConfiguration{}
@@ -29,8 +27,6 @@ func TestNewWriteEcosystemCertificateDataStep(t *testing.T) {
 }
 
 func Test_writeEcosystemCertificateDataStep_GetStepDescription(t *testing.T) {
-	t.Parallel()
-
 	t.Run("successfully get naming data step description", func(t *testing.T) {
 		// given
 		testConfig := &appcontext.SetupJsonConfiguration{}
@@ -57,8 +53,8 @@ func Test_writeEcosystemCertificateDataStep_PerformSetupStep(t *testing.T) {
 				Name: certificateSecretName,
 			},
 			Data: map[string][]byte{
-				certificateSecretPublicKey:  []byte(""),
-				certificateSecretPrivateKey: []byte(""),
+				v1.TLSCertKey:       []byte(""),
+				v1.TLSPrivateKeyKey: []byte(""),
 			},
 		}
 		// given
@@ -75,14 +71,14 @@ func Test_writeEcosystemCertificateDataStep_PerformSetupStep(t *testing.T) {
 		require.ErrorIs(t, err, assert.AnError)
 	})
 
-	t.Run("fail to create secret for certificate", func(t *testing.T) {
+	t.Run("succeed to create secret for certificate", func(t *testing.T) {
 		certificateSecret := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: certificateSecretName,
 			},
 			Data: map[string][]byte{
-				certificateSecretPublicKey:  []byte(""),
-				certificateSecretPrivateKey: []byte(""),
+				v1.TLSCertKey:       []byte(""),
+				v1.TLSPrivateKeyKey: []byte(""),
 			},
 		}
 		// given
