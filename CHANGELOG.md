@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v4.0.0] - 2025-05-19
 > [!IMPORTANT]
 > Requires at least the version `2.0.0` of the `k8s-service-discovery` to work correctly!
 
