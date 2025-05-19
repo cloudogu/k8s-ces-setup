@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 	componentOpConfig "github.com/cloudogu/k8s-component-operator/pkg/config"
 
 	"k8s.io/client-go/kubernetes/fake"

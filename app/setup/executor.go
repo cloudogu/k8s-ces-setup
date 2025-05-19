@@ -16,10 +16,10 @@ import (
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/component"
-	"github.com/cloudogu/k8s-ces-setup/app/setup/data"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/component"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/setup/data"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -326,10 +326,12 @@ func createResourcePatchStep(phase patch.Phase, patches []patch.ResourcePatch, c
 // RegisterDataSetupSteps adds all setup steps responsible to read, write, or verify data needed by the setup.
 func (e *Executor) RegisterDataSetupSteps(globalConfig *k8sreg.GlobalConfigRepository, doguConfigProvider *k8sreg.DoguConfigRepository) error {
 	configWriter := data.NewRegistryConfigurationWriter(globalConfig, doguConfigProvider)
+	secretClient := e.ClientSet.CoreV1().Secrets(e.SetupContext.AppConfig.TargetNamespace)
 	// register steps
 	e.RegisterSetupSteps(data.NewInstanceSecretValidatorStep(e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteAdminDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteNamingDataStep(configWriter, e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
+	e.RegisterSetupSteps(data.NewWriteEcosystemCertificateDataStep(secretClient, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteRegistryConfigEncryptedStep(e.SetupContext.SetupJsonConfiguration, e.ClientSet, e.SetupContext.AppConfig.TargetNamespace))
 	e.RegisterSetupSteps(data.NewWriteLdapDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))
 	e.RegisterSetupSteps(data.NewWriteRegistryConfigDataStep(configWriter, e.SetupContext.SetupJsonConfiguration))

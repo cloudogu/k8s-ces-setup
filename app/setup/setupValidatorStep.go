@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	cescommons "github.com/cloudogu/ces-commons-lib/dogu"
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
-	"github.com/cloudogu/k8s-ces-setup/app/patch"
-	"github.com/cloudogu/k8s-ces-setup/app/validation"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/patch"
+	"github.com/cloudogu/k8s-ces-setup/v4/app/validation"
 )
 
 type setupValidatorStep struct {
