@@ -3,14 +3,10 @@ package data
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/kubernetes"
 	"strconv"
 
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	controllerruntime "sigs.k8s.io/controller-runtime"
-
-	appcontext "github.com/cloudogu/k8s-ces-setup/app/context"
+	appcontext "github.com/cloudogu/k8s-ces-setup/v4/app/context"
 )
 
 const tlsSecretName = "ecosystem-certificate"
@@ -36,14 +32,12 @@ func (wnds *writeNamingDataStep) GetStepDescription() string {
 func (wnds *writeNamingDataStep) PerformSetupStep(ctx context.Context) error {
 	registryConfig := appcontext.CustomKeyValue{
 		"_global": map[string]interface{}{
-			"fqdn":                   wnds.configuration.Naming.Fqdn,
-			"domain":                 wnds.configuration.Naming.Domain,
-			"certificate/type":       wnds.configuration.Naming.CertificateType,
-			"certificate/server.crt": wnds.configuration.Naming.Certificate,
-			"certificate/server.key": wnds.configuration.Naming.CertificateKey,
-			"mail_address":           wnds.configuration.Naming.MailAddress,
-			"k8s/use_internal_ip":    strconv.FormatBool(wnds.configuration.Naming.UseInternalIp),
-			"k8s/internal_ip":        wnds.configuration.Naming.InternalIp,
+			"fqdn":                wnds.configuration.Naming.Fqdn,
+			"domain":              wnds.configuration.Naming.Domain,
+			"certificate/type":    wnds.configuration.Naming.CertificateType,
+			"mail_address":        wnds.configuration.Naming.MailAddress,
+			"k8s/use_internal_ip": strconv.FormatBool(wnds.configuration.Naming.UseInternalIp),
+			"k8s/internal_ip":     wnds.configuration.Naming.InternalIp,
 		},
 		"postfix": map[string]interface{}{
 			"relayhost": wnds.configuration.Naming.RelayHost,
@@ -53,23 +47,6 @@ func (wnds *writeNamingDataStep) PerformSetupStep(ctx context.Context) error {
 	err := wnds.writer.WriteConfigToRegistry(registryConfig)
 	if err != nil {
 		return fmt.Errorf("failed to write naming data to registry: %w", err)
-	}
-
-	secret := &v1.Secret{
-		ObjectMeta: controllerruntime.ObjectMeta{
-			Name:      tlsSecretName,
-			Namespace: wnds.namespace,
-			Labels:    map[string]string{"app": "ces"},
-		},
-		Data: map[string][]byte{
-			v1.TLSCertKey:       []byte(wnds.configuration.Naming.Certificate),
-			v1.TLSPrivateKeyKey: []byte(wnds.configuration.Naming.CertificateKey),
-		},
-	}
-
-	_, err = wnds.clientSet.CoreV1().Secrets(wnds.namespace).Create(ctx, secret, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to create ecosystem certificate secret: %w", err)
 	}
 
 	return nil
