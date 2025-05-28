@@ -136,7 +136,8 @@ serve-local-yaml:
 
 .PHONY: k8s-clean
 k8s-clean: ## Cleans all resources deployed by the setup
-	@echo "Cleaning in namespace $(NAMESPACE)"
+@if [[ "${RUNTIME_ENV}" == "local" ]]; then \
+	@echo "Cleaning in namespace $(NAMESPACE)" \
 	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
 	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
@@ -156,6 +157,7 @@ k8s-clean: ## Cleans all resources deployed by the setup
 	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv,networkpolicy --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
 	@kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE)
 	@kubectl delete secret --ignore-not-found ecosystem-certificate --namespace=$(NAMESPACE)
+fi
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
