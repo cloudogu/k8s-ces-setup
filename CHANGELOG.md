@@ -7,7 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Fixed
-- make target k8s-clean can only be executed when the RUNTIME_ENV is set to local.
+- Update makefiles to 10.1.1
+  - make target k8s-clean can only be executed when the RUNTIME_ENV is set to local.
 
 ## [v4.0.0] - 2025-05-19
 > [!IMPORTANT]
