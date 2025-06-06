@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Update makefiles to 10.1.1
+  - make target k8s-clean can only be executed when the RUNTIME_ENV is set to local.
 
 ## [v4.0.0] - 2025-05-19
 > [!IMPORTANT]
