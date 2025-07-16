@@ -1,9 +1,9 @@
 # Set these to the desired values
 ARTIFACT_ID=k8s-ces-setup
-VERSION=4.0.0
+VERSION=4.1.0
 
 GOTAG?=1.24.3
-MAKEFILES_VERSION=9.9.1
+MAKEFILES_VERSION=10.1.1
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
@@ -136,26 +136,28 @@ serve-local-yaml:
 
 .PHONY: k8s-clean
 k8s-clean: ## Cleans all resources deployed by the setup
-	@echo "Cleaning in namespace $(NAMESPACE)"
-	@kubectl delete --all dogus --namespace=$(NAMESPACE) || true
-	@kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true
-	@kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true
-	@kubectl delete component k8s-velero --namespace=$(NAMESPACE) || true
-	@for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
+	@if [[ "${RUNTIME_ENV}" == "local" ]]; then \
+		echo "Cleaning in namespace $(NAMESPACE)"; \
+		kubectl delete --all dogus --namespace=$(NAMESPACE) || true; \
+		kubectl delete component k8s-cert-manager --namespace=$(NAMESPACE) || true; \
+		kubectl delete component k8s-cert-manager-crd --namespace=$(NAMESPACE) || true; \
+		kubectl delete component k8s-velero --namespace=$(NAMESPACE) || true; \
+		for cmp in $$(kubectl get component --namespace=$(NAMESPACE) --output=jsonpath="{.items[*].metadata.name}"); do \
 		if [[ $$cmp != *"k8s-longhorn"* ]] && [[ $$cmp != *"k8s-component-operator"* ]] && [[ $$cmp != *"k8s-component-operator-crd"* ]]; then \
-		 kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
-		fi; \
-	done;
-	@kubectl delete component k8s-longhorn --namespace=$(NAMESPACE) || true
-	@kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true
-	@helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true
-	@kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true
-	@kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv,networkpolicy --ignore-not-found -l app=ces --namespace=$(NAMESPACE)
-	@kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE)
-	@kubectl delete secret --ignore-not-found ecosystem-certificate --namespace=$(NAMESPACE)
+				kubectl delete component $${cmp} --namespace=$(NAMESPACE); \
+			fi; \
+		done; \
+		kubectl delete component k8s-longhorn --namespace=$(NAMESPACE) || true; \
+		kubectl patch component k8s-component-operator -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true; \
+		kubectl patch component k8s-component-operator-crd -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true; \
+		helm uninstall k8s-component-operator --namespace=$(NAMESPACE) || true; \
+		helm uninstall k8s-component-operator-crd --namespace=$(NAMESPACE) || true; \
+		kubectl patch cm tcp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true; \
+		kubectl patch cm udp-services -p '{"metadata":{"finalizers":null}}' --type=merge --namespace=$(NAMESPACE) || true; \
+		kubectl delete statefulsets,deploy,secrets,cm,svc,sa,rolebindings,roles,clusterrolebindings,clusterroles,cronjob,pvc,pv,networkpolicy --ignore-not-found -l app=ces --namespace=$(NAMESPACE); \
+		kubectl delete secrets --ignore-not-found -l name=k8s-ces-setup --namespace=$(NAMESPACE); \
+		kubectl delete secret --ignore-not-found ecosystem-certificate --namespace=$(NAMESPACE); \
+	fi
 
 .PHONY: build-setup
 build-setup: ${SRC} compile ## Builds the setup Go binary.
