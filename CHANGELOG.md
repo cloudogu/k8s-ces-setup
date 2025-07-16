@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - Update makefiles to 10.1.1
   - make target k8s-clean can only be executed when the RUNTIME_ENV is set to local.
+### Added
+- [#69] add metadata mapping for logLevel
 
 ## [v4.0.0] - 2025-05-19
 > [!IMPORTANT]
