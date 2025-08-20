@@ -36,6 +36,8 @@ type Naming struct {
 	// InternalIp is useful if an external loadbalancer with its own IP is configured in front of the Cloudogu EcoSystem.
 	// It can be set to let dogus communicate directly within the Cloudogu EcoSystem without the detour over the load balancer.
 	InternalIp string `json:"internalIp"`
+	// Annotations for LoadBalancer Service
+	LoadBalancerAnnotations map[string]string `json:"loadBalancerAnnotations"`
 }
 
 // UserBackend contains configuration for the directory service.

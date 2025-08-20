@@ -32,6 +32,7 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 		assert.NotNil(t, actual)
 		expected := map[string]string{"app": "ces"}
 		assert.Equal(t, expected, actual.ObjectMeta.Labels)
+		assert.Nil(t, actual.Annotations)
 	})
 	t.Run("deletes misconfigured but still existing service and creates a new one", func(t *testing.T) {
 		// given
@@ -106,5 +107,22 @@ func Test_createLoadBalancerStep_PerformSetupStep(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expectedServicePorts, actual.Spec.Ports)
+	})
+	t.Run("creates load-balancer with custom annotations", func(t *testing.T) {
+		// given
+		fakeClient := fake.NewSimpleClientset()
+		providedAnnotations := map[string]string{"metallb.io/loadBalancerIPs": "192.168.1.100"}
+		config := &appctx.SetupJsonConfiguration{Naming: appctx.Naming{Fqdn: "", LoadBalancerAnnotations: providedAnnotations}, Dogus: appctx.Dogus{Install: []string{nginxIngressName}}}
+		sut := NewCreateLoadBalancerStep(config, fakeClient, testNamespace)
+
+		// when
+		err := sut.PerformSetupStep(testCtx)
+
+		// then
+		require.NoError(t, err)
+		actual, err := fakeClient.CoreV1().Services(testNamespace).Get(testCtx, "ces-loadbalancer", metav1.GetOptions{})
+		require.NoError(t, err)
+		assert.NotNil(t, actual)
+		assert.Equal(t, providedAnnotations, actual.Annotations)
 	})
 }

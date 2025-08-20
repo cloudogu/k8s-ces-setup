@@ -61,9 +61,10 @@ func (fcs *createLoadBalancerStep) upsertLoadbalancerService(ctx context.Context
 	ipSingleStackPolicy := corev1.IPFamilyPolicySingleStack
 	serviceResource := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cesLoadbalancerName,
-			Namespace: fcs.namespace,
-			Labels:    map[string]string{"app": "ces"},
+			Name:        cesLoadbalancerName,
+			Namespace:   fcs.namespace,
+			Labels:      map[string]string{"app": "ces"},
+			Annotations: fcs.config.Naming.LoadBalancerAnnotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Type:           corev1.ServiceTypeLoadBalancer,
