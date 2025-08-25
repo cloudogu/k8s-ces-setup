@@ -129,7 +129,7 @@ spec:
           {{- end }}
           containers:
             - name: kubectl-container
-              image: {{ or .Values.kubectl_image "bitnami/kubectl:1.27.4"}}
+              image: {{ or .Values.kubectl_image "bitnamilegacy/kubectl:1.33.4"}}
               command:
                 - /bin/entrypoint.sh
               volumeMounts:
