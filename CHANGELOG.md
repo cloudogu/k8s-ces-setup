@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#147] Switch bitnami images to bitnamilegacy
+- [#147] upgrade kubectl image to 1.33.4
 
 ## [v4.1.0] - 2025-07-16
 ### Fixed
