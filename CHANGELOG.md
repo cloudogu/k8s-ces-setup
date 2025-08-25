@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v4.1.1] - 2025-08-25
+### Changed
+- [#147] Switch bitnami images to bitnamilegacy
+- [#147] upgrade kubectl image to 1.33.4
+
 ## [v4.1.0] - 2025-07-16
 ### Fixed
 - Update makefiles to 10.1.1
