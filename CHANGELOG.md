@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- [#149] Pin component versions to avoid breaking changes from the new "[setup](https://github.com/cloudogu/ecosystem-core)"
+
 ## [v4.1.1] - 2025-08-25
 ### Changed
 - [#147] Switch bitnami images to bitnamilegacy
