@@ -23,7 +23,7 @@ Create a File dogu.yaml for the Dogu-CR:
         app: ces
     spec:
       name: official/jenkins
-      version: 2.387.1-2
+      version: 2.516.2-1
 
 and apply it to the cluster: kubectl apply -f dogu.yaml --namespace={{ .Release.Namespace }}
 {{- printf "\n" }}
