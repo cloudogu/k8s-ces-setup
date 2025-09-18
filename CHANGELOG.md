@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v4.2.0] - 2025-09-18
 ### Changed
 - [#149] Pin component versions to avoid breaking changes from the new "[setup](https://github.com/cloudogu/ecosystem-core)"
 
