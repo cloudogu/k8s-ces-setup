@@ -15,7 +15,7 @@ If the setup throws errors because e.g. invalid credentials you have to delete t
 To install more Dogus after the setup is done:
 
 Create a File dogu.yaml for the Dogu-CR:
-    apiVersion: k8s.cloudogu.com/v1
+    apiVersion: k8s.cloudogu.com/v2
     kind: Dogu
     metadata:
       name: jenkins
