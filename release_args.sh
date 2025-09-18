@@ -10,13 +10,13 @@ patchTplYaml=k8s/helm/component-patch-tpl.yaml
 update_versions_modify_files() {
   newReleaseVersion="${1}"
 
-  yq -i ".setup.image.tag=\"${newReleaseVersion}\"" "${valuesYaml}"
+  ./.bin/yq -i ".setup.image.tag=\"${newReleaseVersion}\"" "${valuesYaml}"
 
   setupImage="cloudogu/k8s-ces-setup:${newReleaseVersion}"
-  yq -i ".values.images.k8sCesSetup=\"${setupImage}\"" "${patchTplYaml}"
+  ./.bin/yq -i ".values.images.k8sCesSetup=\"${setupImage}\"" "${patchTplYaml}"
 
-  kubectlImage=$(yq ".kubectl_image" "${valuesYaml}")
-  yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
+  kubectlImage=$(./.bin/yq ".kubectl_image" "${valuesYaml}")
+  ./.bin/yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
 }
 
 update_versions_stage_modified_files() {

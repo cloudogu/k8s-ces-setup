@@ -101,13 +101,13 @@ node('docker') {
                 k3d.assignExternalIP()
                 k3d.configureSetupJson()
                 k3d.configureSetupImage(cessetupImageName)
-                k3d.configureComponents(["k8s-dogu-operator"    : ["version": "latest", "helmRepositoryNamespace": "k8s"],
-                                         "k8s-dogu-operator-crd": ["version": "latest", "helmRepositoryNamespace": "k8s"],
+                k3d.configureComponents(["k8s-dogu-operator"    : ["version": "3.11.2", "helmRepositoryNamespace": "k8s"],
+                                         "k8s-dogu-operator-crd": ["version": "2.9.0", "helmRepositoryNamespace": "k8s"],
                                          // TODO Delete blueprint-operator and crd null values if the component runs in multinode.
                                          "k8s-blueprint-operator": null,
                                          "k8s-blueprint-operator-crd": null,
                 ])
-                k3d.configureComponentOperatorVersion("latest")
+                k3d.configureComponentOperatorVersion("1.10.0")
             }
 
             stage('Install and trigger setup') {
