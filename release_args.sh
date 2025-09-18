@@ -15,7 +15,7 @@ update_versions_modify_files() {
   setupImage="cloudogu/k8s-ces-setup:${newReleaseVersion}"
   ./.bin/yq -i ".values.images.k8sCesSetup=\"${setupImage}\"" "${patchTplYaml}"
 
-  kubectlImage=$(yq ".kubectl_image" "${valuesYaml}")
+  kubectlImage=$(./.bin/yq ".kubectl_image" "${valuesYaml}")
   ./.bin/yq -i ".values.images.kubectl=\"${kubectlImage}\"" "${patchTplYaml}"
 }
 
